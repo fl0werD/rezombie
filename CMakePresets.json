@@ -1,0 +1,282 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 23
+  },
+  "configurePresets": [
+    {
+      "hidden": true,
+      "name": "base",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "warnings": {
+        "deprecated": true,
+        "dev": true,
+        "systemVars": true,
+        "uninitialized": false,
+        "unusedCli": false
+      },
+      "architecture": {
+        "value": "x86",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS": "OFF",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "DEFAULT_OUTPUT_DIR": "C:/Program Files (x86)/Steam/steamapps/common/Half-Life/cstrike/addons/amxmodx/modules"
+      }
+    },
+    {
+      "hidden": true,
+      "name": "windows",
+      "inherits": [ "base" ],
+      "cacheVariables": {
+        "CMAKE_C_SIMULATE_ID": "MSVC",
+        "CMAKE_CXX_SIMULATE_ID": "MSVC"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "hostOS": "Windows"
+        }
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "hidden": true,
+      "name": "x86-windows-msvc",
+      "inherits": [ "windows" ],
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl",
+        "CMAKE_CXX_COMPILER": "cl"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "inheritEnvironments": "msvc_x86_x64",
+          "intelliSenseMode": "windows-msvc-x86"
+        }
+      }
+    },
+    {
+      "displayName": "MSVC Debug",
+      "name": "x86-windows-msvc-debug",
+      "inherits": [ "x86-windows-msvc" ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "displayName": "MSVC Release",
+      "name": "x86-windows-msvc-release",
+      "inherits": [ "x86-windows-msvc" ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "displayName": "MSVC RelWithDebInfo",
+      "name": "x86-windows-msvc-relwithdebinfo",
+      "inherits": [ "x86-windows-msvc" ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
+      "hidden": true,
+      "name": "x86-windows-clang",
+      "inherits": [ "windows" ],
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang-cl",
+        "CMAKE_CXX_COMPILER": "clang-cl",
+        "CMAKE_C_COMPILER_TARGET": "i386-pc-windows-msvc",
+        "CMAKE_CXX_COMPILER_TARGET": "i386-pc-windows-msvc"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "inheritEnvironments": [ "msvc_x86_x64", "clang_cl_x86" ],
+          "intelliSenseMode": "windows-clang-x86"
+        }
+      }
+    },
+    {
+      "displayName": "Clang Debug",
+      "name": "x86-windows-clang-debug",
+      "inherits": [ "x86-windows-clang" ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "displayName": "Clang Release",
+      "name": "x86-windows-clang-release",
+      "inherits": [ "x86-windows-clang" ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "displayName": "Clang RelWithDebInfo",
+      "name": "x86-windows-clang-relwithdebinfo",
+      "inherits": [ "x86-windows-clang" ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
+      "hidden": true,
+      "name": "linux",
+      "inherits": [ "base" ],
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "hostOS": "Linux"
+        },
+        "microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {
+          "copySources": true,
+          "copyBuildOutput": true,
+          "sourceDir": "$env{HOME}/.vs/$ms{projectDirName}",
+          "copySourcesOptions": {
+            "exclusionList": [ ".git", ".vs", "bin", "build", "out" ]
+          }
+        }
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "hidden": true,
+      "name": "x86-linux-gcc",
+      "inherits": [ "linux" ],
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "gcc",
+        "CMAKE_CXX_COMPILER": "g++"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "inheritEnvironments": "linux_x86",
+          "intelliSenseMode": "linux-gcc-x86"
+        }
+      }
+    },
+    {
+      "displayName": "GCC Debug",
+      "name": "x86-linux-gcc-debug",
+      "inherits": [ "x86-linux-gcc" ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "displayName": "GCC Release",
+      "name": "x86-linux-gcc-release",
+      "inherits": [ "x86-linux-gcc" ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "displayName": "GCC RelWithDebInfo",
+      "name": "x86-linux-gcc-relwithdebinfo",
+      "inherits": [ "x86-linux-gcc" ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "verbose": false
+    },
+    {
+      "name": "windows",
+      "inherits": [ "base" ],
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "displayName": "MSVC Debug",
+      "name": "x86-windows-msvc-debug",
+      "configurePreset": "x86-windows-msvc-debug",
+      "configuration": "Debug",
+      "inherits": [ "windows" ]
+    },
+    {
+      "displayName": "MSVC Release",
+      "name": "x86-windows-msvc-release",
+      "configurePreset": "x86-windows-msvc-release",
+      "configuration": "Release",
+      "inherits": [ "windows" ]
+    },
+    {
+      "displayName": "MSVC RelWithDebInfo",
+      "name": "x86-windows-msvc-relwithdebinfo",
+      "configurePreset": "x86-windows-msvc-relwithdebinfo",
+      "configuration": "RelWithDebInfo",
+      "inherits": [ "windows" ]
+    },
+    {
+      "displayName": "Clang Debug",
+      "name": "x86-windows-clang-debug",
+      "configurePreset": "x86-windows-clang-debug",
+      "configuration": "Debug",
+      "inherits": [ "windows" ]
+    },
+    {
+      "displayName": "Clang Release",
+      "name": "x86-windows-clang-release",
+      "configurePreset": "x86-windows-clang-release",
+      "configuration": "Release",
+      "inherits": [ "windows" ]
+    },
+    {
+      "displayName": "Clang RelWithDebInfo",
+      "name": "x86-windows-clang-relwithdebinfo",
+      "configurePreset": "x86-windows-clang-relwithdebinfo",
+      "configuration": "RelWithDebInfo",
+      "inherits": [ "windows" ]
+    },
+    {
+      "name": "linux",
+      "inherits": [ "base" ],
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "displayName": "GCC Debug",
+      "name": "x86-linux-gcc-debug",
+      "configurePreset": "x86-linux-gcc-debug",
+      "configuration": "Debug",
+      "inherits": [ "linux" ]
+    },
+    {
+      "displayName": "GCC Release",
+      "name": "x86-linux-gcc-release",
+      "configurePreset": "x86-linux-gcc-release",
+      "configuration": "Release",
+      "inherits": [ "linux" ]
+    },
+    {
+      "displayName": "GCC RelWithDebInfo",
+      "name": "x86-linux-gcc-relwithdebinfo",
+      "configurePreset": "x86-linux-gcc-relwithdebinfo",
+      "configuration": "RelWithDebInfo",
+      "inherits": [ "linux" ]
+    }
+  ]
+}
