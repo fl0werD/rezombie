@@ -3,14 +3,11 @@
 #include "rezombie/player/players.h"
 #include <amxx/api.h>
 
-namespace rz
-{
+namespace rz {
     using namespace amxx;
 
-    auto AMX_NATIVE_CALL rz_add_player_model(Amx* amx, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_add_player_model(Amx* amx, cell* params) -> cell {
+        enum {
             arg_count,
             arg_model,
             arg_path,             // file_path, model_path ?
@@ -32,12 +29,11 @@ namespace rz
         return true;
     }
 
-    auto AmxxPlayerModel::RegisterNatives() -> void
-    {
+    auto AmxxPlayerModel::RegisterNatives() -> void {
         static AmxNativeInfo natives[] = {
-          {"rz_add_player_model", rz_add_player_model},
+            {"rz_add_player_model", rz_add_player_model},
 
-          {nullptr,               nullptr            },
+            {nullptr,               nullptr},
         };
         AddNatives(natives);
     }

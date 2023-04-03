@@ -18,7 +18,7 @@ namespace rz
     class Module : public BaseModule
     {
       private:
-        std::vector<T> data_;
+        std::vector<T*> data_;
         int offset_ = -1;
 
       public:
@@ -26,13 +26,21 @@ namespace rz
         {
             // check module already exists
             int index = ModulesStore::add(this);
-            offset_ = (index + 1) * 1000;
+            setOffset((index + 1) * 1000);
         }
 
-        auto add(T&& item) -> int
+        auto add(T* item) -> int
         {
-            data_.push_back(std::forward<T>(item));
-            return ((static_cast<int>(data_.size()) - 1) + offset_);
+            data_.push_back(item);
+            return (data_.size() - 1) + getOffset();
+        }
+
+        auto getOffset() const -> int {
+            return offset_;
+        }
+
+        auto setOffset(int offset) -> void {
+            offset_ = offset;
         }
 
         template <typename F>
@@ -42,16 +50,16 @@ namespace rz
             if (it == data_.end()) {
                 return 0;
             }
-            return std::distance(data_.cbegin(), it) + offset_;
+            return std::distance(data_.cbegin(), it) + getOffset();
         }
 
         auto findHandle(const std::string& handle) -> int
         {
             constexpr auto byHandle = +[](const std::string& handle)
             {
-                return [&handle](const T& item)
+                return [&handle](const T* item)
                 {
-                    return item.getHandle() == handle;
+                    return item->getHandle() == handle;
                 };
             };
             return find(byHandle(handle));
@@ -74,12 +82,12 @@ namespace rz
 
         auto begin() const
         {
-            return offset_;
+            return getOffset();
         }
 
         auto end() const
         {
-            return offset_ + data_.size();
+            return getOffset() + data_.size();
         }
 
         template <typename F>
@@ -92,7 +100,7 @@ namespace rz
         {
             const auto count = static_cast<int>(data_.size());
             for (auto index = 0; index < count; ++index) {
-                action(index + offset_, data_[index]);
+                action(index + getOffset(), *data_[index]);
             }
         }
 
@@ -112,16 +120,16 @@ namespace rz
             return PrecacheGeneric(path.c_str());
         }
 
-        auto operator[](int offsettedIndex) -> std::optional<std::reference_wrapper<T>>
+        auto operator[](int indexOffset) -> std::optional<std::reference_wrapper<T>>
         {
-            if (offset_ == -1) {
+            if (getOffset() == -1) {
                 return std::nullopt;
             }
-            int index = offsettedIndex - offset_;
+            const auto index = indexOffset - getOffset();
             if (index < 0 || index >= static_cast<int>(data_.size())) {
                 return std::nullopt;
             }
-            return {data_[index]};
+            return {*data_[index]};
         }
 
         auto operator[](const std::string& handle) -> int

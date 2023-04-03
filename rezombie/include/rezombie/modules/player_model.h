@@ -11,38 +11,26 @@ namespace rz
     using namespace core;
     using namespace metamod::engine;
 
-    class PlayerModelModule : public Module<PlayerModel>
-    {
+    class PlayerModelModule : public Module<PlayerModel> {
       public:
-        PlayerModelModule() : Module<PlayerModel>("player_model")
-        {
+        PlayerModelModule() : Module<PlayerModel>("player_model") {}
+
+        auto add(std::string handle) -> int {
+            return Module::add(new PlayerModel(std::move(handle)));
         }
 
-        auto add(std::string handle) -> int
-        {
-            return Module::add(PlayerModel(std::move(handle)));
-        }
-
-        auto precache() -> void override
-        {
-            forEach(
-              [](auto& item)
-              {
-                  item.forEachModel(
-                    [](auto& model)
-                    {
-                        int modelIndex = precachePlayerModelIfNotEmpty(model.getPath());
-                        if (modelIndex != -1) {
-                            model.setModelIndex(modelIndex);
-                        }
+        auto precache() -> void override {
+            forEach([](auto& item) {
+                item->forEachModel([](auto& model) {
+                    int modelIndex = precachePlayerModelIfNotEmpty(model.getPath());
+                    if (modelIndex != -1) {
+                        model.setModelIndex(modelIndex);
                     }
-                  );
-              }
-            );
+                });
+            });
         }
 
-        static auto precachePlayerModelIfNotEmpty(const std::string& modelPath) -> int
-        {
+        static auto precachePlayerModelIfNotEmpty(const std::string& modelPath) -> int {
             if (modelPath.empty()) {
                 return -1;
             }

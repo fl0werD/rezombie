@@ -8,25 +8,18 @@ namespace rz
 {
     using namespace player;
 
-    class PlayerClassModule : public Module<PlayerClass>
-    {
+    class PlayerClassModule : public Module<PlayerClass> {
       public:
-        PlayerClassModule() : Module<PlayerClass>("player_class")
-        {
+        PlayerClassModule() : Module<PlayerClass>("player_class") {}
+
+        auto add(std::string handle, Team team) -> int {
+            return Module::add(new PlayerClass(std::move(handle), team));
         }
 
-        auto add(std::string handle, Team team) -> int
-        {
-            return Module::add(PlayerClass(std::move(handle), team));
-        }
-
-        auto precache() -> void override
-        {
-            constexpr auto byTeam = +[](Team team)
-            {
-                return [team](const PlayerClass& item)
-                {
-                    return item.getTeam() == team;
+        auto precache() -> void override {
+            constexpr auto byTeam = +[](Team team) {
+                return [team](const PlayerClass* item) {
+                    return item->getTeam() == team;
                 };
             };
             gameRules->setDefaultPlayerClass(Team::Human, find(byTeam(Team::Human)));

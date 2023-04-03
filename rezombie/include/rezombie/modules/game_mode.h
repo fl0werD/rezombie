@@ -5,16 +5,12 @@
 
 namespace rz
 {
-    class GameModeModule : public Module<GameMode>
-    {
+    class GameModeModule : public Module<GameMode> {
       public:
-        GameModeModule() : Module<GameMode>("gamemode")
-        {
-        }
+        GameModeModule() : Module<GameMode>("gamemode") {}
 
-        auto add(std::string handle) -> int
-        {
-            return Module::add(GameMode(std::move(handle)));
+        auto add(std::string handle) -> int {
+            return Module::add(new GameMode(std::move(handle)));
         }
     };
 

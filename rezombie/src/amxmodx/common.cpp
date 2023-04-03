@@ -86,19 +86,21 @@ namespace rz {
         const auto value = Address(amx, params[arg_dhud_params]);
         // const auto text = GetAmxString(amx, params[arg_text]);
         const auto text = FormatAmxString(amx, params, arg_text, &length);
-        const auto& dHudParams =
-            DHudMessageParams()
-                .setX(CellToFloat(value[toInt(RzDHudParams::X)]))
-                .setY(CellToFloat(value[toInt(RzDHudParams::Y)]))
-                .setEffect(value[toInt(RzDHudParams::Effect)])
-                .setColor(
-                    {toUChar(value[toInt(RzDHudParams::ColorRed)]), toUChar(value[toInt(RzDHudParams::ColorGreen)]),
-                     toUChar(value[toInt(RzDHudParams::ColorBlue)])}
-                )
-                .setFadeInTime(CellToFloat(value[toInt(RzDHudParams::FadeInTime)]))
-                .setFadeOutTime(CellToFloat(value[toInt(RzDHudParams::FadeOutTime)]))
-                .setHoldTime(CellToFloat(value[toInt(RzDHudParams::HoldTime)]))
-                .setFxTime(CellToFloat(value[toInt(RzDHudParams::FxTime)]));
+        const auto& dHudParams = DHudMessageParams()
+            .setX(CellToFloat(value[toInt(RzDHudParams::X)]))
+            .setY(CellToFloat(value[toInt(RzDHudParams::Y)]))
+            .setEffect(value[toInt(RzDHudParams::Effect)])
+            .setColor(
+                {
+                    toUChar(value[toInt(RzDHudParams::ColorRed)]),
+                    toUChar(value[toInt(RzDHudParams::ColorGreen)]),
+                    toUChar(value[toInt(RzDHudParams::ColorBlue)])
+                }
+            )
+            .setFadeInTime(CellToFloat(value[toInt(RzDHudParams::FadeInTime)]))
+            .setFadeOutTime(CellToFloat(value[toInt(RzDHudParams::FadeOutTime)]))
+            .setHoldTime(CellToFloat(value[toInt(RzDHudParams::HoldTime)]))
+            .setFxTime(CellToFloat(value[toInt(RzDHudParams::FxTime)]));
         if (playerIndex) {
             auto& player = players[playerIndex];
             netDHudMessage(player, dHudParams, text);

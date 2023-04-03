@@ -7,24 +7,15 @@
 
 namespace rz::player
 {
-    class PlayerNightVision : public BaseObject
-    {
+    class PlayerNightVision : public BaseObject {
       private:
         Color24 color_ = {255, 255, 255};
 
       public:
-        PlayerNightVision(std::string handle) : BaseObject(std::move(handle))
-        {
-        }
+        PlayerNightVision(std::string handle) : BaseObject(std::move(handle)) {}
 
-        auto getColor() const -> const Color24&
-        {
-            return color_;
-        }
+        auto getColor() const -> const Color24& { return color_; }
 
-        auto setColor(Color24 color) -> void
-        {
-            color_ = std::move(color);
-        }
+        auto setColor(Color24 color) -> void { color_ = std::move(color); }
     };
 }

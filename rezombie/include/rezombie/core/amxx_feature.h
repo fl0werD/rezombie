@@ -6,20 +6,17 @@
 
 namespace rz
 {
-    enum DummyForward
-    {
+    enum DummyForward {
         Zero
     };
 
-    template <class E = DummyForward, E MAX_FORWARDS = DummyForward::Zero>
-    class AmxxFeature : public AmxxBaseFeature
-    {
+    template<class E = DummyForward, E MAX_FORWARDS = DummyForward::Zero>
+    class AmxxFeature : public AmxxBaseFeature {
       private:
         std::array<int, static_cast<size_t>(MAX_FORWARDS)> forwards_;
 
       public:
-        explicit AmxxFeature(std::string handle) : AmxxBaseFeature(std::move(handle))
-        {
+        explicit AmxxFeature(std::string handle) : AmxxBaseFeature(std::move(handle)) {
             forwards_.fill(FORWARD_INVALID);
         }
 
@@ -31,13 +28,11 @@ namespace rz
             // To be implemented
         }
 
-        auto getForward(E forward) const -> int
-        {
+        auto getForward(E forward) const -> int {
             return forwards_[toInt(forward)];
         }
 
-        auto setForward(E forward, int forwardIndex) -> void
-        {
+        auto setForward(E forward, int forwardIndex) -> void {
             forwards_[toInt(forward)] = forwardIndex;
         }
     };

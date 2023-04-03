@@ -5,16 +5,12 @@
 
 namespace rz::player
 {
-    class PlayerSoundModule : public Module<PlayerSound>
-    {
+    class PlayerSoundModule : public Module<PlayerSound> {
       public:
-        PlayerSoundModule() : Module<PlayerSound>("player_sound")
-        {
-        }
+        PlayerSoundModule() : Module<PlayerSound>("player_sound") {}
 
-        auto add(std::string handle) -> int
-        {
-            return Module::add(PlayerSound(std::move(handle)));
+        auto add(std::string handle) -> int {
+            return Module::add(new PlayerSound(std::move(handle)));
         }
     };
 

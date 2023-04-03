@@ -1,9 +1,10 @@
 #pragma once
 
-namespace rz
-{
-    enum class WeaponVars : int
-    {
+#include "rezombie/core/amxx_feature.h"
+#include <array>
+
+namespace rz {
+    enum class WeaponVars : int {
         Handle,
         Name,
         ViewModel,
@@ -27,5 +28,12 @@ namespace rz
         ForwardFireRemaining,
     };
 
-    auto RegisterWeaponNatives() -> void;
+    class AmxxWeapon : public AmxxFeature<> {
+      public:
+        AmxxWeapon() : AmxxFeature("weapon") {}
+
+        auto RegisterNatives() -> void override;
+    };
+
+    inline AmxxWeapon amxxWeapon;
 }

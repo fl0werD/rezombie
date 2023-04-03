@@ -6,6 +6,7 @@
 #include "rezombie/modules/player_nightvision.h"
 #include "rezombie/modules/player_props.h"
 #include "rezombie/modules/player_sound.h"
+#include "rezombie/modules/weapon.h"
 #include "rezombie/player/player_class.h"
 #include <cssdk/dll/player.h>
 
@@ -17,7 +18,7 @@ namespace rz::player
     {
       private:
         int classIndex_ = 0;
-        std::string description_ = "";
+        std::string description_;
         Color24 hudColor_ = {255, 255, 255};
         int propsIndex_ = 0;
         int modelIndex_ = 0;
@@ -31,7 +32,7 @@ namespace rz::player
             setProps(playerPropsModule.add(handle));
             setModel(playerModelModule.add(handle));
             setSound(playerSoundModule.add(handle));
-            setMelee(meleeModule.add(handle));
+            setMelee(weaponModule.add(handle, WeaponType::Melee));
             setNightVision(playerNightVisionModule.add(handle));
         }
 
@@ -57,7 +58,7 @@ namespace rz::player
 
         auto setHudColor(Color24 hudColor) -> void
         {
-            hudColor_ = std::move(hudColor);
+            hudColor_ = hudColor;
         }
 
         auto getProps() const

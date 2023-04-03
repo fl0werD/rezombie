@@ -165,7 +165,6 @@ namespace rz::weapon
         if (!weaponRef) {
             return updateClientData.Call<qboolean>(this, basePlayer);
         }
-        auto& weapon = weaponRef->get();
         const auto& player = players[basePlayer];
         bool send = false;
         int state = 0;

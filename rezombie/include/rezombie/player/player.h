@@ -6,9 +6,11 @@
 #include "rezombie/player/player_preview.h"
 #include "rezombie/player/player_vars.h"
 #include "rezombie/weapons/weapons.h"
+#include "rezombie/core/base_weapon.h"
 #include <cssdk/engine/eiface.h>
 #include <cssdk/public/regamedll/cs_player.h>
 #include <cssdk/public/utils.h>
+#include <optional>
 
 namespace rz::player
 {
@@ -22,8 +24,7 @@ namespace rz::player
 
     auto RegisterHooks() -> void;
 
-    class Player
-    {
+    class Player {
       private:
         Edict* edict_ = nullptr;
         EntityVars* vars_ = nullptr;
@@ -45,13 +46,11 @@ namespace rz::player
         auto ResetLongJump() -> void;
         auto disconnect() -> void;
 
-        auto isValid() const
-        {
+        auto isValid() const {
             return (IsValidEntity(edict_) && vars_ != nullptr && base_ != nullptr && cstrike_ != nullptr);
         }
 
-        auto id() const
-        {
+        auto id() const {
             return base_->EdictIndex();
         }
 
@@ -60,8 +59,7 @@ namespace rz::player
         //     return vars_;
         // }
 
-        auto getEdict() const
-        {
+        auto getEdict() const {
             return edict_;
         }
 
@@ -85,7 +83,9 @@ namespace rz::player
         auto ChangeModel(int modelIndex) -> bool;
 
         auto GiveWeapon(int weaponIndex, GiveType giveType = GiveType::Append) -> EntityBase*;
-        auto GiveMelee(int meleeIndex) -> EntityBase*;
+        auto DropOrReplace(InventorySlot slot, GiveType giveType) -> void;
+        auto CreateBaseWeapon(int weaponIndex, const BaseWeapon& weapon) -> EntityBase*;
+        auto GetFreeWeaponId(CrosshairSize crosshairSize) const -> std::optional<std::reference_wrapper<const WeaponId>>;
         auto SendWeaponAnim(int animNumber, int body = 0) -> void;
         auto ResetFovZoom() -> void;
 
@@ -101,15 +101,13 @@ namespace rz::player
         auto LongJump() -> void;
         auto LongJumpCooldown() -> void;
 
-        auto isPlayableTeam() const
-        {
+        auto isPlayableTeam() const {
             const auto team = getTeam();
             return (team == Team::Human || team == Team::Zombie);
         }
 
-        template <typename T = PlayerItemBase, typename F>
-        T* forEachItem(InventorySlot slot, const F& func)
-        {
+        template<typename T = PlayerItemBase, typename F>
+        T* forEachItem(InventorySlot slot, const F& func) {
             auto item = base_->player_items[toInt(slot)];
             while (item != nullptr) {
                 auto next = item->next;
@@ -121,13 +119,11 @@ namespace rz::player
             return nullptr;
         }
 
-        operator Edict*() const
-        {
+        operator Edict*() const {
             return edict_;
         }
 
-        operator PlayerBase*() const
-        {
+        operator PlayerBase*() const {
             return base_;
         }
 
@@ -288,17 +284,17 @@ namespace rz::player
     };
 
     auto WeaponDefaultDeploy(Player& player, PlayerWeaponBase* baseWeapon, int drawAnim, const char* playerAnim)
-      -> bool;
+    -> bool;
     auto WeaponDefaultReload(Player& player, PlayerWeaponBase* baseWeapon, int reloadAnim, float reloadTime) -> bool;
     auto WeaponDefaultShotgunReload(
-      Player& player, PlayerWeaponBase* baseWeapon, int reloadAnim, int reloadStartAnim, float reloadDelay,
-      float reloadStartDelay, const char* reloadSound1, const char* reloadSound2
+        Player& player, PlayerWeaponBase* baseWeapon, int reloadAnim, int reloadStartAnim, float reloadDelay,
+        float reloadStartDelay, const char* reloadSound1, const char* reloadSound2
     ) -> bool;
     auto WeaponKickBack(
-      Player& player, PlayerWeaponBase* baseWeapon, float upBase, float lateralBase, float upModifier,
-      float lateralModifier, float upMax, float lateralMax, int directionChange
+        Player& player, PlayerWeaponBase* baseWeapon, float upBase, float lateralBase, float upModifier,
+        float lateralModifier, float upMax, float lateralMax, int directionChange
     ) -> void;
     auto WeaponThrowGrenade(
-      Player& player, PlayerWeaponBase* baseWeapon, const Vector& origin, const Vector& velocity, float actionTime
+        Player& player, PlayerWeaponBase* baseWeapon, const Vector& origin, const Vector& velocity, float actionTime
     ) -> cssdk::Grenade*;
 }

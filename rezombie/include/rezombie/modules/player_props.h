@@ -7,16 +7,12 @@ namespace rz
 {
     using namespace player;
 
-    class PlayerPropsModule : public Module<PlayerProps>
-    {
+    class PlayerPropsModule : public Module<PlayerProps> {
       public:
-        PlayerPropsModule() : Module<PlayerProps>("player_props")
-        {
-        }
+        PlayerPropsModule() : Module<PlayerProps>("player_props") {}
 
-        auto add(std::string handle) -> int
-        {
-            return Module::add(PlayerProps(std::move(handle)));
+        auto add(std::string handle) -> int {
+            return Module::add(new PlayerProps(std::move(handle)));
         }
     };
 

@@ -3,12 +3,13 @@
 #include "rezombie/core/base_object.h"
 #include <cssdk/public/regamedll/regamedll_consts.h>
 
+#include <utility>
+
 namespace rz::player
 {
     using namespace cssdk;
 
-    class PlayerProps : public BaseObject
-    {
+    class PlayerProps : public BaseObject {
       private:
         int health_ = 100;
         int baseHealth_ = 0;
@@ -28,138 +29,58 @@ namespace rz::player
         RenderingFx renderFx_ = RenderingFx::None;
 
       public:
-        PlayerProps(std::string handle) : BaseObject(handle)
-        {
-        }
+        PlayerProps(std::string handle) : BaseObject(std::move(handle)) {}
 
-        auto getHealth() const
-        {
-            return health_;
-        }
+        auto getHealth() const { return health_; }
 
-        auto setHealth(int health) -> void
-        {
-            health_ = health;
-        }
+        auto setHealth(int health) -> void { health_ = health; }
 
-        auto getBaseHealth() const
-        {
-            return baseHealth_;
-        }
+        auto getBaseHealth() const { return baseHealth_; }
 
-        auto setBaseHealth(int baseHealth) -> void
-        {
-            baseHealth_ = baseHealth;
-        }
+        auto setBaseHealth(int baseHealth) -> void { baseHealth_ = baseHealth; }
 
-        auto getSpeed() const
-        {
-            return speed_;
-        }
+        auto getSpeed() const { return speed_; }
 
-        auto setSpeed(int speed) -> void
-        {
-            speed_ = speed;
-        }
+        auto setSpeed(int speed) -> void { speed_ = speed; }
 
-        auto getGravity() const
-        {
-            return gravity_;
-        }
+        auto getGravity() const { return gravity_; }
 
-        auto setGravity(float gravity) -> void
-        {
-            gravity_ = gravity;
-        }
+        auto setGravity(float gravity) -> void { gravity_ = gravity; }
 
-        auto getArmor() const
-        {
-            return armor_;
-        }
+        auto getArmor() const { return armor_; }
 
-        auto setArmor(int armor) -> void
-        {
-            armor_ = armor;
-        }
+        auto setArmor(int armor) -> void { armor_ = armor; }
 
-        auto getHelmet() const
-        {
-            return helmet_;
-        }
+        auto getHelmet() const { return helmet_; }
 
-        auto setHelmet(bool helmet) -> void
-        {
-            helmet_ = helmet;
-        }
+        auto setHelmet(bool helmet) -> void { helmet_ = helmet; }
 
-        auto getFootSteps() const
-        {
-            return footSteps_;
-        }
+        auto getFootSteps() const { return footSteps_; }
 
-        auto setFootSteps(int footSteps) -> void
-        {
-            footSteps_ = footSteps;
-        }
+        auto setFootSteps(int footSteps) -> void { footSteps_ = footSteps; }
 
-        auto getWeaponsInteraction() const
-        {
-            return weaponsInteraction_;
-        }
+        auto getWeaponsInteraction() const { return weaponsInteraction_; }
 
-        auto setWeaponsInteraction(int weaponsInteraction) -> void
-        {
-            weaponsInteraction_ = weaponsInteraction;
-        }
+        auto setWeaponsInteraction(int weaponsInteraction) -> void { weaponsInteraction_ = weaponsInteraction; }
 
-        auto getBloodColor() const
-        {
-            return bloodColor_;
-        }
+        auto getBloodColor() const { return bloodColor_; }
 
-        auto setBloodColor(byte bloodColor) -> void
-        {
-            bloodColor_ = bloodColor;
-        }
+        auto setBloodColor(byte bloodColor) -> void { bloodColor_ = bloodColor; }
 
-        auto getRenderMode() const
-        {
-            return renderMode_;
-        }
+        auto getRenderMode() const { return renderMode_; }
 
-        auto setRenderMode(Rendering renderMode) -> void
-        {
-            renderMode_ = renderMode;
-        }
+        auto setRenderMode(Rendering renderMode) -> void { renderMode_ = renderMode; }
 
-        auto getRenderAmount() const
-        {
-            return renderAmount_;
-        }
+        auto getRenderAmount() const { return renderAmount_; }
 
-        auto setRenderAmount(int amount) -> void
-        {
-            renderAmount_ = amount;
-        }
+        auto setRenderAmount(int amount) -> void { renderAmount_ = amount; }
 
-        auto getRenderColor() const -> const Color24&
-        {
-            return renderColor_;
-        }
+        auto getRenderColor() const -> const Color24& { return renderColor_; }
 
-        auto setRenderColor(const Color24& color) -> void
-        {
-            renderColor_ = std::move(color);
-        }
+        auto setRenderColor(const Color24& color) -> void { renderColor_ = color; }
 
-        auto getRenderFx() const
-        {
-            return renderFx_;
-        }
+        auto getRenderFx() const { return renderFx_; }
 
-        auto setRenderFx(RenderingFx fx) -> void
-        {
-            renderFx_ = fx;
-        }
+        auto setRenderFx(RenderingFx fx) -> void { renderFx_ = fx; }
     };
 }

@@ -5,16 +5,12 @@
 
 namespace rz
 {
-    class PlayerSubclassModule : public Module<PlayerSubclass>
-    {
+    class PlayerSubclassModule : public Module<PlayerSubclass> {
       public:
-        PlayerSubclassModule() : Module<PlayerSubclass>("player_subclass")
-        {
-        }
+        PlayerSubclassModule() : Module<PlayerSubclass>("player_subclass") {}
 
-        auto add(std::string handle, int classIndex) -> int
-        {
-            return Module::add(PlayerSubclass(std::move(handle), classIndex));
+        auto add(std::string handle, int classIndex) -> int {
+            return Module::add(new PlayerSubclass(std::move(handle), classIndex));
         }
     };
 

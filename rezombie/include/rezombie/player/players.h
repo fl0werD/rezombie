@@ -11,46 +11,26 @@ namespace rz::player
     using namespace cssdk;
     using namespace core::type_conversion;
 
-    class Players
-    {
+    class Players {
       private:
         Player players_[MAX_CLIENTS];
 
       public:
-        auto& operator[](int index)
-        {
-            return players_[index - 1];
-        }
+        auto& operator[](int index) { return players_[index - 1]; }
 
-        auto& operator[](Edict* edict)
-        {
-            return players_[IndexOfEntity(edict) - 1];
-        }
+        auto& operator[](Edict* edict) { return players_[IndexOfEntity(edict) - 1]; }
 
-        auto& operator[](const Edict* edict)
-        {
-            return players_[IndexOfEntity(edict) - 1];
-        }
+        auto& operator[](const Edict* edict) { return players_[IndexOfEntity(edict) - 1]; }
 
-        auto& operator[](EntityBase* player)
-        {
-            return players_[player->EdictIndex() - 1];
-        }
+        auto& operator[](EntityBase* player) { return players_[player->EdictIndex() - 1]; }
 
-        auto& operator[](PlayerBase* player)
-        {
-            return players_[player->EdictIndex() - 1];
-        }
+        auto& operator[](PlayerBase* player) { return players_[player->EdictIndex() - 1]; }
 
-        auto& operator[](IGameClient* client)
-        {
-            return players_[client->GetId()];
-        }
+        auto& operator[](IGameClient* client) { return players_[client->GetId()]; }
 
-        template <typename F>
-        auto forEachConnected(const F& block) -> void
-        {
-            for (auto& player : players_) {
+        template<typename F>
+        auto forEachConnected(const F& block) -> void {
+            for (auto& player: players_) {
                 if (!player.isValid() || player.isDormant()) {
                     continue;
                 }
@@ -58,25 +38,13 @@ namespace rz::player
             }
         }
 
-        auto begin() -> Player*
-        {
-            return players_;
-        }
+        auto begin() -> Player* { return players_; }
 
-        auto end() -> Player*
-        {
-            return players_ + g_global_vars->max_clients;
-        }
+        auto end() -> Player* { return players_ + g_global_vars->max_clients; }
 
-        auto cbegin() const -> const Player*
-        {
-            return players_;
-        }
+        auto cbegin() const -> const Player* { return players_; }
 
-        auto cend() const -> const Player*
-        {
-            return players_ + g_global_vars->max_clients;
-        }
+        auto cend() const -> const Player* { return players_ + g_global_vars->max_clients; }
     };
 
     inline Players players;

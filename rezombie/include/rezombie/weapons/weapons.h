@@ -13,8 +13,7 @@ namespace rz::weapon
 
     constexpr auto WEAPON_PLACEHOLDER = "weapon_ak47";
 
-    enum class WeaponType : int
-    {
+    enum class WeaponType : int {
         Primary,   // automatic
         Secondary, // once
         Melee,     // delete
@@ -22,8 +21,7 @@ namespace rz::weapon
         Extra,
     };
 
-    enum class CrosshairSize : int
-    {
+    enum class CrosshairSize : int {
         None,
         Size3,
         Size4,
@@ -34,15 +32,13 @@ namespace rz::weapon
         Size9,
     };
 
-    enum class GiveType : int
-    {
+    enum class GiveType : int {
         Append,
         Replace,
         DropAndReplace
     };
 
-    class WeaponVirtuals : public PlayerWeaponBase
-    {
+    class WeaponVirtuals : public PlayerWeaponBase {
       private:
         static VirtualHook spawn;
         static VirtualHook addToPlayer;
@@ -60,17 +56,29 @@ namespace rz::weapon
 
       protected:
         auto HolderSpawn() -> void;
+
         auto HolderAddToPlayer(PlayerBase* basePlayer) -> qboolean;
+
         auto HolderGetItemInfo(ItemInfo* info) -> qboolean;
+
         auto HolderDeploy() -> qboolean;
+
         auto HolderHolster(int skipLocal) -> void;
+
         auto HolderUpdateClientData(PlayerBase* basePlayer) -> qboolean;
+
         auto HolderMaxSpeed() -> float;
+
         auto HolderItemSlot() -> InventorySlot;
+
         auto HolderPrimaryAttack() -> void;
+
         auto HolderSecondaryAttack() -> void;
+
         auto HolderReload() -> void;
+
         auto HolderIdle() -> void;
+
         auto HolderPostFrame() -> void;
     };
 }

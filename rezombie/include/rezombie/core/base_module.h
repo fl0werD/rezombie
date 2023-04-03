@@ -4,13 +4,9 @@
 
 namespace rz
 {
-    class BaseModule : public BaseObject
-    {
-      private:
+    class BaseModule : public BaseObject {
       public:
-        explicit BaseModule(std::string handle) : BaseObject(std::move(handle))
-        {
-        }
+        explicit BaseModule(std::string handle) : BaseObject(std::move(handle)) {}
 
         virtual auto clear() -> void = 0;
         virtual auto precache() -> void = 0;

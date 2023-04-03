@@ -11,8 +11,7 @@
 
 namespace rz::player
 {
-    struct PlayerVars
-    {
+    struct PlayerVars {
         int classIndex = 0;
         int subclassIndex = 0;
         int propsIndex = 0;

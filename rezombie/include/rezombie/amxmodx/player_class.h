@@ -3,12 +3,10 @@
 #include "rezombie/amxmodx/common.h"
 #include "rezombie/player/player.h"
 
-namespace rz
-{
+namespace rz {
     using namespace rz::player;
 
-    enum class PlayerClassVars : int
-    {
+    enum class PlayerClassVars : int {
         Handle,
         Name,
         Team,
@@ -20,24 +18,22 @@ namespace rz
         Nightvision,
     };
 
-    enum class PlayerClassForward : int
-    {
+    enum class PlayerClassForward : int {
         ChangeClassPre,
         ChangeClassPost,
         MAX_PLAYER_CLASS_FORWARDS,
     };
 
-    class AmxxPlayerClass : public AmxxFeature<PlayerClassForward, PlayerClassForward::MAX_PLAYER_CLASS_FORWARDS>
-    {
+    class AmxxPlayerClass : public AmxxFeature<PlayerClassForward, PlayerClassForward::MAX_PLAYER_CLASS_FORWARDS> {
       public:
-        AmxxPlayerClass() : AmxxFeature("player_class")
-        {
-        }
+        AmxxPlayerClass() : AmxxFeature("player_class") {}
 
         auto RegisterForwards() -> void override;
+
         auto RegisterNatives() -> void override;
 
         auto ChangeClassPre(Player& player, int playerClassIndex, int attackerIndex) const -> ForwardReturn;
+
         auto ChangeClassPost(Player& player, int playerClassIndex, int attackerIndex) const -> void;
     };
 

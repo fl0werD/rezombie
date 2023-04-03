@@ -157,7 +157,7 @@ namespace rz::player
     {
         auto& player = players[base];
         player.RemoveAllItems();
-        player.GiveMelee(player.getMelee());
+        player.GiveWeapon(player.getMelee(), GiveType::Replace);
         amxxPlayer.PlayerGiveDefaultItems(player);
     }
 

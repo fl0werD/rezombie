@@ -1,5 +1,4 @@
 #include "rezombie/amxmodx/melee.h"
-#include "rezombie/amxmodx/weapon.h"
 #include "rezombie/core/amxx_features_store.h"
 #include "rezombie/gamerules/game_rules.h"
 #include "rezombie/modules/player_model.h"
@@ -113,8 +112,6 @@ namespace rz {
         weapon::RegisterHooks();
         AmxxFeaturesStore::restore();
         AmxxFeaturesStore::RegisterNatives();
-        RegisterWeaponNatives();
-        RegisterMeleeNatives();
         return status;
     }
 }

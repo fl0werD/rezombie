@@ -1,13 +1,16 @@
 #include "rezombie/modules/weapon.h"
 #include "rezombie/weapons/melee.h"
+#include "rezombie/player/players.h"
 #include <metamod/utils.h>
 #include <vhooks/vhooks.h>
 
-namespace rz::weapon {
+namespace rz::weapon
+{
     using namespace cssdk;
     using namespace vhooks;
+    using namespace rz::player;
 
-    constexpr auto melee = WEAPON_MELEE;
+    const auto melee = WEAPON_MELEE;
     VirtualHook MeleeVirtuals::deploy(melee, HookIndex::Item_Deploy, &MeleeVirtuals::MeleeDeploy);
     VirtualHook MeleeVirtuals::primaryAttack(melee, HookIndex::Weapon_PrimaryAttack, &MeleeVirtuals::MeleePrimaryAttack);
     VirtualHook MeleeVirtuals::secondaryAttack(melee, HookIndex::Weapon_SecondaryAttack, &MeleeVirtuals::MeleeSecondaryAttack);
@@ -18,6 +21,8 @@ namespace rz::weapon {
             return deploy.Call<qboolean>(this);
         }
         auto& melee = meleeRef->get();
+        //EMIT_SOUND(m_pPlayer->edict(), CHAN_ITEM, "weapons/knife_deploy1.wav", 0.3, 2.4);
+        WeaponDefaultDeploy(players[player], this, 3, "knife");
         return melee.executeDeploy(EdictIndex(), player->EdictIndex());
     }
 

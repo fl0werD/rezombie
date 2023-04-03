@@ -5,60 +5,52 @@
 #include <amxx/api.h>
 #include <cssdk/dll/player.h>
 
-namespace rz
-{
+namespace rz {
     using namespace amxx;
     using namespace player;
 
-    auto AmxxPlayer::PlayerGiveDefaultItems(Player& player) const -> ForwardReturn
-    {
+    auto AmxxPlayer::PlayerGiveDefaultItems(Player& player) const -> ForwardReturn {
         return static_cast<ForwardReturn>(
-          ExecuteForward(getForward(PlayerForward::GiveDefaultItems), player.id(), player.getClass())
+            ExecuteForward(getForward(PlayerForward::GiveDefaultItems), player.id(), player.getClass())
         );
     }
 
-    auto AmxxPlayer::ChooseDefaultSubclass(Player& player) const -> void
-    {
+    auto AmxxPlayer::ChooseDefaultSubclass(Player& player) const -> void {
         ExecuteForward(getForward(PlayerForward::ChooseDefaultSubclass), player.id());
     }
 
-    auto AmxxPlayer::LongJumpState(Player& player) const -> void
-    {
+    auto AmxxPlayer::LongJumpState(Player& player) const -> void {
         ExecuteForward(getForward(PlayerForward::LongJumpState), player.id(), player.getLongJumpState());
     }
 
-    auto AmxxPlayer::LongJumpActivated(Player& player) const -> void
-    {
+    auto AmxxPlayer::LongJumpActivated(Player& player) const -> void {
         ExecuteForward(getForward(PlayerForward::LongJumpActivated), player.id());
     }
 
-    auto AmxxPlayer::RegisterForwards() -> void
-    {
+    auto AmxxPlayer::RegisterForwards() -> void {
         using e = ForwardExecType;
         using p = ForwardParam;
 
         setForward(
-          PlayerForward::GiveDefaultItems,
-          RegisterForward("@rz_player_give_default_items", e::Ignore, p::Cell, p::Cell, p::Done)
+            PlayerForward::GiveDefaultItems,
+            RegisterForward("@rz_player_give_default_items", e::Ignore, p::Cell, p::Cell, p::Done)
         );
         setForward(
-          PlayerForward::ChooseDefaultSubclass,
-          RegisterForward("@rz_player_choose_default_subclass", e::Ignore, p::Cell, p::Done)
+            PlayerForward::ChooseDefaultSubclass,
+            RegisterForward("@rz_player_choose_default_subclass", e::Ignore, p::Cell, p::Done)
         );
         setForward(
-          PlayerForward::LongJumpState,
-          RegisterForward("@rz_player_long_jump_state", e::Ignore, p::Cell, p::Cell, p::Done)
+            PlayerForward::LongJumpState,
+            RegisterForward("@rz_player_long_jump_state", e::Ignore, p::Cell, p::Cell, p::Done)
         );
         setForward(
-          PlayerForward::LongJumpActivated,
-          RegisterForward("@rz_player_long_jump_activated", e::Ignore, p::Cell, p::Done)
+            PlayerForward::LongJumpActivated,
+            RegisterForward("@rz_player_long_jump_activated", e::Ignore, p::Cell, p::Done)
         );
     }
 
-    auto AMX_NATIVE_CALL rz_get_player_var(Amx*, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_get_player_var(Amx*, cell* params) -> cell {
+        enum {
             arg_count,
             arg_player,
             arg_var,
@@ -88,10 +80,8 @@ namespace rz
         }
     }
 
-    auto AMX_NATIVE_CALL rz_set_player_var(Amx* amx, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_set_player_var(Amx* amx, cell* params) -> cell {
+        enum {
             arg_count,
             arg_player,
             arg_var,
@@ -120,10 +110,8 @@ namespace rz
         return true;
     }
 
-    auto AMX_NATIVE_CALL rz_change_player_class(Amx*, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_change_player_class(Amx*, cell* params) -> cell {
+        enum {
             arg_count,
             arg_player,
             arg_class,
@@ -141,10 +129,8 @@ namespace rz
         return player.ChangeClass(playerClassIndex);
     }
 
-    auto AMX_NATIVE_CALL rz_set_preview_player_model(Amx* amx, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_set_preview_player_model(Amx* amx, cell* params) -> cell {
+        enum {
             arg_count,
             arg_player,
             arg_model_path,
@@ -157,10 +143,8 @@ namespace rz
         return true;
     }
 
-    auto AMX_NATIVE_CALL rz_subclass_selected(Amx*, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_subclass_selected(Amx*, cell* params) -> cell {
+        enum {
             arg_count,
             arg_player,
         };
@@ -171,10 +155,8 @@ namespace rz
         return true;
     }
 
-    auto AMX_NATIVE_CALL rz_freeze_player(Amx*, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_freeze_player(Amx*, cell* params) -> cell {
+        enum {
             arg_count,
             arg_player,
             arg_freeze_time,
@@ -189,10 +171,8 @@ namespace rz
         return true;
     }
 
-    auto AMX_NATIVE_CALL rz_is_player_freeze(Amx*, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_is_player_freeze(Amx*, cell* params) -> cell {
+        enum {
             arg_count,
             arg_player,
         };
@@ -202,10 +182,8 @@ namespace rz
         return player.isFrozen();
     }
 
-    auto AMX_NATIVE_CALL rz_give_long_jump(Amx*, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_give_long_jump(Amx*, cell* params) -> cell {
+        enum {
             arg_count,
             arg_player,
             arg_force,
@@ -222,10 +200,8 @@ namespace rz
         return true;
     }
 
-    auto AMX_NATIVE_CALL rz_remove_long_jump(Amx*, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_remove_long_jump(Amx*, cell* params) -> cell {
+        enum {
             arg_count,
             arg_player,
         };
@@ -236,20 +212,19 @@ namespace rz
         return true;
     }
 
-    auto AmxxPlayer::RegisterNatives() -> void
-    {
+    auto AmxxPlayer::RegisterNatives() -> void {
         static AmxNativeInfo natives[] = {
-          {"rz_get_player_var",           rz_get_player_var          },
-          {"rz_set_player_var",           rz_set_player_var          },
-          {"rz_change_player_class",      rz_change_player_class     },
-          {"rz_set_preview_player_model", rz_set_preview_player_model},
-          {"rz_subclass_selected",        rz_subclass_selected       },
-          {"rz_freeze_player",            rz_freeze_player           },
-          {"rz_is_player_freeze",         rz_is_player_freeze        },
-          {"rz_give_long_jump",           rz_give_long_jump          },
-          {"rz_remove_long_jump",         rz_remove_long_jump        },
+            {"rz_get_player_var",           rz_get_player_var},
+            {"rz_set_player_var",           rz_set_player_var},
+            {"rz_change_player_class",      rz_change_player_class},
+            {"rz_set_preview_player_model", rz_set_preview_player_model},
+            {"rz_subclass_selected",        rz_subclass_selected},
+            {"rz_freeze_player",            rz_freeze_player},
+            {"rz_is_player_freeze",         rz_is_player_freeze},
+            {"rz_give_long_jump",           rz_give_long_jump},
+            {"rz_remove_long_jump",         rz_remove_long_jump},
 
-          {nullptr,                       nullptr                    },
+            {nullptr,                       nullptr},
         };
         AddNatives(natives);
     }

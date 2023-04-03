@@ -8,45 +8,40 @@
 #include <amxx/api.h>
 #include <cssdk/dll/player.h>
 
-namespace rz
-{
+namespace rz {
     using namespace amx;
     using namespace amxx;
     using namespace player;
 
-    auto AmxxPlayerSubclass::ChangeSubclassPre(Player& player, int playerClassIndex, int attackerIndex) -> ForwardReturn
-    {
+    auto
+    AmxxPlayerSubclass::ChangeSubclassPre(Player& player, int playerClassIndex, int attackerIndex) -> ForwardReturn {
         return static_cast<ForwardReturn>(ExecuteForward(
-          getForward(PlayerSubclassForward::ChangeSubclassPre), player.id(), playerClassIndex, attackerIndex
+            getForward(PlayerSubclassForward::ChangeSubclassPre), player.id(), playerClassIndex, attackerIndex
         ));
     }
 
-    auto AmxxPlayerSubclass::ChangeSubclassPost(Player& player, int playerClassIndex, int attackerIndex) -> void
-    {
+    auto AmxxPlayerSubclass::ChangeSubclassPost(Player& player, int playerClassIndex, int attackerIndex) -> void {
         ExecuteForward(
-          getForward(PlayerSubclassForward::ChangeSubclassPost), player.id(), playerClassIndex, attackerIndex
+            getForward(PlayerSubclassForward::ChangeSubclassPost), player.id(), playerClassIndex, attackerIndex
         );
     }
 
-    auto AmxxPlayerSubclass::RegisterForwards() -> void
-    {
+    auto AmxxPlayerSubclass::RegisterForwards() -> void {
         using e = ForwardExecType;
         using p = ForwardParam;
 
         setForward(
-          PlayerSubclassForward::ChangeSubclassPre,
-          RegisterForward("@rz_change_class_pre", e::Continue, p::Cell, p::Cell, p::Cell, p::Done)
+            PlayerSubclassForward::ChangeSubclassPre,
+            RegisterForward("@rz_change_class_pre", e::Continue, p::Cell, p::Cell, p::Cell, p::Done)
         );
         setForward(
-          PlayerSubclassForward::ChangeSubclassPost,
-          RegisterForward("@rz_change_class_post", e::Ignore, p::Cell, p::Cell, p::Cell, p::Done)
+            PlayerSubclassForward::ChangeSubclassPost,
+            RegisterForward("@rz_change_class_post", e::Ignore, p::Cell, p::Cell, p::Cell, p::Done)
         );
     }
 
-    auto AMX_NATIVE_CALL rz_create_subclass(Amx* amx, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_create_subclass(Amx* amx, cell* params) -> cell {
+        enum {
             arg_count,
             arg_handle,
             arg_class,
@@ -59,10 +54,8 @@ namespace rz
         return subclassIndex;
     }
 
-    auto AMX_NATIVE_CALL rz_get_subclass_var(Amx* amx, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_get_subclass_var(Amx* amx, cell* params) -> cell {
+        enum {
             arg_count,
             arg_subclass,
             arg_var,
@@ -120,10 +113,8 @@ namespace rz
         return true;
     }
 
-    auto AMX_NATIVE_CALL rz_set_subclass_var(Amx* amx, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_set_subclass_var(Amx* amx, cell* params) -> cell {
+        enum {
             arg_count,
             arg_subclass,
             arg_var,
@@ -183,20 +174,16 @@ namespace rz
         return true;
     }
 
-    auto AMX_NATIVE_CALL rz_subclass_begin(Amx*, cell*) -> cell
-    {
+    auto AMX_NATIVE_CALL rz_subclass_begin(Amx*, cell*) -> cell {
         return playerSubclassModule.begin();
     }
 
-    auto AMX_NATIVE_CALL rz_subclass_end(Amx*, cell*) -> cell
-    {
+    auto AMX_NATIVE_CALL rz_subclass_end(Amx*, cell*) -> cell {
         return playerSubclassModule.end();
     }
 
-    auto AMX_NATIVE_CALL rz_find_subclass(Amx* amx, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_find_subclass(Amx* amx, cell* params) -> cell {
+        enum {
             arg_count,
             arg_handle,
         };
@@ -205,17 +192,16 @@ namespace rz
         return playerSubclassModule.findHandle(handle);
     }
 
-    auto AmxxPlayerSubclass::RegisterNatives() -> void
-    {
+    auto AmxxPlayerSubclass::RegisterNatives() -> void {
         static AmxNativeInfo natives[] = {
-          {"rz_create_subclass",  rz_create_subclass },
-          {"rz_get_subclass_var", rz_get_subclass_var},
-          {"rz_set_subclass_var", rz_set_subclass_var},
-          {"rz_subclass_begin",   rz_subclass_begin  },
-          {"rz_subclass_end",     rz_subclass_end    },
-          {"rz_find_subclass",    rz_find_subclass   },
+            {"rz_create_subclass",  rz_create_subclass},
+            {"rz_get_subclass_var", rz_get_subclass_var},
+            {"rz_set_subclass_var", rz_set_subclass_var},
+            {"rz_subclass_begin",   rz_subclass_begin},
+            {"rz_subclass_end",     rz_subclass_end},
+            {"rz_find_subclass",    rz_find_subclass},
 
-          {nullptr,               nullptr            },
+            {nullptr,               nullptr},
         };
         AddNatives(natives);
     }

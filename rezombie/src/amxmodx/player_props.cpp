@@ -3,15 +3,12 @@
 #include "rezombie/util.h"
 #include <amxx/api.h>
 
-namespace rz
-{
+namespace rz {
     using namespace amx;
     using namespace amxx;
 
-    auto AMX_NATIVE_CALL rz_create_props(Amx* amx, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_create_props(Amx* amx, cell* params) -> cell {
+        enum {
             arg_count,
             arg_handle,
         };
@@ -22,10 +19,8 @@ namespace rz
         return playerPropsIndex;
     }
 
-    auto AMX_NATIVE_CALL rz_get_props_var(Amx* amx, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_get_props_var(Amx* amx, cell* params) -> cell {
+        enum {
             arg_count,
             arg_props,
             arg_var,
@@ -106,10 +101,8 @@ namespace rz
         return 1;
     }
 
-    auto AMX_NATIVE_CALL rz_set_props_var(Amx* amx, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_set_props_var(Amx* amx, cell* params) -> cell {
+        enum {
             arg_count,
             arg_props,
             arg_var,
@@ -202,14 +195,13 @@ namespace rz
         return true;
     }
 
-    auto AmxxPlayerProps::RegisterNatives() -> void
-    {
+    auto AmxxPlayerProps::RegisterNatives() -> void {
         static AmxNativeInfo natives[] = {
-          {"rz_create_props",  rz_create_props },
-          {"rz_get_props_var", rz_get_props_var},
-          {"rz_set_props_var", rz_set_props_var},
+            {"rz_create_props",  rz_create_props},
+            {"rz_get_props_var", rz_get_props_var},
+            {"rz_set_props_var", rz_set_props_var},
 
-          {nullptr,            nullptr         },
+            {nullptr,            nullptr},
         };
         AddNatives(natives);
     }

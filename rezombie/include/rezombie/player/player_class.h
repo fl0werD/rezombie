@@ -2,7 +2,7 @@
 
 #include "rezombie/core/base_object.h"
 #include "rezombie/gamerules/game_rules.h"
-#include "rezombie/modules/melee.h"
+#include "rezombie/modules/weapon.h"
 #include "rezombie/modules/player_model.h"
 #include "rezombie/modules/player_nightvision.h"
 #include "rezombie/modules/player_props.h"
@@ -13,8 +13,7 @@ namespace rz::player
 {
     using namespace cssdk;
 
-    class PlayerClass : public BaseObject
-    {
+    class PlayerClass : public BaseObject {
       private:
         Team team_;
         Color24 hudColor_ = {255, 255, 255};
@@ -25,78 +24,38 @@ namespace rz::player
         int nightVisionIndex_ = 0;
 
       public:
-        PlayerClass(std::string handle, Team team) : BaseObject(handle), team_(team)
-        {
+        PlayerClass(std::string handle, Team team) : BaseObject(std::move(handle)), team_(team) {
             setProps(playerPropsModule.add(handle));
             setModel(playerModelModule.add(handle));
             setSound(playerSoundModule.add(handle));
-            setMelee(meleeModule.add(handle));
+            setMelee(weaponModule.add(handle, WeaponType::Melee));
             setNightVision(playerNightVisionModule.add(handle));
         }
 
-        auto getTeam() const -> Team
-        {
-            return team_;
-        }
+        auto getTeam() const -> Team { return team_; }
 
-        auto getHudColor() const -> const Color24&
-        {
-            return hudColor_;
-        }
+        auto getHudColor() const -> const Color24& { return hudColor_; }
 
-        auto setHudColor(Color24 hudColor) -> void
-        {
-            hudColor_ = std::move(hudColor);
-        }
+        auto setHudColor(Color24 hudColor) -> void { hudColor_ = hudColor; }
 
-        auto getProps() const
-        {
-            return propsIndex_;
-        }
+        auto getProps() const { return propsIndex_; }
 
-        auto setProps(int propsIndex) -> void
-        {
-            propsIndex_ = propsIndex;
-        }
+        auto setProps(int propsIndex) -> void { propsIndex_ = propsIndex; }
 
-        auto getModel() const
-        {
-            return modelIndex_;
-        }
+        auto getModel() const { return modelIndex_; }
 
-        auto setModel(int modelIndex) -> void
-        {
-            modelIndex_ = modelIndex;
-        }
+        auto setModel(int modelIndex) -> void { modelIndex_ = modelIndex; }
 
-        auto getSound() const
-        {
-            return soundIndex_;
-        }
+        auto getSound() const { return soundIndex_; }
 
-        auto setSound(int soundIndex) -> void
-        {
-            soundIndex_ = soundIndex;
-        }
+        auto setSound(int soundIndex) -> void { soundIndex_ = soundIndex; }
 
-        auto getMelee() const
-        {
-            return meleeIndex_;
-        }
+        auto getMelee() const { return meleeIndex_; }
 
-        auto setMelee(int meleeIndex) -> void
-        {
-            meleeIndex_ = meleeIndex;
-        }
+        auto setMelee(int meleeIndex) -> void { meleeIndex_ = meleeIndex; }
 
-        auto getNightVision() const
-        {
-            return nightVisionIndex_;
-        }
+        auto getNightVision() const { return nightVisionIndex_; }
 
-        auto setNightVision(int nightVisionIndex) -> void
-        {
-            nightVisionIndex_ = nightVisionIndex;
-        }
+        auto setNightVision(int nightVisionIndex) -> void { nightVisionIndex_ = nightVisionIndex; }
     };
 }

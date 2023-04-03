@@ -7,8 +7,7 @@
 namespace rz::player
 {
     // cs missed body without armor?
-    enum class PlayerSoundType : int
-    {
+    enum class PlayerSoundType : int {
         Body,
         Head,
         ArmoredBody,
@@ -18,20 +17,17 @@ namespace rz::player
         MAX_SOUND_TYPES
     };
 
-    class PlayerSound : public BaseObject
-    {
+    class PlayerSound : public BaseObject {
       private:
         std::array<std::vector<std::string>, toInt(PlayerSoundType::MAX_SOUND_TYPES)> sounds_;
         std::array<bool, toInt(PlayerSoundType::MAX_SOUND_TYPES)> isDefault_{};
 
-        auto addDefault(PlayerSoundType soundType, const std::string& path) -> void
-        {
+        auto addDefault(PlayerSoundType soundType, const std::string& path) -> void {
             sounds_[toInt(soundType)].push_back(path);
         }
 
       public:
-        explicit PlayerSound(std::string handle) : BaseObject(std::move(handle))
-        {
+        explicit PlayerSound(std::string handle) : BaseObject(std::move(handle)) {
             isDefault_.fill(true);
             addDefault(PlayerSoundType::Body, "player/bhit_flesh-1.wav");
             addDefault(PlayerSoundType::Body, "player/bhit_flesh-2.wav");
@@ -47,8 +43,7 @@ namespace rz::player
             addDefault(PlayerSoundType::Death, "player/death6.wav");
         }
 
-        auto add(PlayerSoundType soundType, const std::string& path) -> void
-        {
+        auto add(PlayerSoundType soundType, const std::string& path) -> void {
             auto soundTypeInt = toInt(soundType);
             if (isDefault_[soundTypeInt]) {
                 sounds_[soundTypeInt].clear();
@@ -57,8 +52,7 @@ namespace rz::player
             sounds_[soundTypeInt].push_back(path);
         }
 
-        auto getRandom(PlayerSoundType soundType) const -> const std::string&
-        {
+        auto getRandom(PlayerSoundType soundType) const -> const std::string& {
             // if (sounds_[toInt(soundType)].empty()) {
             //     return nullptr;
             // }

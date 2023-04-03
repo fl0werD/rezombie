@@ -1,9 +1,10 @@
 #pragma once
 
-namespace rz
-{
-    enum class MeleeVars : int
-    {
+#include "rezombie/core/amxx_feature.h"
+#include <array>
+
+namespace rz {
+    enum class MeleeVars : int {
         Handle,
         ViewModel,
         PlayerModel,
@@ -12,5 +13,12 @@ namespace rz
         Name,
     };
 
-    auto RegisterMeleeNatives() -> void;
+    class AmxxMelee : public AmxxFeature<> {
+      public:
+        AmxxMelee() : AmxxFeature("melee") {}
+
+        auto RegisterNatives() -> void override;
+    };
+
+    inline AmxxMelee amxxMelee;
 }

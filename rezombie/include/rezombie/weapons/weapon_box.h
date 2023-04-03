@@ -9,8 +9,7 @@ namespace rz::weapon
     using namespace cssdk;
     using namespace vhooks;
 
-    class WeaponBoxVirtuals : public WeaponBox
-    {
+    class WeaponBoxVirtuals : public WeaponBox {
       private:
         static VirtualHook touch;
 

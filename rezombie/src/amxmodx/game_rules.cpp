@@ -3,88 +3,74 @@
 #include "rezombie/modules/game_mode.h"
 #include <amxx/api.h>
 
-namespace rz
-{
+namespace rz {
     using namespace amx;
     using namespace amxx;
 
-    auto AmxxGameRules::RoundStart(bool isReset) -> void
-    {
+    auto AmxxGameRules::RoundStart(bool isReset) -> void {
         ExecuteForward(getForward(GameRulesForward::ROUND_START), isReset);
     }
 
-    auto AmxxGameRules::RoundEnd(EndRoundEvent event, int gameModeIndex, int delay) -> void
-    {
+    auto AmxxGameRules::RoundEnd(EndRoundEvent event, int gameModeIndex, int delay) -> void {
         ExecuteForward(getForward(GameRulesForward::ROUND_END), event, gameModeIndex, delay);
     }
 
-    auto AmxxGameRules::RoundHudTimer(int time) -> void
-    {
+    auto AmxxGameRules::RoundHudTimer(int time) -> void {
         ExecuteForward(getForward(GameRulesForward::ROUND_HUD_TIMER), time);
     }
 
-    auto AmxxGameRules::GameStateChanged(GameState oldGameState, GameState newGameState) -> void
-    {
+    auto AmxxGameRules::GameStateChanged(GameState oldGameState, GameState newGameState) -> void {
         ExecuteForward(getForward(GameRulesForward::GAME_STATE_CHANGED), oldGameState, newGameState);
     }
 
-    auto AmxxGameRules::RoundStateChanged(RoundState oldRoundState, RoundState newRoundState) -> void
-    {
+    auto AmxxGameRules::RoundStateChanged(RoundState oldRoundState, RoundState newRoundState) -> void {
         ExecuteForward(getForward(GameRulesForward::ROUND_STATE_CHANGED), oldRoundState, newRoundState);
     }
 
-    auto AmxxGameRules::GameModeStart(int gameModeIndex) -> void
-    {
+    auto AmxxGameRules::GameModeStart(int gameModeIndex) -> void {
         ExecuteForward(getForward(GameRulesForward::GAME_MODE_START), gameModeIndex);
     }
 
-    auto AmxxGameRules::RegisterForwards() -> void
-    {
+    auto AmxxGameRules::RegisterForwards() -> void {
         using e = ForwardExecType;
         using p = ForwardParam;
 
         setForward(GameRulesForward::ROUND_START, RegisterForward("@rz_round_start", e::Ignore, p::Done));
         setForward(
-          GameRulesForward::ROUND_END, RegisterForward("@rz_round_end", e::Ignore, p::Cell, p::Cell, p::Cell, p::Done)
+            GameRulesForward::ROUND_END, RegisterForward("@rz_round_end", e::Ignore, p::Cell, p::Cell, p::Cell, p::Done)
         );
         setForward(
-          GameRulesForward::ROUND_HUD_TIMER, RegisterForward("@rz_round_hud_timer", e::Ignore, p::Cell, p::Done)
+            GameRulesForward::ROUND_HUD_TIMER, RegisterForward("@rz_round_hud_timer", e::Ignore, p::Cell, p::Done)
         );
         setForward(
-          GameRulesForward::GAME_STATE_CHANGED,
-          RegisterForward("rz_game_state_changed", e::Ignore, p::Cell, p::Cell, p::Done)
+            GameRulesForward::GAME_STATE_CHANGED,
+            RegisterForward("rz_game_state_changed", e::Ignore, p::Cell, p::Cell, p::Done)
         );
         setForward(
-          GameRulesForward::ROUND_STATE_CHANGED,
-          RegisterForward("rz_round_state_changed", e::Ignore, p::Cell, p::Cell, p::Done)
+            GameRulesForward::ROUND_STATE_CHANGED,
+            RegisterForward("rz_round_state_changed", e::Ignore, p::Cell, p::Cell, p::Done)
         );
         setForward(
-          GameRulesForward::GAME_MODE_START, RegisterForward("rz_game_mode_start", e::Ignore, p::Cell, p::Done)
+            GameRulesForward::GAME_MODE_START, RegisterForward("rz_game_mode_start", e::Ignore, p::Cell, p::Done)
         );
     }
 
-    auto AMX_NATIVE_CALL rz_get_game_state(Amx*, cell*) -> cell
-    {
+    auto AMX_NATIVE_CALL rz_get_game_state(Amx*, cell*) -> cell {
         const auto gameState = toInt(gameRules->getGameState());
         return gameState;
     }
 
-    auto AMX_NATIVE_CALL rz_get_round_state(Amx*, cell*) -> cell
-    {
+    auto AMX_NATIVE_CALL rz_get_round_state(Amx*, cell*) -> cell {
         const auto roundState = toInt(gameRules->getRoundState());
         return roundState;
     }
 
-    auto AMX_NATIVE_CALL rz_get_round_remaining_time(Amx*, cell*) -> cell
-    {
-        const auto remainingTime = FloatToCell(gameRules->getRoundRemainingTime());
-        return remainingTime;
+    auto AMX_NATIVE_CALL rz_get_round_remaining_time(Amx*, cell*) -> cell {
+        return gameRules->getRoundRemainingTime();
     }
 
-    auto AMX_NATIVE_CALL rz_get_team_wins(Amx*, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_get_team_wins(Amx*, cell* params) -> cell {
+        enum {
             arg_count,
             arg_team,
         };
@@ -93,20 +79,16 @@ namespace rz
         return gameRules->getTeamWins(team);
     }
 
-    auto AMX_NATIVE_CALL rz_get_game_mode(Amx*, cell*) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_get_game_mode(Amx*, cell*) -> cell {
+        enum {
             arg_count,
         };
 
         return gameRules->getGameMode();
     }
 
-    auto AMX_NATIVE_CALL rz_get_default_class(Amx*, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_get_default_class(Amx*, cell* params) -> cell {
+        enum {
             arg_count,
             arg_team,
         };
@@ -119,10 +101,8 @@ namespace rz
         return gameRules->getDefaultPlayerClass(team);
     }
 
-    auto AMX_NATIVE_CALL rz_set_default_class(Amx*, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_set_default_class(Amx*, cell* params) -> cell {
+        enum {
             arg_count,
             arg_team,
             arg_class,
@@ -137,10 +117,8 @@ namespace rz
         return true;
     }
 
-    auto AMX_NATIVE_CALL rz_override_default_class(Amx*, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_override_default_class(Amx*, cell* params) -> cell {
+        enum {
             arg_count,
             arg_team,
             arg_class,
@@ -159,10 +137,8 @@ namespace rz
         return true;
     }
 
-    auto AMX_NATIVE_CALL rz_create_game_mode(Amx* amx, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_create_game_mode(Amx* amx, cell* params) -> cell {
+        enum {
             arg_count,
             arg_handle,
         };
@@ -173,10 +149,8 @@ namespace rz
         return gameModeIndex;
     }
 
-    auto AMX_NATIVE_CALL rz_get_game_mode_var(Amx* amx, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_get_game_mode_var(Amx* amx, cell* params) -> cell {
+        enum {
             arg_count,
             arg_game_mode,
             arg_var,
@@ -218,10 +192,8 @@ namespace rz
         return true;
     }
 
-    auto AMX_NATIVE_CALL rz_set_game_mode_var(Amx* amx, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_set_game_mode_var(Amx* amx, cell* params) -> cell {
+        enum {
             arg_count,
             arg_game_mode,
             arg_var,
@@ -263,20 +235,16 @@ namespace rz
         return true;
     }
 
-    auto AMX_NATIVE_CALL rz_game_mode_begin(Amx*, cell*) -> cell
-    {
+    auto AMX_NATIVE_CALL rz_game_mode_begin(Amx*, cell*) -> cell {
         return gameModeModule.begin();
     }
 
-    auto AMX_NATIVE_CALL rz_game_mode_end(Amx*, cell*) -> cell
-    {
+    auto AMX_NATIVE_CALL rz_game_mode_end(Amx*, cell*) -> cell {
         return gameModeModule.end();
     }
 
-    auto AMX_NATIVE_CALL rz_find_game_mode(Amx* amx, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_find_game_mode(Amx* amx, cell* params) -> cell {
+        enum {
             arg_count,
             arg_handle,
         };
@@ -285,27 +253,26 @@ namespace rz
         return gameModeModule.findHandle(handle);
     }
 
-    auto AmxxGameRules::RegisterNatives() -> void
-    {
+    auto AmxxGameRules::RegisterNatives() -> void {
         static AmxNativeInfo natives[] = {
-          {"rz_get_game_state",           rz_get_game_state          },
-          {"rz_get_round_state",          rz_get_round_state         },
-          {"rz_get_round_remaining_time", rz_get_round_remaining_time},
-          {"rz_get_team_wins",            rz_get_team_wins           },
-          {"rz_get_game_mode",            rz_get_game_mode           },
+            {"rz_get_game_state",           rz_get_game_state},
+            {"rz_get_round_state",          rz_get_round_state},
+            {"rz_get_round_remaining_time", rz_get_round_remaining_time},
+            {"rz_get_team_wins",            rz_get_team_wins},
+            {"rz_get_game_mode",            rz_get_game_mode},
 
-          {"rz_get_default_class",        rz_get_default_class       },
-          {"rz_set_default_class",        rz_set_default_class       },
-          {"rz_override_default_class",   rz_override_default_class  },
+            {"rz_get_default_class",        rz_get_default_class},
+            {"rz_set_default_class",        rz_set_default_class},
+            {"rz_override_default_class",   rz_override_default_class},
 
-          {"rz_create_game_mode",         rz_create_game_mode        },
-          {"rz_get_game_mode_var",        rz_get_game_mode_var       },
-          {"rz_set_game_mode_var",        rz_set_game_mode_var       },
-          {"rz_game_mode_begin",          rz_game_mode_begin         },
-          {"rz_game_mode_end",            rz_game_mode_end           },
-          {"rz_find_game_mode",           rz_find_game_mode          },
+            {"rz_create_game_mode",         rz_create_game_mode},
+            {"rz_get_game_mode_var",        rz_get_game_mode_var},
+            {"rz_set_game_mode_var",        rz_set_game_mode_var},
+            {"rz_game_mode_begin",          rz_game_mode_begin},
+            {"rz_game_mode_end",            rz_game_mode_end},
+            {"rz_find_game_mode",           rz_find_game_mode},
 
-          {nullptr,                       nullptr                    },
+            {nullptr,                       nullptr},
         };
         AddNatives(natives);
     }

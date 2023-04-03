@@ -5,17 +5,14 @@
 #include <core/regamedll_api.h>
 #include <metamod/engine.h>
 
-namespace rz
-{
+namespace rz {
     using namespace metamod::engine;
     using namespace amx;
     using namespace amxx;
     using namespace player;
 
-    auto AMX_NATIVE_CALL rz_create_weapon(Amx* amx, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_create_weapon(Amx* amx, cell* params) -> cell {
+        enum {
             arg_count,
             arg_handle,
             arg_weapon_type,
@@ -28,10 +25,8 @@ namespace rz
         return weaponIndex;
     }
 
-    auto AMX_NATIVE_CALL rz_get_weapon_var(Amx* amx, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_get_weapon_var(Amx* amx, cell* params) -> cell {
+        enum {
             arg_count,
             arg_weapon,
             arg_var,
@@ -92,12 +87,10 @@ namespace rz
         return true;
     }
 
-    auto AMX_NATIVE_CALL rz_set_weapon_var(Amx* amx, cell* params) -> cell
-    {
+    auto AMX_NATIVE_CALL rz_set_weapon_var(Amx* amx, cell* params) -> cell {
         using p = ForwardParam;
 
-        enum
-        {
+        enum {
             arg_count,
             arg_weapon,
             arg_var,
@@ -167,7 +160,7 @@ namespace rz
             }
             case var::ForwardDeploy: {
                 const auto deploy =
-                  RegisterSpForwardByName(amx, GetAmxString(amx, params[arg_value]), p::Cell, p::Cell, p::Done);
+                    RegisterSpForwardByName(amx, GetAmxString(amx, params[arg_value]), p::Cell, p::Cell, p::Done);
                 if (deploy == -1) {
                     return false;
                 }
@@ -176,7 +169,7 @@ namespace rz
             }
             case var::ForwardHolster: {
                 const auto holster =
-                  RegisterSpForwardByName(amx, GetAmxString(amx, params[arg_value]), p::Cell, p::Cell, p::Done);
+                    RegisterSpForwardByName(amx, GetAmxString(amx, params[arg_value]), p::Cell, p::Cell, p::Done);
                 if (holster == -1) {
                     return false;
                 }
@@ -185,7 +178,7 @@ namespace rz
             }
             case var::ForwardMaxSpeed: {
                 const auto maxSpeed = RegisterSpForwardByName(
-                  amx, GetAmxString(amx, params[arg_value]), p::Cell, p::Cell, p::Cell, p::Done
+                    amx, GetAmxString(amx, params[arg_value]), p::Cell, p::Cell, p::Cell, p::Done
                 );
                 if (maxSpeed == -1) {
                     return false;
@@ -195,7 +188,7 @@ namespace rz
             }
             case var::ForwardPrimaryAttack: {
                 const auto primaryAttack = RegisterSpForwardByName(
-                  amx, GetAmxString(amx, params[arg_value]), p::Cell, p::Cell, p::Cell, p::Cell, p::Done
+                    amx, GetAmxString(amx, params[arg_value]), p::Cell, p::Cell, p::Cell, p::Cell, p::Done
                 );
                 if (primaryAttack == -1) {
                     return false;
@@ -205,7 +198,7 @@ namespace rz
             }
             case var::ForwardSecondaryAttack: {
                 const auto secondaryAttack = RegisterSpForwardByName(
-                  amx, GetAmxString(amx, params[arg_value]), p::Cell, p::Cell, p::Cell, p::Cell, p::Done
+                    amx, GetAmxString(amx, params[arg_value]), p::Cell, p::Cell, p::Cell, p::Cell, p::Done
                 );
                 if (secondaryAttack == -1) {
                     return false;
@@ -215,7 +208,7 @@ namespace rz
             }
             case var::ForwardReload: {
                 const auto reload =
-                  RegisterSpForwardByName(amx, GetAmxString(amx, params[arg_value]), p::Cell, p::Cell, p::Done);
+                    RegisterSpForwardByName(amx, GetAmxString(amx, params[arg_value]), p::Cell, p::Cell, p::Done);
                 if (reload == -1) {
                     return false;
                 }
@@ -224,7 +217,7 @@ namespace rz
             }
             case var::ForwardIdle: {
                 const auto idle = RegisterSpForwardByName(
-                  amx, GetAmxString(amx, params[arg_value]), p::Cell, p::Cell, p::Float, p::Done
+                    amx, GetAmxString(amx, params[arg_value]), p::Cell, p::Cell, p::Float, p::Done
                 );
                 if (idle == -1) {
                     return false;
@@ -234,7 +227,7 @@ namespace rz
             }
             case var::ForwardFireRemaining: {
                 const auto fireRemaining = RegisterSpForwardByName(
-                  amx, GetAmxString(amx, params[arg_value]), p::Cell, p::Cell, p::Cell, p::Cell, p::Done
+                    amx, GetAmxString(amx, params[arg_value]), p::Cell, p::Cell, p::Cell, p::Cell, p::Done
                 );
                 if (fireRemaining == -1) {
                     return false;
@@ -250,10 +243,8 @@ namespace rz
         return true;
     }
 
-    auto AMX_NATIVE_CALL rz_give_weapon(Amx* amx, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_give_weapon(Amx* amx, cell* params) -> cell {
+        enum {
             arg_count,
             arg_player,
             arg_handle,
@@ -269,10 +260,8 @@ namespace rz
         return 1;
     }
 
-    auto AMX_NATIVE_CALL rz_give_weapon_fast(Amx*, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_give_weapon_fast(Amx*, cell* params) -> cell {
+        enum {
             arg_count,
             arg_player,
             arg_weapon,
@@ -287,10 +276,8 @@ namespace rz
         return 1;
     }
 
-    auto AMX_NATIVE_CALL rz_get_player_ammo(Amx*, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_get_player_ammo(Amx*, cell* params) -> cell {
+        enum {
             arg_count,
             arg_player,
             arg_weapon_entity,
@@ -298,16 +285,14 @@ namespace rz
 
         const int playerIndex = params[arg_player];
         const int weaponEntityIndex = params[arg_weapon_entity];
-        auto& player = players[playerIndex];
+        const auto& player = players[playerIndex];
         const auto weaponEdict = EdictByIndex(weaponEntityIndex);
         const auto baseWeapon = EntityPrivateData<PlayerWeaponBase>(weaponEdict);
         return player.getAmmo(baseWeapon->primary_ammo_type);
     }
 
-    auto AMX_NATIVE_CALL rz_set_player_ammo(Amx*, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_set_player_ammo(Amx*, cell* params) -> cell {
+        enum {
             arg_count,
             arg_player,
             arg_weapon_entity,
@@ -324,10 +309,8 @@ namespace rz
         return true;
     }
 
-    auto AMX_NATIVE_CALL rz_weapon_default_deploy(Amx*, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_weapon_default_deploy(Amx*, cell* params) -> cell {
+        enum {
             arg_count,
             arg_weapon_entity,
             arg_player,
@@ -344,10 +327,8 @@ namespace rz
         return WeaponDefaultDeploy(player, baseWeapon, drawAnim, "");
     }
 
-    auto AMX_NATIVE_CALL rz_weapon_default_reload(Amx*, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_weapon_default_reload(Amx*, cell* params) -> cell {
+        enum {
             arg_count,
             arg_weapon_entity,
             arg_player,
@@ -365,10 +346,8 @@ namespace rz
         return WeaponDefaultReload(player, baseWeapon, reloadAnim, reloadTime);
     }
 
-    auto AMX_NATIVE_CALL rz_weapon_default_shotgun_reload(Amx* amx, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_weapon_default_shotgun_reload(Amx* amx, cell* params) -> cell {
+        enum {
             arg_count,
             arg_weapon_entity,
             arg_player,
@@ -392,14 +371,12 @@ namespace rz
         const auto weaponEdict = EdictByIndex(weaponEntityIndex);
         const auto baseWeapon = EntityPrivateData<PlayerWeaponBase>(weaponEdict);
         return WeaponDefaultShotgunReload(
-          player, baseWeapon, reloadAnim, reloadStartAnim, reloadTime, reloadStartTime, reloadSound1, reloadSound2
+            player, baseWeapon, reloadAnim, reloadStartAnim, reloadTime, reloadStartTime, reloadSound1, reloadSound2
         );
     }
 
-    auto AMX_NATIVE_CALL rz_weapon_kick_back(Amx*, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_weapon_kick_back(Amx*, cell* params) -> cell {
+        enum {
             arg_count,
             arg_weapon_entity,
             arg_player,
@@ -425,15 +402,13 @@ namespace rz
         const float lateralMax = CellToFloat(params[arg_lateral_max]);
         const int directionChange = params[arg_direction_change];
         WeaponKickBack(
-          player, baseWeapon, upBase, lateralBase, upModifier, lateralModifier, upMax, lateralMax, directionChange
+            player, baseWeapon, upBase, lateralBase, upModifier, lateralModifier, upMax, lateralMax, directionChange
         );
         return true;
     }
 
-    auto AMX_NATIVE_CALL rz_weapon_throw_grenade(Amx* amx, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_weapon_throw_grenade(Amx* amx, cell* params) -> cell {
+        enum {
             arg_count,
             arg_weapon_entity,
             arg_player,
@@ -456,25 +431,24 @@ namespace rz
         return grenade->EdictIndex();
     }
 
-    auto RegisterWeaponNatives() -> void
-    {
+    auto AmxxWeapon::RegisterNatives() -> void {
         static AmxNativeInfo natives[] = {
-          {"rz_create_weapon",                 rz_create_weapon                },
-          {"rz_get_weapon_var",                rz_get_weapon_var               },
-          {"rz_set_weapon_var",                rz_set_weapon_var               },
-          {"rz_give_weapon",                   rz_give_weapon                  },
-          {"rz_give_weapon_fast",              rz_give_weapon_fast             },
+            {"rz_create_weapon",                 rz_create_weapon},
+            {"rz_get_weapon_var",                rz_get_weapon_var},
+            {"rz_set_weapon_var",                rz_set_weapon_var},
+            {"rz_give_weapon",                   rz_give_weapon},
+            {"rz_give_weapon_fast",              rz_give_weapon_fast},
 
-          {"rz_get_player_ammo",               rz_get_player_ammo              },
-          {"rz_set_player_ammo",               rz_set_player_ammo              },
+            {"rz_get_player_ammo",               rz_get_player_ammo},
+            {"rz_set_player_ammo",               rz_set_player_ammo},
 
-          {"rz_weapon_default_deploy",         rz_weapon_default_deploy        },
-          {"rz_weapon_default_reload",         rz_weapon_default_reload        },
-          {"rz_weapon_default_shotgun_reload", rz_weapon_default_shotgun_reload},
-          {"rz_weapon_kick_back",              rz_weapon_kick_back             },
-          {"rz_weapon_throw_grenade",          rz_weapon_throw_grenade         },
+            {"rz_weapon_default_deploy",         rz_weapon_default_deploy},
+            {"rz_weapon_default_reload",         rz_weapon_default_reload},
+            {"rz_weapon_default_shotgun_reload", rz_weapon_default_shotgun_reload},
+            {"rz_weapon_kick_back",              rz_weapon_kick_back},
+            {"rz_weapon_throw_grenade",          rz_weapon_throw_grenade},
 
-          {nullptr,                            nullptr                         },
+            {nullptr,                            nullptr},
         };
         AddNatives(natives);
     }

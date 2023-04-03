@@ -4,43 +4,38 @@
 #include "rezombie/player/player.h"
 #include <amxx/api.h>
 
-namespace rz
-{
+namespace rz {
     using namespace amx;
     using namespace amxx;
     using namespace player;
 
-    auto AmxxPlayerClass::ChangeClassPre(Player& player, int playerClassIndex, int attackerIndex) const -> ForwardReturn
-    {
+    auto
+    AmxxPlayerClass::ChangeClassPre(Player& player, int playerClassIndex, int attackerIndex) const -> ForwardReturn {
         return static_cast<ForwardReturn>(
-          ExecuteForward(getForward(PlayerClassForward::ChangeClassPre), player.id(), playerClassIndex, attackerIndex)
+            ExecuteForward(getForward(PlayerClassForward::ChangeClassPre), player.id(), playerClassIndex, attackerIndex)
         );
     }
 
-    auto AmxxPlayerClass::ChangeClassPost(Player& player, int playerClassIndex, int attackerIndex) const -> void
-    {
+    auto AmxxPlayerClass::ChangeClassPost(Player& player, int playerClassIndex, int attackerIndex) const -> void {
         ExecuteForward(getForward(PlayerClassForward::ChangeClassPost), player.id(), playerClassIndex, attackerIndex);
     }
 
-    auto AmxxPlayerClass::RegisterForwards() -> void
-    {
+    auto AmxxPlayerClass::RegisterForwards() -> void {
         using e = ForwardExecType;
         using p = ForwardParam;
 
         setForward(
-          PlayerClassForward::ChangeClassPre,
-          RegisterForward("@rz_change_class_pre", e::Continue, p::Cell, p::Cell, p::Cell, p::Done)
+            PlayerClassForward::ChangeClassPre,
+            RegisterForward("@rz_change_class_pre", e::Continue, p::Cell, p::Cell, p::Cell, p::Done)
         );
         setForward(
-          PlayerClassForward::ChangeClassPost,
-          RegisterForward("@rz_change_class_post", e::Ignore, p::Cell, p::Cell, p::Cell, p::Done)
+            PlayerClassForward::ChangeClassPost,
+            RegisterForward("@rz_change_class_post", e::Ignore, p::Cell, p::Cell, p::Cell, p::Done)
         );
     }
 
-    auto AMX_NATIVE_CALL rz_create_class(Amx* amx, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_create_class(Amx* amx, cell* params) -> cell {
+        enum {
             arg_count,
             arg_handle,
             arg_team,
@@ -53,10 +48,8 @@ namespace rz
         return playerClassIndex;
     }
 
-    auto AMX_NATIVE_CALL rz_get_class_var(Amx* amx, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_get_class_var(Amx* amx, cell* params) -> cell {
+        enum {
             arg_count,
             arg_class,
             arg_var,
@@ -110,10 +103,8 @@ namespace rz
         return true;
     }
 
-    auto AMX_NATIVE_CALL rz_set_class_var(Amx* amx, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_set_class_var(Amx* amx, cell* params) -> cell {
+        enum {
             arg_count,
             arg_class,
             arg_var,
@@ -172,20 +163,16 @@ namespace rz
         return true;
     }
 
-    auto AMX_NATIVE_CALL rz_class_begin(Amx*, cell*) -> cell
-    {
+    auto AMX_NATIVE_CALL rz_class_begin(Amx*, cell*) -> cell {
         return playerClassModule.begin();
     }
 
-    auto AMX_NATIVE_CALL rz_class_end(Amx*, cell*) -> cell
-    {
+    auto AMX_NATIVE_CALL rz_class_end(Amx*, cell*) -> cell {
         return playerClassModule.end();
     }
 
-    auto AMX_NATIVE_CALL rz_find_class(Amx* amx, cell* params) -> cell
-    {
-        enum
-        {
+    auto AMX_NATIVE_CALL rz_find_class(Amx* amx, cell* params) -> cell {
+        enum {
             arg_count,
             arg_handle,
         };
@@ -194,17 +181,16 @@ namespace rz
         return playerClassModule.findHandle(handle);
     }
 
-    auto AmxxPlayerClass::RegisterNatives() -> void
-    {
+    auto AmxxPlayerClass::RegisterNatives() -> void {
         static AmxNativeInfo natives[] = {
-          {"rz_create_class",  rz_create_class },
-          {"rz_get_class_var", rz_get_class_var},
-          {"rz_set_class_var", rz_set_class_var},
-          {"rz_class_begin",   rz_class_begin  },
-          {"rz_class_end",     rz_class_end    },
-          {"rz_find_class",    rz_find_class   },
+            {"rz_create_class",  rz_create_class},
+            {"rz_get_class_var", rz_get_class_var},
+            {"rz_set_class_var", rz_set_class_var},
+            {"rz_class_begin",   rz_class_begin},
+            {"rz_class_end",     rz_class_end},
+            {"rz_find_class",    rz_find_class},
 
-          {nullptr,            nullptr         },
+            {nullptr,            nullptr},
         };
         AddNatives(natives);
     }

@@ -7,16 +7,12 @@ namespace rz
 {
     using namespace player;
 
-    class PlayerNightVisionModule : public Module<PlayerNightVision>
-    {
+    class PlayerNightVisionModule : public Module<PlayerNightVision> {
       public:
-        PlayerNightVisionModule() : Module<PlayerNightVision>("player_nightvision")
-        {
-        }
+        PlayerNightVisionModule() : Module<PlayerNightVision>("player_nightvision") {}
 
-        auto add(std::string handle) -> int
-        {
-            return Module::add(PlayerNightVision(std::move(handle)));
+        auto add(std::string handle) -> int {
+            return Module::add(new PlayerNightVision(std::move(handle)));
         }
     };
 

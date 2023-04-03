@@ -6,12 +6,9 @@
 
 namespace rz
 {
-    class AmxxBaseFeature : public BaseObject
-    {
+    class AmxxBaseFeature : public BaseObject {
       public:
-        explicit AmxxBaseFeature(std::string handle) : BaseObject(std::move(handle))
-        {
-        }
+        explicit AmxxBaseFeature(std::string handle) : BaseObject(std::move(handle)) {}
 
         virtual auto RegisterForwards() -> void = 0;
         virtual auto RegisterNatives() -> void = 0;

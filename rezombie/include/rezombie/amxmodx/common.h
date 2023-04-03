@@ -6,20 +6,17 @@
 #include <cssdk/dll/player.h>
 #include <array>
 
-namespace rz
-{
+namespace rz {
     using namespace cssdk;
     using namespace amx;
 
-    enum class ForwardReturn
-    {
+    enum class ForwardReturn {
         Continue,
         Supercede,
         Break,
     };
 
-    enum class RzHudParams
-    {
+    enum class RzHudParams {
         X,
         Y,
         Effect,
@@ -38,8 +35,7 @@ namespace rz
         Channel,
     };
 
-    enum class RzDHudParams
-    {
+    enum class RzDHudParams {
         X,
         Y,
         Effect,
@@ -52,12 +48,9 @@ namespace rz
         FxTime,
     };
 
-    class AmxxCommon : public AmxxFeature<>
-    {
+    class AmxxCommon : public AmxxFeature<> {
       public:
-        AmxxCommon() : AmxxFeature("common")
-        {
-        }
+        AmxxCommon() : AmxxFeature("common") {}
 
         auto RegisterNatives() -> void override;
     };

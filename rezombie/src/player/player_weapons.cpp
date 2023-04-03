@@ -1,5 +1,4 @@
 #include <messages/engine_message.h>
-#include "rezombie/modules/melee.h"
 #include "rezombie/modules/weapon.h"
 #include "rezombie/player/player.h"
 #include "rezombie/player/players.h"
@@ -12,164 +11,179 @@ namespace rz::player
     using namespace core;
     using namespace cssdk;
     using namespace metamod;
+    using namespace metamod::gamedll;
     using namespace message;
 
-    auto DropOrDeplace(Player& player, InventorySlot slot, GiveType giveType) -> void
-    {
+    auto Player::DropOrReplace(InventorySlot slot, GiveType giveType) -> void {
         if (giveType == GiveType::Append) {
             return;
         }
-        player.forEachItem(
-          slot,
-          [&player, &giveType](PlayerItemBase* item)
-          {
-              if (giveType == GiveType::Replace) {
-                  player.setWeapons(player.getWeapons() & ~(1 << (item->vars->i_user1)));
-                  player.RemovePlayerItem(item);
-                  item->Kill();
-              } else if (giveType == GiveType::DropAndReplace) {
-                  player.DropPlayerItem(item->vars->class_name.CStr());
-              }
-              return false;
-          }
-        );
+        forEachItem(slot, [&](PlayerItemBase* item) {
+            if (giveType == GiveType::Replace) {
+                setWeapons(getWeapons() & ~(1 << (item->vars->i_user1)));
+                RemovePlayerItem(item);
+                item->Kill();
+            } else if (giveType == GiveType::DropAndReplace) {
+                DropPlayerItem(item->vars->class_name.CStr());
+            }
+            return false;
+        });
     }
 
-    auto CreateBaseWeapon(Player& player, int weaponIndex, BaseWeapon& weapon) -> EntityBase*
-    {
-        std::vector<int> freeIds;
-        switch (weapon.getCrosshairSize()) {
+    auto Player::GetFreeWeaponId(CrosshairSize crosshairSize) const -> std::optional<std::reference_wrapper<const WeaponId>> {
+        std::vector<WeaponId> freeIds;
+        switch (crosshairSize) {
             case CrosshairSize::None: {
                 freeIds = {
-                  toInt(WeaponId::Scout), toInt(WeaponId::Sg550), toInt(WeaponId::Awp), toInt(WeaponId::G3Sg1)};
+                    WeaponId::Scout,
+                    WeaponId::Sg550,
+                    WeaponId::Awp,
+                    WeaponId::G3Sg1,
+                };
                 break;
             }
             case CrosshairSize::Size3: {
-                freeIds = {toInt(WeaponId::Aug)};
+                freeIds = {
+                    WeaponId::Aug,
+                };
                 break;
             }
             case CrosshairSize::Size4: {
                 freeIds = {
-                  toInt(WeaponId::Elite), toInt(WeaponId::Galil), toInt(WeaponId::Famas), toInt(WeaponId::M4A1),
-                  toInt(WeaponId::Ak47)};
+                    WeaponId::Elite,
+                    WeaponId::Galil,
+                    WeaponId::Famas,
+                    WeaponId::M4A1,
+                    WeaponId::Ak47,
+                };
                 break;
             }
             case CrosshairSize::Size5: {
-                freeIds = {toInt(WeaponId::Sg552)};
+                freeIds = {
+                    WeaponId::Sg552,
+                };
                 break;
             }
             case CrosshairSize::Size6: {
                 freeIds = {
-                  toInt(WeaponId::C4), toInt(WeaponId::Ump45), toInt(WeaponId::Mp5Navy), toInt(WeaponId::M249)};
+                    WeaponId::C4,
+                    WeaponId::Ump45,
+                    WeaponId::Mp5Navy,
+                    WeaponId::M249,
+                };
                 break;
             }
             case CrosshairSize::Size7: {
-                freeIds = {toInt(WeaponId::Tmp), toInt(WeaponId::P90), /*knife*/};
+                freeIds = {
+                    WeaponId::Tmp,
+                    WeaponId::P90,
+                    /*knife*/
+                };
                 break;
             }
             case CrosshairSize::Size8: {
-                freeIds = {toInt(WeaponId::P228),      toInt(WeaponId::HeGrenade), toInt(WeaponId::SmokeGrenade),
-                           toInt(WeaponId::Fiveseven), toInt(WeaponId::Usp),       toInt(WeaponId::Glock18),
-                           toInt(WeaponId::M3),        toInt(WeaponId::FlashBang), toInt(WeaponId::Deagle)};
+                freeIds = {
+                    WeaponId::P228,
+                    WeaponId::HeGrenade,
+                    WeaponId::SmokeGrenade,
+                    WeaponId::Fiveseven,
+                    WeaponId::Usp,
+                    WeaponId::Glock18,
+                    WeaponId::M3,
+                    WeaponId::FlashBang,
+                    WeaponId::Deagle,
+                };
                 break;
             }
             case CrosshairSize::Size9: {
-                freeIds = {toInt(WeaponId::Xm1014), toInt(WeaponId::Mac10)};
+                freeIds = {
+                    WeaponId::Xm1014,
+                    WeaponId::Mac10,
+                };
                 break;
             }
         }
         for (auto slot = 0; slot < MAX_ITEM_TYPES; ++slot) {
-            auto item = player.getPlayerItems(slot);
+            auto item = getPlayerItems(slot);
             while (item != nullptr) {
                 if (item->vars->i_user1) {
-                    freeIds.erase(std::remove(freeIds.begin(), freeIds.end(), item->vars->i_user1), freeIds.end());
+                    freeIds.erase(
+                        std::remove(
+                            freeIds.begin(),
+                            freeIds.end(),
+                            static_cast<WeaponId>(item->vars->i_user1)
+                        ),
+                        freeIds.end()
+                    );
                 }
                 item = item->next;
             }
         }
         if (freeIds.empty()) {
-            return nullptr;
+            return std::nullopt;
         }
-        auto edict = CreateNamedEntity(AllocString(WEAPON_PLACEHOLDER));
+        const auto copiedWeaponId = freeIds[0];
+        return {copiedWeaponId};
+    }
+
+    auto Player::CreateBaseWeapon(int weaponIndex, const BaseWeapon& weapon) -> EntityBase* {
+        auto freeId = toInt(WeaponId::Knife);
+        if (weapon.getWeaponType() != WeaponType::Melee) {
+            const auto freeWeaponId = GetFreeWeaponId(weapon.getCrosshairSize());
+            if (!freeWeaponId) {
+                return nullptr;
+            }
+            freeId = toInt(freeWeaponId->get());
+        }
+        const auto edict = CreateNamedEntity(AllocString(weapon.getReference().c_str()));
         if (!IsValidEntity(edict)) {
             return nullptr;
         }
-        const auto freeId = freeIds[0];
         edict->vars.impulse = weaponIndex;
         edict->vars.net_name = AllocString(weapon.getName().c_str());
         edict->vars.i_user1 = freeId;
-        gamedll::Spawn(edict);
-        gamedll::Touch(edict, player);
+        Spawn(edict);
+        Touch(edict, *this);
         auto entity = EntityPrivateData<EntityBase>(edict);
-        if (!IsValidEntity(entity->vars->owner) || entity->vars->owner != player) {
+        if (!IsValidEntity(entity->vars->owner) || entity->vars->owner != *this) {
             entity->vars->flags |= FL_KILL_ME;
             return nullptr;
         }
-        player.setAmmo(edict->vars.i_user1, weapon.getMaxAmmo());
+        setAmmo(edict->vars.i_user1, weapon.getMaxAmmo());
         return entity;
     }
 
-    auto CreateMelee(Player& player, int weaponIndex, BaseWeapon& weapon) -> EntityBase*
-    {
-        auto edict = CreateNamedEntity(AllocString(WEAPON_MELEE));
-        if (!IsValidEntity(edict)) {
-            return nullptr;
-        }
-        edict->vars.impulse = weaponIndex;
-        edict->vars.net_name = AllocString(weapon.getName().c_str());
-        gamedll::Spawn(edict);
-        gamedll::Touch(edict, player);
-        auto entity = EntityPrivateData<EntityBase>(edict);
-        if (!IsValidEntity(entity->vars->owner) || entity->vars->owner != player) {
-            entity->vars->flags |= FL_KILL_ME;
-            return nullptr;
-        }
-        return entity;
-    }
-
-    auto Player::GiveWeapon(int weaponIndex, GiveType giveType) -> EntityBase*
-    {
-        auto weaponRef = weaponModule[weaponIndex];
+    auto Player::GiveWeapon(int weaponIndex, GiveType giveType) -> EntityBase* {
+        const auto weaponRef = weaponModule[weaponIndex];
         if (!weaponRef) {
             return nullptr;
         }
-        auto& weapon = weaponRef->get();
-        DropOrDeplace(*this, weapon.getInventorySlot(), giveType);
-        return CreateBaseWeapon(*this, weaponIndex, weapon);
+        const auto& weapon = weaponRef->get();
+        DropOrReplace(weapon.getInventorySlot(), giveType);
+        return CreateBaseWeapon(weaponIndex, weapon);
     }
 
-    auto Player::GiveMelee(int meleeIndex) -> EntityBase*
-    {
-        auto meleeRef = meleeModule[meleeIndex];
-        if (!meleeRef) {
-            return nullptr;
-        }
-        auto& melee = meleeRef->get();
-        // DropOrDeplace(*this, melee.getReference(), GiveType::Replace);
-        return CreateMelee(*this, meleeIndex, melee);
-    }
-
-    auto Player::SendWeaponAnim(int animNumber, int body) -> void
-    {
+    auto Player::SendWeaponAnim(int animNumber, int body) -> void {
         setWeaponAnim(animNumber);
         netWeaponAnim(*this, animNumber, body);
-        players.forEachConnected(
-          [&](auto& player)
-          {
-              if (player.getIUser1() != ObserverMode::InEye) {
-                  return;
-              }
-              if (player.getObserverTarget() != *this) {
-                  return;
-              }
-              player.setWeaponAnim(animNumber);
-              netWeaponAnim(player, animNumber, body);
-          }
-        );
+        players.forEachConnected([&](auto& player) {
+            if (player.getIUser1() != ObserverMode::InEye) {
+                return;
+            }
+            if (player.getObserverTarget() != *this) {
+                return;
+            }
+            player.setWeaponAnim(animNumber);
+            netWeaponAnim(player, animNumber, body);
+        });
     }
 
-    auto WeaponDefaultDeploy(Player& player, PlayerWeaponBase* baseWeapon, int drawAnim, const char* playerAnim) -> bool
-    {
+    auto WeaponDefaultDeploy(
+        Player& player,
+        PlayerWeaponBase* baseWeapon,
+        int drawAnim,
+        const char* playerAnim
+    ) -> bool {
         if (!baseWeapon->CanDeploy()) {
             return false;
         }
@@ -189,8 +203,12 @@ namespace rz::player
         return true;
     }
 
-    auto WeaponDefaultReload(Player& player, PlayerWeaponBase* baseWeapon, int reloadAnim, float reloadTime) -> bool
-    {
+    auto WeaponDefaultReload(
+        Player& player,
+        PlayerWeaponBase* baseWeapon,
+        int reloadAnim,
+        float reloadTime
+    ) -> bool {
         const auto ammo = player.getAmmo(baseWeapon->primary_ammo_type);
         if (ammo <= 0) {
             return false;
@@ -209,10 +227,15 @@ namespace rz::player
     }
 
     auto WeaponDefaultShotgunReload(
-      Player& player, PlayerWeaponBase* baseWeapon, int reloadAnim, int reloadStartAnim, float reloadDelay,
-      float reloadStartDelay, const char* reloadSound1, const char* reloadSound2
-    ) -> bool
-    {
+        Player& player,
+        PlayerWeaponBase* baseWeapon,
+        int reloadAnim,
+        int reloadStartAnim,
+        float reloadDelay,
+        float reloadStartDelay,
+        const char* reloadSound1,
+        const char* reloadSound2
+    ) -> bool {
         const auto ammo = player.getAmmo(baseWeapon->primary_ammo_type);
         const auto itemInfo = baseWeapon->GetCsPlayerItem()->item_info;
         if (ammo <= 0 || baseWeapon->clip == itemInfo.max_clip) {
@@ -260,18 +283,24 @@ namespace rz::player
     }
 
     auto WeaponKickBack(
-      Player& player, PlayerWeaponBase* baseWeapon, float upBase, float lateralBase, float upModifier,
-      float lateralModifier, float upMax, float lateralMax, int directionChange
-    ) -> void
-    {
+        Player& player,
+        PlayerWeaponBase* baseWeapon,
+        float upBase,
+        float lateralBase,
+        float upModifier,
+        float lateralModifier,
+        float upMax,
+        float lateralMax,
+        int directionChange
+    ) -> void {
         float kickUp;
         float kickLateral;
         if (baseWeapon->shots_fired == 1) {
             kickUp = upBase;
             kickLateral = lateralBase;
         } else {
-            kickUp = baseWeapon->shots_fired * upModifier + upBase;
-            kickLateral = baseWeapon->shots_fired * lateralModifier + lateralBase;
+            kickUp = static_cast<float>(baseWeapon->shots_fired) * upModifier + upBase;
+            kickLateral = static_cast<float>(baseWeapon->shots_fired) * lateralModifier + lateralBase;
         }
         auto& punchAngle = player.getPunchAngle();
         punchAngle.x -= kickUp;
@@ -296,9 +325,12 @@ namespace rz::player
     }
 
     auto WeaponThrowGrenade(
-      Player& player, PlayerWeaponBase* baseWeapon, const Vector& origin, const Vector& velocity, float actionTime
-    ) -> cssdk::Grenade*
-    {
+        Player& player,
+        PlayerWeaponBase* baseWeapon,
+        const Vector& origin,
+        const Vector& velocity,
+        float actionTime
+    ) -> Grenade* {
         using namespace core::regamedll_api::detail;
         auto grenadeEntity = regamedll_funcs->create_named_entity2(AllocString("grenade"));
         auto grenade = EntityPrivateData<cssdk::Grenade>(grenadeEntity);
