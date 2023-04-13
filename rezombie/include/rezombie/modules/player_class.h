@@ -2,7 +2,7 @@
 
 #include "rezombie/core/module.h"
 #include "rezombie/gamerules/game_rules.h"
-#include "rezombie/player/player_class.h"
+#include "rezombie/entity/player_class.h"
 
 namespace rz
 {

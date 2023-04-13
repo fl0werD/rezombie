@@ -25,8 +25,6 @@ namespace rz::weapon
         int maxAmmo_ = 0;
         int weight_ = 0;
         int flags_ = 0;
-        float baseAccuracy_ = 0.f;
-        CrosshairSize crosshairSize_ = CrosshairSize::None;
         int deployForward_ = -1;
         int holsterForward_ = -1;
         int maxSpeedForward_ = -1;
@@ -34,7 +32,6 @@ namespace rz::weapon
         int secondaryAttackForward_ = -1;
         int reloadForward_ = -1;
         int idleForward_ = -1;
-        int fireRemainingForward_ = -1;
 
         static auto getDefaultInventorySlot(WeaponType weaponType) -> InventorySlot {
             switch (weaponType) {
@@ -59,6 +56,8 @@ namespace rz::weapon
             reference_(std::move(reference)),
             weaponType_(weaponType),
             inventorySlot_(getDefaultInventorySlot(weaponType_)) {}
+
+        virtual ~BaseWeapon() = default;
 
         auto getReference() const -> const std::string& { return reference_; }
 
@@ -98,17 +97,9 @@ namespace rz::weapon
 
         auto setFlags(int flags) { flags_ = flags; }
 
-        auto getBaseAccuracy() const { return baseAccuracy_; }
-
-        auto setBaseAccuracy(float baseAccuracy) { baseAccuracy_ = baseAccuracy; }
-
         auto getWeaponType() const { return weaponType_; }
 
         auto setWeaponType(WeaponType weaponType) { weaponType_ = weaponType; }
-
-        auto getCrosshairSize() const { return crosshairSize_; }
-
-        auto setCrosshairSize(CrosshairSize crosshairSize) { crosshairSize_ = crosshairSize; }
 
         auto getDeployForward() const { return deployForward_; }
 
@@ -189,18 +180,6 @@ namespace rz::weapon
                 return false;
             }
             ExecuteForward(getIdleForward(), weapon, player, idleTime);
-            return true;
-        }
-
-        auto getFireRemainingForward() const { return fireRemainingForward_; }
-
-        auto setFireRemainingForward(int fireRemainingForward) { fireRemainingForward_ = fireRemainingForward; }
-
-        auto executeFireRemaining(int weapon, int player, int clip, int shotsFired) const -> bool {
-            if (getIdleForward() == -1) {
-                return false;
-            }
-            ExecuteForward(getFireRemainingForward(), weapon, player, clip, shotsFired);
             return true;
         }
     };

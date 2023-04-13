@@ -3,20 +3,21 @@
 #include "rezombie/modules/game_mode.h"
 #include <amxx/api.h>
 
-namespace rz {
+namespace rz
+{
     using namespace amx;
     using namespace amxx;
 
     auto AmxxGameRules::RoundStart(bool isReset) -> void {
-        ExecuteForward(getForward(GameRulesForward::ROUND_START), isReset);
+        ExecuteForward(getForward(GameRulesForward::RoundStart), isReset);
     }
 
     auto AmxxGameRules::RoundEnd(EndRoundEvent event, int gameModeIndex, int delay) -> void {
-        ExecuteForward(getForward(GameRulesForward::ROUND_END), event, gameModeIndex, delay);
+        ExecuteForward(getForward(GameRulesForward::RoundEnd), event, gameModeIndex, delay);
     }
 
-    auto AmxxGameRules::RoundHudTimer(int time) -> void {
-        ExecuteForward(getForward(GameRulesForward::ROUND_HUD_TIMER), time);
+    auto AmxxGameRules::RoundTimer(int time) -> void {
+        ExecuteForward(getForward(GameRulesForward::RoundTimer), time);
     }
 
     auto AmxxGameRules::GameStateChanged(GameState oldGameState, GameState newGameState) -> void {
@@ -35,12 +36,17 @@ namespace rz {
         using e = ForwardExecType;
         using p = ForwardParam;
 
-        setForward(GameRulesForward::ROUND_START, RegisterForward("@rz_round_start", e::Ignore, p::Done));
         setForward(
-            GameRulesForward::ROUND_END, RegisterForward("@rz_round_end", e::Ignore, p::Cell, p::Cell, p::Cell, p::Done)
+            GameRulesForward::RoundStart,
+            RegisterForward("@rz_round_start", e::Ignore, p::Cell, p::Done)
         );
         setForward(
-            GameRulesForward::ROUND_HUD_TIMER, RegisterForward("@rz_round_hud_timer", e::Ignore, p::Cell, p::Done)
+            GameRulesForward::RoundEnd,
+            RegisterForward("@rz_round_end", e::Ignore, p::Cell, p::Cell, p::Cell, p::Done)
+        );
+        setForward(
+            GameRulesForward::RoundTimer,
+            RegisterForward("@rz_round_hud_timer", e::Ignore, p::Cell, p::Done)
         );
         setForward(
             GameRulesForward::GAME_STATE_CHANGED,
@@ -51,7 +57,8 @@ namespace rz {
             RegisterForward("rz_round_state_changed", e::Ignore, p::Cell, p::Cell, p::Done)
         );
         setForward(
-            GameRulesForward::GAME_MODE_START, RegisterForward("rz_game_mode_start", e::Ignore, p::Cell, p::Done)
+            GameRulesForward::GAME_MODE_START,
+            RegisterForward("rz_game_mode_start", e::Ignore, p::Cell, p::Done)
         );
     }
 
@@ -141,11 +148,18 @@ namespace rz {
         enum {
             arg_count,
             arg_handle,
+            arg_launch_forward,
         };
+
+        using p = ForwardParam;
 
         // Check arg count
         auto handle = GetAmxString(amx, params[arg_handle]);
-        const auto gameModeIndex = gameModeModule.add(handle);
+        const auto launchForward = RegisterSpForwardByName(amx, GetAmxString(amx, params[arg_launch_forward]), p::Cell, p::Done);
+        if (launchForward == -1) {
+            return 0;
+        }
+        const auto gameModeIndex = gameModeModule.add(handle, launchForward);
         return gameModeIndex;
     }
 

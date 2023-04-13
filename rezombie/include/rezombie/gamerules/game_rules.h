@@ -368,11 +368,9 @@ namespace rz
         int defaultPlayerClass_[MAX_TEAMS] = {0};
         int defaultPlayerClassOverride_[MAX_TEAMS] = {0};
 
-        std::string lightInfo = "f";
-
-        uint16 shadowSprite_ = 0;
+        int shadowSprite_ = 0;
     };
 
     inline TeamPlayGameRules* gameRules = nullptr;
-    inline cssdk::GameRules* g_originalGameRules = nullptr;
+    inline GameRules* g_originalGameRules = nullptr;
 }

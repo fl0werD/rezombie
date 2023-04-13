@@ -301,17 +301,18 @@ namespace rz::weapon
             postFrame.Call(this);
             return;
         }
-        auto& weapon = weaponRef->get();
+        auto& baseWeapon = weaponRef->get();
         auto usableButtons = player->vars->button;
         const auto itemInfo = GetCsPlayerItem()->item_info;
-        if (weapon.getPrimaryAttackForward() == -1) {
+        if (baseWeapon.getPrimaryAttackForward() == -1) {
             usableButtons &= ~IN_ATTACK;
         }
-        if (weapon.getSecondaryAttackForward() == -1) {
+        if (baseWeapon.getSecondaryAttackForward() == -1) {
             usableButtons &= ~IN_ATTACK2;
         }
-        if (famas_shoot != 0.f && g_global_vars->time > famas_shoot) {
-            weapon.executeFireRemaining(EdictIndex(), player->EdictIndex(), clip, famas_shots_fired);
+        const auto weapon = dynamic_cast<Weapon*>(&baseWeapon);
+        if (weapon != nullptr && famas_shoot != 0.f && g_global_vars->time > famas_shoot) {
+            weapon->executeFireRemaining(EdictIndex(), player->EdictIndex(), clip, famas_shots_fired);
         }
         if (next_primary_attack <= 0.0) {
             if (player->resume_zoom) {
@@ -371,14 +372,14 @@ namespace rz::weapon
                 decrease_shots_fired = g_global_vars->time + 0.4f;
             }
             fire_on_empty = FALSE;
-            if (weapon.getWeaponType() == WeaponType::Secondary) {
+            if (baseWeapon.getWeaponType() == WeaponType::Secondary) {
                 shots_fired = 0;
             } else {
                 if (shots_fired > 0 && decrease_shots_fired < g_global_vars->time) {
                     decrease_shots_fired = g_global_vars->time + 0.0225f;
                     shots_fired--;
-                    if (shots_fired == 0) {
-                        accuracy = weapon.getBaseAccuracy();
+                    if (weapon != nullptr && shots_fired == 0) {
+                        accuracy = weapon->getBaseAccuracy();
                     }
                 }
             }

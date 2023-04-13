@@ -3,7 +3,8 @@
 #include "rezombie/amxmodx/common.h"
 #include "rezombie/player/player.h"
 
-namespace rz {
+namespace rz
+{
     using namespace rz::player;
 
     enum class PlayerClassVars : int {
@@ -21,10 +22,10 @@ namespace rz {
     enum class PlayerClassForward : int {
         ChangeClassPre,
         ChangeClassPost,
-        MAX_PLAYER_CLASS_FORWARDS,
+        MAX_FORWARDS,
     };
 
-    class AmxxPlayerClass : public AmxxFeature<PlayerClassForward, PlayerClassForward::MAX_PLAYER_CLASS_FORWARDS> {
+    class AmxxPlayerClass : public AmxxFeature<PlayerClassForward, PlayerClassForward::MAX_FORWARDS> {
       public:
         AmxxPlayerClass() : AmxxFeature("player_class") {}
 

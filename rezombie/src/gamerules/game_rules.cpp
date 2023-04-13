@@ -253,6 +253,7 @@ namespace rz
                             } else {
                                 setRoundRemainingTime(round_time);
                             }
+                            gameMode.executeLaunch(gameModeIndex);
                         }
                         amxxGameRules.GameModeStart(gameModeIndex);
                         break;
@@ -574,8 +575,10 @@ namespace rz
             case Team::Zombie: {
                 return num_terrorist_wins;
             }
+            default: {
+                return 0;
+            }
         }
-        return 0;
     }
 
     auto TeamPlayGameRules::setTeamWins(Team team, short wins, bool update) -> void
@@ -737,6 +740,6 @@ namespace rz
 
     auto TeamPlayGameRules::precache() -> void
     {
-        shadowSprite_ = static_cast<uint16>(PrecacheModel("sprites/shadow_circle.spr"));
+        shadowSprite_ = PrecacheModel("sprites/shadow_circle.spr");
     }
 }

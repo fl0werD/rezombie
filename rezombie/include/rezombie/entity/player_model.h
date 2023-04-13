@@ -1,7 +1,7 @@
 #pragma once
 
 #include "rezombie/core/base_object.h"
-#include <metamod/engine.h>
+#include "metamod/engine.h"
 #include <algorithm>
 
 namespace rz::player

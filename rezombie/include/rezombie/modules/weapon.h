@@ -1,7 +1,7 @@
 #pragma once
 
 #include "rezombie/core/module.h"
-#include "rezombie/weapons/weapon.h"
+#include "rezombie/entity/weapon.h"
 #include "rezombie/weapons/melee.h"
 #include <core/strings/format.h>
 #include <cssdk/dll/weapon_type.h>

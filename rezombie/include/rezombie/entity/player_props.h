@@ -1,7 +1,7 @@
 #pragma once
 
 #include "rezombie/core/base_object.h"
-#include <cssdk/public/regamedll/regamedll_consts.h>
+#include "cssdk/public/regamedll/regamedll_consts.h"
 
 #include <utility>
 

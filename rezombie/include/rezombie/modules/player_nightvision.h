@@ -1,7 +1,7 @@
 #pragma once
 
 #include "rezombie/core/module.h"
-#include "rezombie/player/player_nightvision.h"
+#include "rezombie/entity/player_nightvision.h"
 
 namespace rz
 {

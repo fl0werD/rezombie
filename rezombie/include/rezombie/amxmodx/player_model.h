@@ -3,7 +3,8 @@
 #include "rezombie/core/amxx_feature.h"
 #include <array>
 
-namespace rz {
+namespace rz
+{
     enum class PlayerModelHeader : int {
         Path,
         IsDefaultHitboxes,

@@ -2,7 +2,7 @@
 
 #include <messages/engine_message.h>
 #include "rezombie/player/long_jump.h"
-#include "rezombie/player/player_model.h"
+#include "rezombie/entity/player_model.h"
 #include "rezombie/player/player_preview.h"
 #include "rezombie/weapons/weapons.h"
 #include <cssdk/engine/eiface.h>

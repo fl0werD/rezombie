@@ -1,7 +1,7 @@
 #pragma once
 
 #include "rezombie/core/module.h"
-#include "rezombie/player/player_sound.h"
+#include "rezombie/entity/player_sound.h"
 
 namespace rz::player
 {

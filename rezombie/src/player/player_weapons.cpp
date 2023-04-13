@@ -3,6 +3,7 @@
 #include "rezombie/player/player.h"
 #include "rezombie/player/players.h"
 #include "rezombie/weapons/weapons.h"
+#include "rezombie/entity/weapon.h"
 #include <metamod/engine.h>
 #include <metamod/gamedll.h>
 
@@ -126,21 +127,25 @@ namespace rz::player
         return {copiedWeaponId};
     }
 
-    auto Player::CreateBaseWeapon(int weaponIndex, const BaseWeapon& weapon) -> EntityBase* {
+    auto Player::CreateBaseWeapon(int weaponIndex, BaseWeapon& baseWeapon) -> EntityBase* {
         auto freeId = toInt(WeaponId::Knife);
-        if (weapon.getWeaponType() != WeaponType::Melee) {
-            const auto freeWeaponId = GetFreeWeaponId(weapon.getCrosshairSize());
+        if (baseWeapon.getWeaponType() != WeaponType::Melee) {
+            const auto weapon = dynamic_cast<Weapon*>(&baseWeapon);
+            if (weapon == nullptr) {
+                return nullptr;
+            }
+            const auto freeWeaponId = GetFreeWeaponId(weapon->getCrosshairSize());
             if (!freeWeaponId) {
                 return nullptr;
             }
             freeId = toInt(freeWeaponId->get());
         }
-        const auto edict = CreateNamedEntity(AllocString(weapon.getReference().c_str()));
+        const auto edict = CreateNamedEntity(AllocString(baseWeapon.getReference().c_str()));
         if (!IsValidEntity(edict)) {
             return nullptr;
         }
         edict->vars.impulse = weaponIndex;
-        edict->vars.net_name = AllocString(weapon.getName().c_str());
+        edict->vars.net_name = AllocString(baseWeapon.getName().c_str());
         edict->vars.i_user1 = freeId;
         Spawn(edict);
         Touch(edict, *this);
@@ -149,16 +154,16 @@ namespace rz::player
             entity->vars->flags |= FL_KILL_ME;
             return nullptr;
         }
-        setAmmo(edict->vars.i_user1, weapon.getMaxAmmo());
+        setAmmo(edict->vars.i_user1, baseWeapon.getMaxAmmo());
         return entity;
     }
 
     auto Player::GiveWeapon(int weaponIndex, GiveType giveType) -> EntityBase* {
-        const auto weaponRef = weaponModule[weaponIndex];
+        auto weaponRef = weaponModule[weaponIndex];
         if (!weaponRef) {
             return nullptr;
         }
-        const auto& weapon = weaponRef->get();
+        auto& weapon = weaponRef->get();
         DropOrReplace(weapon.getInventorySlot(), giveType);
         return CreateBaseWeapon(weaponIndex, weapon);
     }

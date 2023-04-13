@@ -5,14 +5,9 @@
 #include "rezombie/player/player.h"
 #include <array>
 
-namespace rz {
+namespace rz
+{
     using namespace rz::player;
-
-    enum class PlayerSubclassForward : int {
-        ChangeSubclassPre,
-        ChangeSubclassPost,
-        MAX_PLAYER_SUBCLASS_FORWARDS,
-    };
 
     enum class PlayerSubclassVars : int {
         Handle,
@@ -27,8 +22,14 @@ namespace rz {
         Nightvision,
     };
 
+    enum class PlayerSubclassForward : int {
+        ChangeSubclassPre,
+        ChangeSubclassPost,
+        MAX_FORWARDS,
+    };
+
     class AmxxPlayerSubclass
-        : public AmxxFeature<PlayerSubclassForward, PlayerSubclassForward::MAX_PLAYER_SUBCLASS_FORWARDS> {
+        : public AmxxFeature<PlayerSubclassForward, PlayerSubclassForward::MAX_FORWARDS> {
       public:
         AmxxPlayerSubclass() : AmxxFeature("player_subclass") {}
 

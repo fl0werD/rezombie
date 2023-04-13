@@ -7,7 +7,7 @@
 #include "rezombie/modules/player_nightvision.h"
 #include "rezombie/modules/player_props.h"
 #include "rezombie/modules/player_sound.h"
-#include <cssdk/dll/player.h>
+#include "cssdk/dll/player.h"
 
 namespace rz::player
 {

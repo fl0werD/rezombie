@@ -4,7 +4,7 @@
 #include "rezombie/modules/player_model.h"
 #include "rezombie/modules/weapon.h"
 #include "rezombie/player/players.h"
-#include "rezombie/player/weather.h"
+#include "rezombie/entity/weather.h"
 #include "rezombie/weapons/weapons.h"
 #include <core/amxx_access.h>
 #include <metamod/utils.h>
@@ -19,8 +19,8 @@ using namespace mhooks;
 using namespace vhooks;
 using namespace message;
 
-namespace rz {
-
+namespace rz
+{
     auto Spawn_Pre(const GameDllDispatchSpawnMChain& chain, Edict* entity) -> int {
         if (str::Equals(entity->vars.class_name.CStr(), "armoury_entity")) {
             RETURN_META_VALUE(Result::Supercede, -1);

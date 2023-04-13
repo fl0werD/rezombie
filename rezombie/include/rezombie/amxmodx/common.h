@@ -6,7 +6,8 @@
 #include <cssdk/dll/player.h>
 #include <array>
 
-namespace rz {
+namespace rz
+{
     using namespace cssdk;
     using namespace amx;
 

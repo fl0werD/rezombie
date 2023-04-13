@@ -1,7 +1,7 @@
 #pragma once
 
 #include "rezombie/core/module.h"
-#include "rezombie/player/player_props.h"
+#include "rezombie/entity/player_props.h"
 
 namespace rz
 {

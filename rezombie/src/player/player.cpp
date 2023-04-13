@@ -281,6 +281,7 @@ namespace rz::player
                 return;
             }
         } else if (str::Equals(command, "chooseteam")) {
+            chain.CallNext(client, command, arg1);
             return;
         } else {
             if (player.SelectItem(command)) {

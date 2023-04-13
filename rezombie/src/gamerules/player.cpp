@@ -2,7 +2,7 @@
 #include <messages/engine_message.h>
 #include "rezombie/player/player_preview.h"
 #include "rezombie/player/players.h"
-#include "rezombie/player/weather.h"
+#include "rezombie/entity/weather.h"
 #include "rezombie/util.h"
 #include <cssdk/public/regamedll/cs_player_item.h>
 #include <metamod/engine.h>

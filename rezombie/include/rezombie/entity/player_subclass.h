@@ -7,8 +7,8 @@
 #include "rezombie/modules/player_props.h"
 #include "rezombie/modules/player_sound.h"
 #include "rezombie/modules/weapon.h"
-#include "rezombie/player/player_class.h"
-#include <cssdk/dll/player.h>
+#include "rezombie/entity/player_class.h"
+#include "cssdk/dll/player.h"
 
 namespace rz::player
 {

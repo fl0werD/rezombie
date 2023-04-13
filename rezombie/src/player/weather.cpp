@@ -1,4 +1,4 @@
-#include "rezombie/player/weather.h"
+#include "rezombie/entity/weather.h"
 #include "rezombie/util.h"
 #include <algorithm>
 #include <string>

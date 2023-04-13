@@ -1,7 +1,7 @@
 #pragma once
 
 #include "rezombie/core/module.h"
-#include "rezombie/player/player_model.h"
+#include "rezombie/entity/player_model.h"
 #include "rezombie/util.h"
 #include <utility>
 

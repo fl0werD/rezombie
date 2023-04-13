@@ -4,7 +4,8 @@
 #include "rezombie/player/player.h"
 #include <array>
 
-namespace rz {
+namespace rz
+{
     using namespace rz::player;
 
     enum class RzPlayerVars : int {
@@ -19,10 +20,10 @@ namespace rz {
         ChooseDefaultSubclass,
         LongJumpState,
         LongJumpActivated,
-        MAX_PLAYER_FORWARDS,
+        MAX_FORWARDS,
     };
 
-    class AmxxPlayer : public AmxxFeature<PlayerForward, PlayerForward::MAX_PLAYER_FORWARDS> {
+    class AmxxPlayer : public AmxxFeature<PlayerForward, PlayerForward::MAX_FORWARDS> {
       public:
         AmxxPlayer() : AmxxFeature("player") {}
 

@@ -2,7 +2,7 @@
 
 #include <messages/engine_message.h>
 #include "rezombie/player/long_jump.h"
-#include "rezombie/player/player_model.h"
+#include "rezombie/entity/player_model.h"
 #include "rezombie/player/player_preview.h"
 #include "rezombie/player/player_vars.h"
 #include "rezombie/weapons/weapons.h"
@@ -84,7 +84,7 @@ namespace rz::player
 
         auto GiveWeapon(int weaponIndex, GiveType giveType = GiveType::Append) -> EntityBase*;
         auto DropOrReplace(InventorySlot slot, GiveType giveType) -> void;
-        auto CreateBaseWeapon(int weaponIndex, const BaseWeapon& weapon) -> EntityBase*;
+        auto CreateBaseWeapon(int weaponIndex, BaseWeapon& weapon) -> EntityBase*;
         auto GetFreeWeaponId(CrosshairSize crosshairSize) const -> std::optional<std::reference_wrapper<const WeaponId>>;
         auto SendWeaponAnim(int animNumber, int body = 0) -> void;
         auto ResetFovZoom() -> void;

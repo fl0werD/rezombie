@@ -4,7 +4,8 @@
 #include "rezombie/gamerules/game_rules.h"
 #include <array>
 
-namespace rz {
+namespace rz
+{
     enum class GameModeVars : int {
         Handle,
         Name,
@@ -13,17 +14,18 @@ namespace rz {
         RoundTime,
     };
 
+    // to lower case
     enum class GameRulesForward : int {
-        ROUND_START,
-        ROUND_END,
-        ROUND_HUD_TIMER,
+        RoundStart,
+        RoundEnd,
+        RoundTimer,
         GAME_STATE_CHANGED,
         ROUND_STATE_CHANGED,
         GAME_MODE_START,
-        MAX_GAME_RULES_FORWARDS,
+        MAX_FORWARDS,
     };
 
-    class AmxxGameRules : public AmxxFeature<GameRulesForward, GameRulesForward::MAX_GAME_RULES_FORWARDS> {
+    class AmxxGameRules : public AmxxFeature<GameRulesForward, GameRulesForward::MAX_FORWARDS> {
       public:
         AmxxGameRules() : AmxxFeature("game_rules") {}
 
@@ -35,7 +37,7 @@ namespace rz {
 
         auto RoundEnd(EndRoundEvent event, int gameModeIndex, int delay) -> void;
 
-        auto RoundHudTimer(int time) -> void;
+        auto RoundTimer(int time) -> void;
 
         auto GameStateChanged(GameState oldGameState, GameState newGameState) -> void;
 

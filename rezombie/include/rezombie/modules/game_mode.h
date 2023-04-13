@@ -1,7 +1,7 @@
 #pragma once
 
 #include "rezombie/core/module.h"
-#include "rezombie/gamerules/game_mode.h"
+#include "rezombie/entity/game_mode.h"
 
 namespace rz
 {
@@ -9,8 +9,8 @@ namespace rz
       public:
         GameModeModule() : Module<GameMode>("gamemode") {}
 
-        auto add(std::string handle) -> int {
-            return Module::add(new GameMode(std::move(handle)));
+        auto add(std::string handle, int launchForward) -> int {
+            return Module::add(new GameMode(std::move(handle), launchForward));
         }
     };
 

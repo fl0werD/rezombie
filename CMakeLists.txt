@@ -37,7 +37,7 @@ project(${PROJECT_NAME}
 #------------------------------------------------------------------------------------------------
 # Options
 #------------------------------------------------------------------------------------------------
-option(ENABLE_RTTI "Enable RTTI support" OFF)
+option(ENABLE_RTTI "Enable RTTI support" ON)
 option(ENABLE_EXCEPTIONS "Enable exception handling table generation" OFF)
 option(USE_LINKER_GOLD "Use the Gold linker (with GCC)" ON)
 option(LINK_STATIC_GCC "Static linking with the libgcc library" ON)

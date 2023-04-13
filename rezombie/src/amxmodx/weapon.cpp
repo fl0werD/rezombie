@@ -40,44 +40,48 @@ namespace rz {
             // Invalid index
             return false;
         }
-        const auto& weapon = weaponRef->get();
+        auto& baseWeapon = weaponRef->get();
+        const auto weapon = dynamic_cast<Weapon*>(&baseWeapon);
         using var = WeaponVars;
         switch (static_cast<var>(params[arg_var])) {
             case var::Handle: {
-                SetAmxString(amx, params[arg_3], weapon.getHandle().c_str(), params[arg_4]);
+                SetAmxString(amx, params[arg_3], baseWeapon.getHandle().c_str(), params[arg_4]);
                 break;
             }
             case var::Name: {
-                SetAmxString(amx, params[arg_3], weapon.getName().c_str(), *Address(amx, params[arg_4]));
+                SetAmxString(amx, params[arg_3], baseWeapon.getName().c_str(), *Address(amx, params[arg_4]));
                 break;
             }
             case var::ViewModel: {
-                SetAmxString(amx, params[arg_3], weapon.getViewModel().c_str(), params[arg_4]);
+                SetAmxString(amx, params[arg_3], baseWeapon.getViewModel().c_str(), params[arg_4]);
                 break;
             }
             case var::PlayerModel: {
-                SetAmxString(amx, params[arg_3], weapon.getPlayerModel().c_str(), params[arg_4]);
+                SetAmxString(amx, params[arg_3], baseWeapon.getPlayerModel().c_str(), params[arg_4]);
                 break;
             }
             case var::WorldModel: {
-                SetAmxString(amx, params[arg_3], weapon.getWorldModel().c_str(), params[arg_4]);
+                SetAmxString(amx, params[arg_3], baseWeapon.getWorldModel().c_str(), params[arg_4]);
                 break;
             }
             case var::Hud: {
-                SetAmxString(amx, params[arg_3], weapon.getHud().c_str(), params[arg_4]);
+                SetAmxString(amx, params[arg_3], baseWeapon.getHud().c_str(), params[arg_4]);
                 break;
             }
             case var::MaxClip: {
-                return weapon.getMaxClip();
+                return baseWeapon.getMaxClip();
             }
             case var::MaxAmmo: {
-                return weapon.getMaxAmmo();
+                return baseWeapon.getMaxAmmo();
             }
             case var::InventorySlot: {
-                return toInt(weapon.getInventorySlot());
+                return toInt(baseWeapon.getInventorySlot());
             }
             case var::BaseAccuracy: {
-                return FloatToCell(weapon.getBaseAccuracy());
+                if (weapon == nullptr) {
+                    return 0;
+                }
+                return FloatToCell(weapon->getBaseAccuracy());
             }
             default: {
                 // Invalid WeaponVar
@@ -103,7 +107,8 @@ namespace rz {
             // Invalid index
             return false;
         }
-        auto& weapon = weaponRef->get();
+        auto& baseWeapon = weaponRef->get();
+        const auto weapon = dynamic_cast<Weapon*>(&baseWeapon);
         using var = WeaponVars;
         switch (static_cast<var>(params[arg_var])) {
             case var::Handle: {
@@ -111,51 +116,57 @@ namespace rz {
                 break;
             }
             case var::Name: {
-                weapon.setName(GetAmxString(amx, params[arg_value]));
+                baseWeapon.setName(GetAmxString(amx, params[arg_value]));
                 break;
             }
             case var::ViewModel: {
-                weapon.setViewModel(GetAmxString(amx, params[arg_value]));
+                baseWeapon.setViewModel(GetAmxString(amx, params[arg_value]));
                 break;
             }
             case var::PlayerModel: {
-                weapon.setPlayerModel(GetAmxString(amx, params[arg_value]));
+                baseWeapon.setPlayerModel(GetAmxString(amx, params[arg_value]));
                 break;
             }
             case var::WorldModel: {
-                weapon.setWorldModel(GetAmxString(amx, params[arg_value]));
+                baseWeapon.setWorldModel(GetAmxString(amx, params[arg_value]));
                 break;
             }
             case var::Hud: {
-                weapon.setHud(GetAmxString(amx, params[arg_value]));
+                baseWeapon.setHud(GetAmxString(amx, params[arg_value]));
                 break;
             }
             case var::MaxClip: {
-                weapon.setMaxClip(*Address(amx, params[arg_value]));
+                baseWeapon.setMaxClip(*Address(amx, params[arg_value]));
                 break;
             }
             case var::MaxAmmo: {
-                weapon.setMaxAmmo(*Address(amx, params[arg_value]));
+                baseWeapon.setMaxAmmo(*Address(amx, params[arg_value]));
                 break;
             }
             case var::InventorySlot: {
-                weapon.setInventorySlot(static_cast<InventorySlot>(*Address(amx, params[arg_value])));
+                baseWeapon.setInventorySlot(static_cast<InventorySlot>(*Address(amx, params[arg_value])));
                 break;
             }
             case var::Weight: {
-                weapon.setWeight(*Address(amx, params[arg_value]));
+                baseWeapon.setWeight(*Address(amx, params[arg_value]));
                 break;
             }
             case var::Flags: {
-                weapon.setFlags(*Address(amx, params[arg_value]));
+                baseWeapon.setFlags(*Address(amx, params[arg_value]));
                 break;
             }
             case var::BaseAccuracy: {
-                weapon.setBaseAccuracy(CellToFloat(*Address(amx, params[arg_value])));
+                if (weapon == nullptr) {
+                    return false;
+                }
+                weapon->setBaseAccuracy(CellToFloat(*Address(amx, params[arg_value])));
                 break;
             }
             case var::CrosshairSize: {
-                weapon.setCrosshairSize(static_cast<CrosshairSize>(*Address(amx, params[arg_value])));
+                if (weapon == nullptr) {
+                    return false;
+                }
+                weapon->setCrosshairSize(static_cast<CrosshairSize>(*Address(amx, params[arg_value])));
                 break;
             }
             case var::ForwardDeploy: {
@@ -164,7 +175,7 @@ namespace rz {
                 if (deploy == -1) {
                     return false;
                 }
-                weapon.setDeployForward(deploy);
+                baseWeapon.setDeployForward(deploy);
                 break;
             }
             case var::ForwardHolster: {
@@ -173,7 +184,7 @@ namespace rz {
                 if (holster == -1) {
                     return false;
                 }
-                weapon.setHolsterForward(holster);
+                baseWeapon.setHolsterForward(holster);
                 break;
             }
             case var::ForwardMaxSpeed: {
@@ -183,7 +194,7 @@ namespace rz {
                 if (maxSpeed == -1) {
                     return false;
                 }
-                weapon.setMaxSpeedForward(maxSpeed);
+                baseWeapon.setMaxSpeedForward(maxSpeed);
                 break;
             }
             case var::ForwardPrimaryAttack: {
@@ -193,7 +204,7 @@ namespace rz {
                 if (primaryAttack == -1) {
                     return false;
                 }
-                weapon.setPrimaryAttackForward(primaryAttack);
+                baseWeapon.setPrimaryAttackForward(primaryAttack);
                 break;
             }
             case var::ForwardSecondaryAttack: {
@@ -203,7 +214,7 @@ namespace rz {
                 if (secondaryAttack == -1) {
                     return false;
                 }
-                weapon.setSecondaryAttackForward(secondaryAttack);
+                baseWeapon.setSecondaryAttackForward(secondaryAttack);
                 break;
             }
             case var::ForwardReload: {
@@ -212,7 +223,7 @@ namespace rz {
                 if (reload == -1) {
                     return false;
                 }
-                weapon.setReloadForward(reload);
+                baseWeapon.setReloadForward(reload);
                 break;
             }
             case var::ForwardIdle: {
@@ -222,17 +233,20 @@ namespace rz {
                 if (idle == -1) {
                     return false;
                 }
-                weapon.setIdleForward(idle);
+                baseWeapon.setIdleForward(idle);
                 break;
             }
             case var::ForwardFireRemaining: {
+                if (weapon == nullptr) {
+                    return false;
+                }
                 const auto fireRemaining = RegisterSpForwardByName(
                     amx, GetAmxString(amx, params[arg_value]), p::Cell, p::Cell, p::Cell, p::Cell, p::Done
                 );
                 if (fireRemaining == -1) {
                     return false;
                 }
-                weapon.setFireRemainingForward(fireRemaining);
+                weapon->setFireRemainingForward(fireRemaining);
                 break;
             }
             default: {
