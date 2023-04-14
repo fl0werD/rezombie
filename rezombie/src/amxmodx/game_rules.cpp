@@ -264,7 +264,7 @@ namespace rz
         };
 
         const auto handle = GetAmxString(amx, params[arg_handle]);
-        return gameModeModule.findHandle(handle);
+        return gameModeModule[handle];
     }
 
     auto AmxxGameRules::RegisterNatives() -> void {

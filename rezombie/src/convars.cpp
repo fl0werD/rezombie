@@ -1,7 +1,8 @@
 #include "rezombie/convars.h"
 #include <metamod/engine.h>
 
-namespace rz {
+namespace rz
+{
     using namespace metamod::engine;
 
     auto ConVarInit() -> void {

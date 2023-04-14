@@ -45,8 +45,12 @@ namespace rz
         }
     }
 
-    auto ServerActivate_Post(const GameDllServerActivateMChain& chain, Edict* edictList, int edictCount, int clientMax)
-    -> void {
+    auto ServerActivate_Post(
+        const GameDllServerActivateMChain& chain,
+        Edict* edictList,
+        int edictCount,
+        int clientMax
+    ) -> void {
         chain.CallNext(edictList, edictCount, clientMax);
         gameRules->precache();
         // previewPrecache();
@@ -63,7 +67,10 @@ namespace rz
     }
 
     auto UpdateClientData_Post(
-        const GameDllUpdateClientDataMChain& chain, const Edict* client, qboolean sendWeapons, ClientData* data
+        const GameDllUpdateClientDataMChain& chain,
+        const Edict* client,
+        qboolean sendWeapons,
+        ClientData* data
     ) -> void {
         chain.CallNext(client, sendWeapons, data);
         const auto& player = player::players[client];
@@ -76,8 +83,12 @@ namespace rz
         }
     }
 
-    auto DropClient_Post(const ReHldsDropClientMChain& chain, IGameClient* client, bool crash, const char* reason)
-    -> void {
+    auto DropClient_Post(
+        const ReHldsDropClientMChain& chain,
+        IGameClient* client,
+        bool crash,
+        const char* reason
+    ) -> void {
         players[client].disconnect();
         chain.CallNext(client, crash, reason);
     }

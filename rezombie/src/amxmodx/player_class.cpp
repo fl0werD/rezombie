@@ -4,7 +4,8 @@
 #include "rezombie/player/player.h"
 #include <amxx/api.h>
 
-namespace rz {
+namespace rz
+{
     using namespace amx;
     using namespace amxx;
     using namespace player;
@@ -178,7 +179,7 @@ namespace rz {
         };
 
         const auto handle = GetAmxString(amx, params[arg_handle]);
-        return playerClassModule.findHandle(handle);
+        return playerClassModule[handle];
     }
 
     auto AmxxPlayerClass::RegisterNatives() -> void {

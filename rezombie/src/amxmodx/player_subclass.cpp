@@ -2,13 +2,11 @@
 #include "rezombie/amxmodx/common.h"
 #include "rezombie/amxmodx/player_subclass.h"
 #include "rezombie/amxmodx/utils.h"
-#include "rezombie/gamerules/game_rules.h"
 #include "rezombie/player/player.h"
-#include "rezombie/player/players.h"
 #include <amxx/api.h>
-#include <cssdk/dll/player.h>
 
-namespace rz {
+namespace rz
+{
     using namespace amx;
     using namespace amxx;
     using namespace player;
@@ -143,7 +141,7 @@ namespace rz {
                 break;
             }
             case var::HudColor: {
-                subclass.setHudColor(std::move(GetAmxColor24(amx, params[arg_value])));
+                subclass.setHudColor(GetAmxColor24(amx, params[arg_value]));
                 break;
             }
             case var::PlayerProps: {
@@ -189,7 +187,7 @@ namespace rz {
         };
 
         const auto handle = GetAmxString(amx, params[arg_handle]);
-        return playerSubclassModule.findHandle(handle);
+        return playerSubclassModule[handle];
     }
 
     auto AmxxPlayerSubclass::RegisterNatives() -> void {

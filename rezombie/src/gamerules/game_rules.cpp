@@ -242,8 +242,7 @@ namespace rz
                 switch (getRoundState()) {
                     case RoundState::Prepare: {
                         setRoundState(RoundState::Playing);
-                        const auto gameModeIndex = 8002;
-                        // getRandomGameMode();
+                        const auto gameModeIndex = getRandomGameMode();
                         const auto gameModeRef = gameModeModule[gameModeIndex];
                         setGameMode(gameModeIndex);
                         if (gameModeRef) {
@@ -467,7 +466,7 @@ namespace rz
         }
         roundRemainingTime_ = remainingTime;
         nextRoundTimeUpdateTime_ = g_global_vars->time + 1.0f;
-        amxxGameRules.RoundHudTimer(getRoundRemainingTime());
+        amxxGameRules.RoundTimer(getRoundRemainingTime());
     }
 
     auto TeamPlayGameRules::changeGameState(GameState gameState) -> void

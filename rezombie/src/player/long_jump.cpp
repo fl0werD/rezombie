@@ -2,7 +2,8 @@
 #include "rezombie/player/player.h"
 #include <messages/user_message.h>
 
-namespace rz::player {
+namespace rz::player
+{
     using namespace message;
 
     auto Player::GiveLongJump(int force, int height, float cooldown) -> void {

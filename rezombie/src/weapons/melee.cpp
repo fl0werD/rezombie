@@ -10,10 +10,21 @@ namespace rz::weapon
     using namespace vhooks;
     using namespace rz::player;
 
-    const auto melee = WEAPON_MELEE;
-    VirtualHook MeleeVirtuals::deploy(melee, HookIndex::Item_Deploy, &MeleeVirtuals::MeleeDeploy);
-    VirtualHook MeleeVirtuals::primaryAttack(melee, HookIndex::Weapon_PrimaryAttack, &MeleeVirtuals::MeleePrimaryAttack);
-    VirtualHook MeleeVirtuals::secondaryAttack(melee, HookIndex::Weapon_SecondaryAttack, &MeleeVirtuals::MeleeSecondaryAttack);
+    VirtualHook MeleeVirtuals::deploy(
+        WEAPON_MELEE,
+        HookIndex::Item_Deploy,
+        &MeleeVirtuals::MeleeDeploy
+    );
+    VirtualHook MeleeVirtuals::primaryAttack(
+        WEAPON_MELEE,
+        HookIndex::Weapon_PrimaryAttack,
+        &MeleeVirtuals::MeleePrimaryAttack
+    );
+    VirtualHook MeleeVirtuals::secondaryAttack(
+        WEAPON_MELEE,
+        HookIndex::Weapon_SecondaryAttack,
+        &MeleeVirtuals::MeleeSecondaryAttack
+    );
 
     auto MeleeVirtuals::MeleeDeploy() -> qboolean {
         const auto meleeRef = weaponModule[vars->impulse];

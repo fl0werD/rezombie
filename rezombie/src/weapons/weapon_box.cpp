@@ -1,13 +1,7 @@
 #include "rezombie/weapons/weapon_box.h"
 #include "rezombie/modules/player_props.h"
-#include "rezombie/modules/weapon.h"
 #include "rezombie/player/players.h"
-#include <metamod/utils.h>
-#include <mhooks/metamod.h>
-#include <mhooks/reapi.h>
 #include <vhooks/vhooks.h>
-#include <algorithm>
-#include <array>
 
 namespace rz::weapon
 {
@@ -15,10 +9,13 @@ namespace rz::weapon
     using namespace vhooks;
     using namespace rz::player;
 
-    VirtualHook WeaponBoxVirtuals::touch("weaponbox", HookIndex::Touch, &WeaponBoxTouch);
+    VirtualHook WeaponBoxVirtuals::touch(
+        "weaponbox",
+        HookIndex::Touch,
+        &WeaponBoxVirtuals::WeaponBoxTouch
+    );
 
-    auto WeaponBoxVirtuals::WeaponBoxTouch(EntityBase* other) -> void
-    {
+    auto WeaponBoxVirtuals::WeaponBoxTouch(EntityBase* other) -> void {
         if (!other->IsPlayer()) {
             touch.Call(this, other);
             return;

@@ -134,7 +134,7 @@ namespace rz
         const int playerIndex = params[arg_player];
         const auto& player = players[playerIndex];
         const auto handle = GetAmxString(amx, params[arg_handle]);
-        const auto itemIndex = itemModule.findHandle(handle);
+        const auto itemIndex = itemModule[handle];
         const auto itemRef = itemModule[itemIndex];
         if (!itemRef) {
             // Invalid index
@@ -162,7 +162,7 @@ namespace rz
         };
 
         const auto handle = GetAmxString(amx, params[arg_handle]);
-        return itemModule.findHandle(handle);
+        return itemModule[handle];
     }
 
     auto AmxxItem::RegisterNatives() -> void {

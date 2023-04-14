@@ -31,7 +31,9 @@ namespace rz::player
         });
     }
 
-    auto Player::GetFreeWeaponId(CrosshairSize crosshairSize) const -> std::optional<std::reference_wrapper<const WeaponId>> {
+    auto Player::GetFreeWeaponId(
+        CrosshairSize crosshairSize
+    ) const -> std::optional<std::reference_wrapper<const WeaponId>> {
         std::vector<WeaponId> freeIds;
         switch (crosshairSize) {
             case CrosshairSize::None: {

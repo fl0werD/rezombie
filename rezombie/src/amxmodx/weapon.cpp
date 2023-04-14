@@ -5,7 +5,8 @@
 #include <core/regamedll_api.h>
 #include <metamod/engine.h>
 
-namespace rz {
+namespace rz
+{
     using namespace metamod::engine;
     using namespace amx;
     using namespace amxx;
@@ -257,6 +258,24 @@ namespace rz {
         return true;
     }
 
+    auto AMX_NATIVE_CALL rz_weapon_begin(Amx*, cell*) -> cell {
+        return weaponModule.begin();
+    }
+
+    auto AMX_NATIVE_CALL rz_weapon_end(Amx*, cell*) -> cell {
+        return weaponModule.end();
+    }
+
+    auto AMX_NATIVE_CALL rz_find_weapon(Amx* amx, cell* params) -> cell {
+        enum {
+            arg_count,
+            arg_handle,
+        };
+
+        const auto handle = GetAmxString(amx, params[arg_handle]);
+        return weaponModule[handle];
+    }
+
     auto AMX_NATIVE_CALL rz_give_weapon(Amx* amx, cell* params) -> cell {
         enum {
             arg_count,
@@ -268,7 +287,7 @@ namespace rz {
         const int playerIndex = params[arg_player];
         const auto handle = GetAmxString(amx, params[arg_handle]);
         const auto giveType = static_cast<GiveType>(params[arg_give_type]);
-        const auto weaponIndex = weaponModule.findHandle(handle);
+        const auto weaponIndex = weaponModule[handle];
         auto& player = players[playerIndex];
         player.GiveWeapon(weaponIndex, giveType);
         return 1;
@@ -385,7 +404,14 @@ namespace rz {
         const auto weaponEdict = EdictByIndex(weaponEntityIndex);
         const auto baseWeapon = EntityPrivateData<PlayerWeaponBase>(weaponEdict);
         return WeaponDefaultShotgunReload(
-            player, baseWeapon, reloadAnim, reloadStartAnim, reloadTime, reloadStartTime, reloadSound1, reloadSound2
+            player,
+            baseWeapon,
+            reloadAnim,
+            reloadStartAnim,
+            reloadTime,
+            reloadStartTime,
+            reloadSound1,
+            reloadSound2
         );
     }
 
@@ -416,7 +442,15 @@ namespace rz {
         const float lateralMax = CellToFloat(params[arg_lateral_max]);
         const int directionChange = params[arg_direction_change];
         WeaponKickBack(
-            player, baseWeapon, upBase, lateralBase, upModifier, lateralModifier, upMax, lateralMax, directionChange
+            player,
+            baseWeapon,
+            upBase,
+            lateralBase,
+            upModifier,
+            lateralModifier,
+            upMax,
+            lateralMax,
+            directionChange
         );
         return true;
     }
@@ -450,6 +484,10 @@ namespace rz {
             {"rz_create_weapon",                 rz_create_weapon},
             {"rz_get_weapon_var",                rz_get_weapon_var},
             {"rz_set_weapon_var",                rz_set_weapon_var},
+            {"rz_weapon_begin",                  rz_weapon_begin},
+            {"rz_weapon_end",                    rz_weapon_end},
+            {"rz_find_weapon",                   rz_find_weapon},
+
             {"rz_give_weapon",                   rz_give_weapon},
             {"rz_give_weapon_fast",              rz_give_weapon_fast},
 

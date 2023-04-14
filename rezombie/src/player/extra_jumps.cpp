@@ -2,8 +2,7 @@
 
 namespace rz::player
 {
-    auto Player::ExtraJump() -> void
-    {
+    auto Player::ExtraJump() -> void {
         if (getFlags() & FL_ON_GROUND) {
             setExtraJumpsCount(0);
             return;

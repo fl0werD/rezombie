@@ -6,8 +6,7 @@ namespace rz::player
     using namespace cssdk;
     using namespace vhooks;
 
-    class PlayerVirtuals : public PlayerBase
-    {
+    class PlayerVirtuals : public PlayerBase {
       private:
         static VirtualHook playerOnCreate;
         static VirtualHook botOnCreate;
@@ -16,11 +15,18 @@ namespace rz::player
         auto onCreate() -> void;
     };
 
-    VirtualHook PlayerVirtuals::playerOnCreate("player", HookIndex::OnCreate, &PlayerVirtuals::onCreate);
-    VirtualHook PlayerVirtuals::botOnCreate("bot", HookIndex::OnCreate, &PlayerVirtuals::onCreate);
+    VirtualHook PlayerVirtuals::playerOnCreate(
+        "player",
+        HookIndex::OnCreate,
+        &PlayerVirtuals::onCreate
+    );
+    VirtualHook PlayerVirtuals::botOnCreate(
+        "bot",
+        HookIndex::OnCreate,
+        &PlayerVirtuals::onCreate
+    );
 
-    auto PlayerVirtuals::onCreate() -> void
-    {
+    auto PlayerVirtuals::onCreate() -> void {
         playerOnCreate.Call(this);
         players[this].init(this);
     }
