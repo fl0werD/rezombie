@@ -19,7 +19,9 @@ namespace rz::weapon
         InventorySlot inventorySlot_;
         std::string viewModel_;
         std::string playerModel_;
+        int playerModelBody_ = 0;
         std::string worldModel_;
+        int worldModelBody_ = 0;
         std::string hud_;
         int maxClip_ = WEAPON_NO_CLIP;
         int maxAmmo_ = 0;
@@ -69,9 +71,17 @@ namespace rz::weapon
 
         auto setPlayerModel(std::string playerModel) { playerModel_ = std::move(playerModel); }
 
+        auto getPlayerModelBody() const { return playerModelBody_; }
+
+        auto setPlayerModelBody(int playerModelBody) { playerModelBody_ = playerModelBody; }
+
         auto getWorldModel() const -> const std::string& { return worldModel_; }
 
         auto setWorldModel(std::string worldModel) { worldModel_ = std::move(worldModel); }
+
+        auto getWorldModelBody() const { return worldModelBody_; }
+
+        auto setWorldModelBody(int worldModelBody) { worldModelBody_ = worldModelBody; }
 
         auto getHud() const -> const std::string& { return hud_; }
 

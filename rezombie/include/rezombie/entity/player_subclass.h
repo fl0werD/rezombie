@@ -14,8 +14,7 @@ namespace rz::player
 {
     using namespace cssdk;
 
-    class PlayerSubclass : public BaseObject
-    {
+    class PlayerSubclass : public BaseObject {
       private:
         int classIndex_ = 0;
         std::string description_;
@@ -27,8 +26,7 @@ namespace rz::player
         int nightVisionIndex_ = 0;
 
       public:
-        PlayerSubclass(std::string handle, int classIndex) : BaseObject(std::move(handle)), classIndex_(classIndex)
-        {
+        PlayerSubclass(std::string handle, int classIndex) : BaseObject(std::move(handle)), classIndex_(classIndex) {
             setProps(playerPropsModule.add(handle));
             setModel(playerModelModule.add(handle));
             setSound(playerSoundModule.add(handle));
@@ -36,79 +34,34 @@ namespace rz::player
             setNightVision(playerNightVisionModule.add(handle));
         }
 
-        auto getClass() const
-        {
-            return classIndex_;
-        }
+        auto getClass() const { return classIndex_; }
 
-        auto getDescription() const -> const std::string&
-        {
-            return description_;
-        }
+        auto getDescription() const -> const std::string& { return description_; }
 
-        auto setDescription(std::string description) -> void
-        {
-            description_ = std::move(description);
-        }
+        auto setDescription(std::string description) -> void { description_ = std::move(description); }
 
-        auto getHudColor() const -> const Color24&
-        {
-            return hudColor_;
-        }
+        auto getHudColor() const -> const Color24& { return hudColor_; }
 
-        auto setHudColor(Color24 hudColor) -> void
-        {
-            hudColor_ = hudColor;
-        }
+        auto setHudColor(Color24 hudColor) -> void { hudColor_ = hudColor; }
 
-        auto getProps() const
-        {
-            return propsIndex_;
-        }
+        auto getProps() const { return propsIndex_; }
 
-        auto setProps(int propsIndex) -> void
-        {
-            propsIndex_ = propsIndex;
-        }
+        auto setProps(int propsIndex) -> void { propsIndex_ = propsIndex; }
 
-        auto getModel() const
-        {
-            return modelIndex_;
-        }
+        auto getModel() const { return modelIndex_; }
 
-        auto setModel(int modelIndex) -> void
-        {
-            modelIndex_ = modelIndex;
-        }
+        auto setModel(int modelIndex) -> void { modelIndex_ = modelIndex; }
 
-        auto getSound() const
-        {
-            return soundIndex_;
-        }
+        auto getSound() const { return soundIndex_; }
 
-        auto setSound(int soundIndex) -> void
-        {
-            soundIndex_ = soundIndex;
-        }
+        auto setSound(int soundIndex) -> void { soundIndex_ = soundIndex; }
 
-        auto getMelee() const
-        {
-            return meleeIndex_;
-        }
+        auto getMelee() const { return meleeIndex_; }
 
-        auto setMelee(int meleeIndex) -> void
-        {
-            meleeIndex_ = meleeIndex;
-        }
+        auto setMelee(int meleeIndex) -> void { meleeIndex_ = meleeIndex; }
 
-        auto getNightVision() const
-        {
-            return nightVisionIndex_;
-        }
+        auto getNightVision() const { return nightVisionIndex_; }
 
-        auto setNightVision(int nightVisionIndex) -> void
-        {
-            nightVisionIndex_ = nightVisionIndex;
-        }
+        auto setNightVision(int nightVisionIndex) -> void { nightVisionIndex_ = nightVisionIndex; }
     };
 }

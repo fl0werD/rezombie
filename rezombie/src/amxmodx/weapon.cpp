@@ -61,9 +61,15 @@ namespace rz
                 SetAmxString(amx, params[arg_3], baseWeapon.getPlayerModel().c_str(), params[arg_4]);
                 break;
             }
+            case var::PlayerModelBody: {
+                return baseWeapon.getPlayerModelBody();
+            }
             case var::WorldModel: {
                 SetAmxString(amx, params[arg_3], baseWeapon.getWorldModel().c_str(), params[arg_4]);
                 break;
+            }
+            case var::WorldModelBody: {
+                return baseWeapon.getWorldModelBody();
             }
             case var::Hud: {
                 SetAmxString(amx, params[arg_3], baseWeapon.getHud().c_str(), params[arg_4]);
@@ -128,8 +134,16 @@ namespace rz
                 baseWeapon.setPlayerModel(GetAmxString(amx, params[arg_value]));
                 break;
             }
+            case var::PlayerModelBody: {
+                baseWeapon.setPlayerModelBody(*Address(amx, params[arg_value]));
+                break;
+            }
             case var::WorldModel: {
                 baseWeapon.setWorldModel(GetAmxString(amx, params[arg_value]));
+                break;
+            }
+            case var::WorldModelBody: {
+                baseWeapon.setWorldModelBody(*Address(amx, params[arg_value]));
                 break;
             }
             case var::Hud: {
@@ -342,7 +356,7 @@ namespace rz
         return true;
     }
 
-    auto AMX_NATIVE_CALL rz_weapon_default_deploy(Amx*, cell* params) -> cell {
+    auto AMX_NATIVE_CALL rz_weapon_default_deploy(Amx* amx, cell* params) -> cell {
         enum {
             arg_count,
             arg_weapon_entity,
@@ -354,10 +368,11 @@ namespace rz
         const int weaponEntityIndex = params[arg_weapon_entity];
         const int playerIndex = params[arg_player];
         const int drawAnim = params[arg_draw_anim];
+        const auto playerAnimation = GetAmxString(amx, params[arg_player_animation]);
         auto& player = players[playerIndex];
         const auto weaponEdict = EdictByIndex(weaponEntityIndex);
         const auto baseWeapon = EntityPrivateData<PlayerWeaponBase>(weaponEdict);
-        return WeaponDefaultDeploy(player, baseWeapon, drawAnim, "");
+        return WeaponDefaultDeploy(player, baseWeapon, drawAnim, playerAnimation);
     }
 
     auto AMX_NATIVE_CALL rz_weapon_default_reload(Amx*, cell* params) -> cell {

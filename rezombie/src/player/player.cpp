@@ -552,23 +552,18 @@ namespace rz::player
 
     auto Player::isFrozen() const -> bool
     {
-        return freezeEndTime_ != 0.0f;
-    }
-
-    auto Player::getFreezeEndTime() const -> float
-    {
-        return freezeEndTime_;
+        return getFreezeEndTime() != 0.f;
     }
 
     auto Player::Freeze(float freezeTime) -> void
     {
-        freezeEndTime_ = g_global_vars->time + freezeTime;
+        setFreezeEndTime(g_global_vars->time + freezeTime);
         ResetMaxSpeed();
     }
 
     auto Player::RemoveFreeze() -> void
     {
-        freezeEndTime_ = 0.0;
+        setFreezeEndTime(0.f);
         ResetMaxSpeed();
     }
 }

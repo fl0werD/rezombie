@@ -15,16 +15,6 @@ namespace rz::weapon
         HookIndex::Item_Deploy,
         &MeleeVirtuals::MeleeDeploy
     );
-    VirtualHook MeleeVirtuals::primaryAttack(
-        WEAPON_MELEE,
-        HookIndex::Weapon_PrimaryAttack,
-        &MeleeVirtuals::MeleePrimaryAttack
-    );
-    VirtualHook MeleeVirtuals::secondaryAttack(
-        WEAPON_MELEE,
-        HookIndex::Weapon_SecondaryAttack,
-        &MeleeVirtuals::MeleeSecondaryAttack
-    );
 
     auto MeleeVirtuals::MeleeDeploy() -> qboolean {
         const auto meleeRef = weaponModule[vars->impulse];
@@ -37,6 +27,12 @@ namespace rz::weapon
         return melee.executeDeploy(EdictIndex(), player->EdictIndex());
     }
 
+    VirtualHook MeleeVirtuals::primaryAttack(
+        WEAPON_MELEE,
+        HookIndex::Weapon_PrimaryAttack,
+        &MeleeVirtuals::MeleePrimaryAttack
+    );
+
     auto MeleeVirtuals::MeleePrimaryAttack() -> void {
         const auto meleeRef = weaponModule[vars->impulse];
         if (!meleeRef) {
@@ -46,6 +42,12 @@ namespace rz::weapon
         auto& melee = meleeRef->get();
         // melee.executePrimaryAttack(EdictIndex(), player->EdictIndex(), clip, player->ammo[primary_ammo_type]);
     }
+
+    VirtualHook MeleeVirtuals::secondaryAttack(
+        WEAPON_MELEE,
+        HookIndex::Weapon_SecondaryAttack,
+        &MeleeVirtuals::MeleeSecondaryAttack
+    );
 
     auto MeleeVirtuals::MeleeSecondaryAttack() -> void {
         const auto meleeRef = weaponModule[vars->impulse];

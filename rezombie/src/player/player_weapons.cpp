@@ -189,7 +189,7 @@ namespace rz::player
         Player& player,
         PlayerWeaponBase* baseWeapon,
         int drawAnim,
-        const char* playerAnim
+        const char* playerAnimation
     ) -> bool {
         if (!baseWeapon->CanDeploy()) {
             return false;
@@ -203,7 +203,7 @@ namespace rz::player
         baseWeapon->time_weapon_idle = 1.5f;
         baseWeapon->last_fire_time = 0.f;
         baseWeapon->decrease_shots_fired = g_global_vars->time;
-        player.setAnimExtension(playerAnim);
+        player.setAnimExtension(playerAnimation);
         player.setNextAttack(0.75);
         player.ResetFovZoom();
         player.SendWeaponAnim(drawAnim);

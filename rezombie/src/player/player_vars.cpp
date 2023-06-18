@@ -15,6 +15,7 @@ namespace rz::player
         setNightVision(0);
         ResetExtraJumps();
         ResetLongJump();
+        setFreezeEndTime(0.f);
     }
 
     auto Player::ResetExtraJumps() -> void {
@@ -145,6 +146,14 @@ namespace rz::player
 
     auto Player::setLongJumpCooldown(float cooldown) -> void {
         playerVars_.longJumpCooldown = cooldown;
+    }
+
+    auto Player::getFreezeEndTime() const -> float {
+        return playerVars_.freezeEndTime;
+    }
+
+    auto Player::setFreezeEndTime(float freezeEndTime) -> void {
+        playerVars_.freezeEndTime = freezeEndTime;
     }
 
     auto Player::getPreview() const -> PlayerPreview* {

@@ -32,7 +32,6 @@ namespace rz::player
         CsPlayer* cstrike_ = nullptr;
         PlayerPreview* preview_ = nullptr;
         PlayerVars playerVars_ = {};
-        float freezeEndTime_ = 0.0f;
 
         auto SetFootSteps(bool footSteps) -> void;
         auto GiveHealth(int health) -> void;
@@ -90,7 +89,6 @@ namespace rz::player
         auto ResetFovZoom() -> void;
 
         auto isFrozen() const -> bool;
-        auto getFreezeEndTime() const -> float;
         auto Freeze(float freezeTime) -> void;
         auto RemoveFreeze() -> void;
 
@@ -280,21 +278,53 @@ namespace rz::player
         auto setLongJumpHeight(int height) -> void;
         auto getLongJumpCooldown() const -> float;
         auto setLongJumpCooldown(float cooldown) -> void;
+        auto getFreezeEndTime() const -> float;
+        auto setFreezeEndTime(float freezeEndTime) -> void;
         auto getPreview() const -> PlayerPreview*;
     };
 
-    auto WeaponDefaultDeploy(Player& player, PlayerWeaponBase* baseWeapon, int drawAnim, const char* playerAnim)
-    -> bool;
-    auto WeaponDefaultReload(Player& player, PlayerWeaponBase* baseWeapon, int reloadAnim, float reloadTime) -> bool;
-    auto WeaponDefaultShotgunReload(
-        Player& player, PlayerWeaponBase* baseWeapon, int reloadAnim, int reloadStartAnim, float reloadDelay,
-        float reloadStartDelay, const char* reloadSound1, const char* reloadSound2
+    auto WeaponDefaultDeploy(
+        Player& player,
+        PlayerWeaponBase* baseWeapon,
+        int drawAnim,
+        const char* playerAnimation
     ) -> bool;
+
+    auto WeaponDefaultReload(
+        Player& player,
+        PlayerWeaponBase* baseWeapon,
+        int reloadAnim,
+        float reloadTime
+    ) -> bool;
+
+    auto WeaponDefaultShotgunReload(
+        Player& player,
+        PlayerWeaponBase* baseWeapon,
+        int reloadAnim,
+        int reloadStartAnim,
+        float reloadDelay,
+        float reloadStartDelay,
+        const char* reloadSound1,
+        const char* reloadSound2
+    ) -> bool;
+
     auto WeaponKickBack(
-        Player& player, PlayerWeaponBase* baseWeapon, float upBase, float lateralBase, float upModifier,
-        float lateralModifier, float upMax, float lateralMax, int directionChange
+        Player& player,
+        PlayerWeaponBase* baseWeapon,
+        float upBase,
+        float lateralBase,
+        float upModifier,
+        float lateralModifier,
+        float upMax,
+        float lateralMax,
+        int directionChange
     ) -> void;
+
     auto WeaponThrowGrenade(
-        Player& player, PlayerWeaponBase* baseWeapon, const Vector& origin, const Vector& velocity, float actionTime
+        Player& player,
+        PlayerWeaponBase* baseWeapon,
+        const Vector& origin,
+        const Vector& velocity,
+        float actionTime
     ) -> cssdk::Grenade*;
 }

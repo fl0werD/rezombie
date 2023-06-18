@@ -124,6 +124,24 @@ namespace rz
         return true;
     }
 
+    auto AMX_NATIVE_CALL rz_item_begin(Amx*, cell*) -> cell {
+        return itemModule.begin();
+    }
+
+    auto AMX_NATIVE_CALL rz_item_end(Amx*, cell*) -> cell {
+        return itemModule.end();
+    }
+
+    auto AMX_NATIVE_CALL rz_find_item(Amx* amx, cell* params) -> cell {
+        enum {
+            arg_count,
+            arg_handle,
+        };
+
+        const auto handle = GetAmxString(amx, params[arg_handle]);
+        return itemModule[handle];
+    }
+
     auto AMX_NATIVE_CALL rz_give_item(Amx* amx, cell* params) -> cell {
         enum {
             arg_count,
@@ -147,35 +165,40 @@ namespace rz
         return 1;
     }
 
-    auto AMX_NATIVE_CALL rz_item_begin(Amx*, cell*) -> cell {
-        return itemModule.begin();
-    }
-
-    auto AMX_NATIVE_CALL rz_item_end(Amx*, cell*) -> cell {
-        return itemModule.end();
-    }
-
-    auto AMX_NATIVE_CALL rz_find_item(Amx* amx, cell* params) -> cell {
+    auto AMX_NATIVE_CALL rz_give_item_fast(Amx* amx, cell* params) -> cell {
         enum {
             arg_count,
-            arg_handle,
+            arg_player,
+            arg_item,
         };
 
-        const auto handle = GetAmxString(amx, params[arg_handle]);
-        return itemModule[handle];
+        const int playerIndex = params[arg_player];
+        const auto& player = players[playerIndex];
+        const auto itemIndex = params[arg_item];
+        const auto itemRef = itemModule[itemIndex];
+        if (!itemRef) {
+            // Invalid index
+            return false;
+        }
+        auto& item = itemRef->get();
+        if (item.executeGive(playerIndex)) {
+            amxxItem.Given(playerIndex, itemIndex);
+        }
+        return 1;
     }
 
     auto AmxxItem::RegisterNatives() -> void {
         static AmxNativeInfo natives[] = {
-            {"rz_create_item",  rz_create_item},
-            {"rz_get_item_var", rz_get_item_var},
-            {"rz_set_item_var", rz_set_item_var},
-            {"rz_give_item",    rz_give_item},
-            {"rz_item_begin",   rz_item_begin},
-            {"rz_item_end",     rz_item_end},
-            {"rz_find_item",    rz_find_item},
+            {"rz_create_item",    rz_create_item},
+            {"rz_get_item_var",   rz_get_item_var},
+            {"rz_set_item_var",   rz_set_item_var},
+            {"rz_item_begin",     rz_item_begin},
+            {"rz_item_end",       rz_item_end},
+            {"rz_find_item",      rz_find_item},
+            {"rz_give_item",      rz_give_item},
+            {"rz_give_item_fast", rz_give_item_fast},
 
-            {nullptr,           nullptr},
+            {nullptr,             nullptr},
         };
         AddNatives(natives);
     }

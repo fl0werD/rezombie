@@ -26,5 +26,6 @@ namespace rz::player
         int longJumpForce = 0;
         int longJumpHeight = 0;
         float longJumpCooldown = 0.f;
+        float freezeEndTime = 0.f;
     };
 }
