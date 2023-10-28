@@ -1,162 +1,72 @@
 #pragma once
 
 #include "rezombie/player/player.h"
-#include "rezombie/amxmodx/player.h"
+#include "rezombie/player/api/player.h"
 
-namespace rz::player
+namespace rz
 {
-    auto Player::ResetVars() -> void {
+    auto Player::ResetVars(bool isInit) -> void {
         setClass(0);
         setSubclass(0);
         setProps(0);
         setModel(0);
-        setSound(0);
+        setSounds(0);
         setMelee(0);
-        setNightVision(0);
-        ResetExtraJumps();
-        ResetLongJump();
+        //setNightVision(0);
+        //setNightVisionEnabled(false);
+        getExtraJump().reset();
+        getLongJump().reset();
         setFreezeEndTime(0.f);
+        if (isInit) {
+            ResetSubclasses();
+        }
     }
 
-    auto Player::ResetExtraJumps() -> void {
-        setExtraJumpsCount(0);
-        setMaxExtraJumps(0);
+    auto Player::ResetSubclasses() -> void {
+        playerVars_.subclasses.clear();
     }
 
-    auto Player::ResetLongJump() -> void {
-        setLongJumpState(LongJumpState::None);
-        setLongJumpNextStateTime(0);
-        setLongJumpForce(0);
-        setLongJumpHeight(0);
-        setLongJumpCooldown(0);
-    }
+    auto Player::getClass() const -> int { return playerVars_.classId; }
 
-    auto Player::getClass() const -> int {
-        return playerVars_.classIndex;
-    }
-
-    auto Player::setClass(int index) -> void {
-        playerVars_.classIndex = index;
-    }
+    auto Player::setClass(int index) -> void { playerVars_.classId = index; }
 
     auto Player::getSubclass() const -> int {
-        return playerVars_.subclassIndex;
+        return playerVars_.subclassId;
     }
 
-    auto Player::setSubclass(int index) -> void {
-        playerVars_.subclassIndex = index;
+    auto Player::setSubclass(int subclassId) -> void {
+        playerVars_.subclassId = subclassId;
     }
 
-    auto Player::getProps() const -> int {
-        return playerVars_.propsIndex;
-    }
-
-    auto Player::setProps(int index) -> void {
-        playerVars_.propsIndex = index;
-    }
-
-    auto Player::getModel() const -> int {
-        return playerVars_.modelIndex;
-    }
-
-    auto Player::setModel(int index) -> void {
-        playerVars_.modelIndex = index;
-    }
-
-    auto Player::getSound() const -> int {
-        return playerVars_.soundIndex;
-    }
-
-    auto Player::setSound(int index) -> void {
-        playerVars_.soundIndex = index;
-    }
-
-    auto Player::getMelee() const -> int {
-        return playerVars_.meleeIndex;
-    }
-
-    auto Player::setMelee(int index) -> void {
-        playerVars_.meleeIndex = index;
-    }
-
-    auto Player::getNightVision() const -> int {
-        return playerVars_.nightVisionIndex;
-    }
-
-    auto Player::setNightVision(int index) -> void {
-        playerVars_.nightVisionIndex = index;
-    }
-
-    auto Player::getExtraJumpsCount() const -> int {
-        return playerVars_.extraJumpsCount;
-    }
-
-    auto Player::setExtraJumpsCount(int amount) -> void {
-        playerVars_.extraJumpsCount = amount;
-    }
-
-    auto Player::getMaxExtraJumps() const -> int {
-        return playerVars_.maxExtraJumps;
-    }
-
-    auto Player::setMaxExtraJumps(int amount) -> void {
-        playerVars_.maxExtraJumps = amount;
-    }
-
-    auto Player::getLongJumpState() const -> LongJumpState {
-        return playerVars_.longJumpState;
-    }
-
-    auto Player::setLongJumpState(LongJumpState state) -> void {
-        const auto oldState = playerVars_.longJumpState;
-        playerVars_.longJumpState = state;
-        if (oldState == state) {
-            return;
+    auto Player::getKeepSubclass(int classId) const -> int {
+        const auto& subclassId = getMapValue(playerVars_.subclasses, classId);
+        if (!subclassId) {
+            return 0;
         }
-        amxxPlayer.LongJumpState(*this);
+        return *subclassId;
     }
 
-    auto Player::getLongJumpNextStateTime() const -> float {
-        return playerVars_.longJumpNextStateTime;
+    auto Player::setKeepSubclass(int classId, int subclassId) -> void {
+        playerVars_.subclasses[classId] = subclassId;
     }
 
-    auto Player::setLongJumpNextStateTime(float nextStateTime) -> void {
-        playerVars_.longJumpNextStateTime = nextStateTime;
-    }
+    auto Player::getProps() const -> int { return playerVars_.propsId; }
 
-    auto Player::getLongJumpForce() const -> int {
-        return playerVars_.longJumpForce;
-    }
+    auto Player::setProps(int index) -> void { playerVars_.propsId = index; }
 
-    auto Player::setLongJumpForce(int force) -> void {
-        playerVars_.longJumpForce = force;
-    }
+    auto Player::getModel() const -> int { return playerVars_.modelId; }
 
-    auto Player::getLongJumpHeight() const -> int {
-        return playerVars_.longJumpHeight;
-    }
+    auto Player::setModel(int index) -> void { playerVars_.modelId = index; }
 
-    auto Player::setLongJumpHeight(int height) -> void {
-        playerVars_.longJumpHeight = height;
-    }
+    auto Player::getSounds() const -> int { return playerVars_.soundsId; }
 
-    auto Player::getLongJumpCooldown() const -> float {
-        return playerVars_.longJumpCooldown;
-    }
+    auto Player::setSounds(int index) -> void { playerVars_.soundsId = index; }
 
-    auto Player::setLongJumpCooldown(float cooldown) -> void {
-        playerVars_.longJumpCooldown = cooldown;
-    }
+    auto Player::getMelee() const -> int { return playerVars_.meleeId; }
 
-    auto Player::getFreezeEndTime() const -> float {
-        return playerVars_.freezeEndTime;
-    }
+    auto Player::setMelee(int index) -> void { playerVars_.meleeId = index; }
 
-    auto Player::setFreezeEndTime(float freezeEndTime) -> void {
-        playerVars_.freezeEndTime = freezeEndTime;
-    }
+    auto Player::getFreezeEndTime() const -> float { return playerVars_.freezeEndTime; }
 
-    auto Player::getPreview() const -> PlayerPreview* {
-        return preview_;
-    }
+    auto Player::setFreezeEndTime(float freezeEndTime) -> void { playerVars_.freezeEndTime = freezeEndTime; }
 }

@@ -1,33 +1,24 @@
 #include "rezombie/player/players.h"
 #include <vhooks/vhooks.h>
 
-namespace rz::player
+namespace rz
 {
     using namespace cssdk;
     using namespace vhooks;
 
     class PlayerVirtuals : public PlayerBase {
-      private:
         static VirtualHook playerOnCreate;
         static VirtualHook botOnCreate;
 
       protected:
-        auto onCreate() -> void;
+        auto create() -> void;
     };
 
-    VirtualHook PlayerVirtuals::playerOnCreate(
-        "player",
-        HookIndex::OnCreate,
-        &PlayerVirtuals::onCreate
-    );
-    VirtualHook PlayerVirtuals::botOnCreate(
-        "bot",
-        HookIndex::OnCreate,
-        &PlayerVirtuals::onCreate
-    );
+    VirtualHook PlayerVirtuals::playerOnCreate("player", HookIndex::OnCreate, &PlayerVirtuals::create);
+    VirtualHook PlayerVirtuals::botOnCreate("bot", HookIndex::OnCreate, &PlayerVirtuals::create);
 
-    auto PlayerVirtuals::onCreate() -> void {
+    auto PlayerVirtuals::create() -> void {
         playerOnCreate.Call(this);
-        players[this].init(this);
+        Players[this].init(this);
     }
 }

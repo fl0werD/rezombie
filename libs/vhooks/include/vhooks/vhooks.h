@@ -7,7 +7,6 @@
 namespace vhooks {
 
     class VirtualHook {
-      private:
         std::string className_{};
         HookIndex hookIndex_{};
         void* callback_{};

@@ -51,7 +51,5 @@ include(Dependencies)
 include(Config)
 include(${CMAKE_HOST_SYSTEM_NAME})
 
-add_subdirectory("libs/common")
 add_subdirectory("libs/vhooks")
-add_subdirectory("libs/messages")
 add_subdirectory("rezombie")

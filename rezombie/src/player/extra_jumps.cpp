@@ -1,21 +1,22 @@
 #include "rezombie/player/player.h"
 
-namespace rz::player
+namespace rz
 {
     auto Player::ExtraJump() -> void {
+        auto& extraJump = getExtraJump();
         if (getFlags() & FL_ON_GROUND) {
-            setExtraJumpsCount(0);
+            extraJump.setCount(0);
             return;
         }
         if (getOldButtons() & IN_JUMP) {
             return;
         }
-        if (getExtraJumpsCount() >= getMaxExtraJumps()) {
+        if (extraJump.getCount() >= extraJump.getMaximum()) {
             return;
         }
         auto& velocity = getVelocity();
         velocity.z = sqrt(2 * 800 * 45.0f);
         setVelocity(velocity);
-        setExtraJumpsCount(getExtraJumpsCount() + 1);
+        extraJump.setCount(extraJump.getCount() + 1);
     }
 }

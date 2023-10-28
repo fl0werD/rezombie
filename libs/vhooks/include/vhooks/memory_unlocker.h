@@ -16,7 +16,6 @@
 
 namespace vhooks {
     class MemoryUnlocker {
-      private:
         void* ptr_{};
         size_t size_{};
         bool error{};

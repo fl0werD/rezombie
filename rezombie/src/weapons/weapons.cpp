@@ -1,68 +1,16 @@
 #include "rezombie/weapons/weapons.h"
 #include "rezombie/gamerules/game_rules.h"
-#include <messages/user_message.h>
-#include "rezombie/modules/weapon.h"
+#include "rezombie/weapons/modules/weapon.h"
 #include "rezombie/player/players.h"
+#include "rezombie/messages/user_message.h"
 #include <metamod/utils.h>
-#include <mhooks/metamod.h>
-#include <mhooks/reapi.h>
 #include <vhooks/vhooks.h>
-#include <array>
 
-namespace rz::weapon
+namespace rz
 {
     using namespace cssdk;
     using namespace core;
     using namespace vhooks;
-    using namespace rz::player;
-    using namespace message;
-
-    auto GetWeaponData_Post(const GameDllGetWeaponDataMChain& chain, Edict* client, WeaponData* data) -> qboolean {
-        chain.CallNext(client, data);
-        const auto& player = player::players[client];
-        const auto activeItem = player.getActiveItem();
-        if (activeItem != nullptr) {
-            const auto weaponRef = weaponModule[activeItem->vars->impulse];
-            if (weaponRef) {
-                const auto itemInfo = activeItem->GetCsPlayerItem()->item_info;
-                // data->id = toInt(itemInfo.id);
-                data->clip = itemInfo.max_clip;
-            }
-        }
-        return true;
-    }
-
-    auto WeaponBoxSetModel(
-        const ReGameWeaponBoxSetModelMChain& chain,
-        WeaponBox* weaponBox,
-        const char* modelName
-    ) -> void {
-        for (auto item: weaponBox->player_items) {
-            while (item != nullptr) {
-                const auto weaponRef = weaponModule[item->vars->impulse];
-                if (!weaponRef) {
-                    chain.CallNext(weaponBox, modelName);
-                    return;
-                }
-                const auto& weapon = weaponRef->get();
-                if (!weapon.getWorldModel().empty()) {
-                    chain.CallNext(weaponBox, weapon.getWorldModel().c_str());
-                    weaponBox->vars->body = weapon.getWorldModelBody();
-                    return;
-                }
-                item = item->next;
-            }
-        }
-        chain.CallNext(weaponBox, modelName);
-    }
-
-    auto RegisterHooks() -> void {
-        using namespace core;
-        using namespace mhooks;
-
-        MHookGameDllGetWeaponData(DELEGATE_ARG<GetWeaponData_Post>, true);
-        MHookReGameWeaponBoxSetModel(DELEGATE_ARG<WeaponBoxSetModel>);
-    }
 
     VirtualHook WeaponVirtuals::spawn(
         WEAPON_PLACEHOLDER,
@@ -72,7 +20,7 @@ namespace rz::weapon
 
     auto WeaponVirtuals::HolderSpawn() -> void {
         spawn.Call(this);
-        const auto weaponRef = weaponModule[vars->impulse];
+        const auto weaponRef = Weapons[vars->impulse];
         if (!weaponRef) {
             return;
         }
@@ -90,13 +38,13 @@ namespace rz::weapon
     );
 
     auto WeaponVirtuals::HolderAddToPlayer(PlayerBase* basePlayer) -> qboolean {
-        const auto weaponRef = weaponModule[vars->impulse];
+        const auto weaponRef = Weapons[vars->impulse];
         if (!weaponRef) {
             return addToPlayer.Call<qboolean>(this, basePlayer);
         }
         const auto& weapon = weaponRef->get();
         player = basePlayer;
-        auto& player = players[basePlayer];
+        auto& player = Players[basePlayer];
         auto itemInfo = GetCsPlayerItem()->item_info;
         player.setWeapons(player.getWeapons() | (1 << toInt(itemInfo.id)));
         sendWeaponList(
@@ -122,7 +70,7 @@ namespace rz::weapon
     );
 
     auto WeaponVirtuals::HolderGetItemInfo(ItemInfo* info) -> qboolean {
-        const auto weaponRef = weaponModule[vars->impulse];
+        const auto weaponRef = Weapons[vars->impulse];
         if (!weaponRef) {
             return getItemInfo.Call<qboolean>(this, info);
         }
@@ -150,12 +98,17 @@ namespace rz::weapon
     );
 
     auto WeaponVirtuals::HolderDeploy() -> qboolean {
-        const auto weaponRef = weaponModule[vars->impulse];
+        const auto weaponRef = Weapons[vars->impulse];
         if (!weaponRef) {
             return deploy.Call<qboolean>(this);
         }
         auto& weapon = weaponRef->get();
-        return weapon.executeDeploy(EdictIndex(), player->EdictIndex());
+        auto& player = Players[this->player];
+        auto isDeployed = weapon.executeDeploy(EdictIndex(), player);
+        if (isDeployed) {
+            vars->effects &= ~EF_NO_DRAW;
+        }
+        return isDeployed;
     }
 
     VirtualHook WeaponVirtuals::holster(
@@ -165,13 +118,38 @@ namespace rz::weapon
     );
 
     auto WeaponVirtuals::HolderHolster(int skipLocal) -> void {
-        const auto weaponRef = weaponModule[vars->impulse];
+        const auto weaponRef = Weapons[vars->impulse];
         if (!weaponRef) {
             holster.Call(this, skipLocal);
             return;
         }
         auto& weapon = weaponRef->get();
-        weapon.executeHolster(EdictIndex(), player->EdictIndex());
+        auto& player = Players[this->player];
+        in_reload = false;
+        vars->effects |= EF_NO_DRAW;
+        player.setViewModel(0);
+        player.setWeaponModel(0);
+        weapon.executeHolster(EdictIndex(), player);
+    }
+
+    VirtualHook WeaponVirtuals::attachToPlayer(
+        WEAPON_PLACEHOLDER,
+        HookIndex::Item_AttachToPlayer,
+        &WeaponVirtuals::HolderAttachToPlayer
+    );
+
+    auto WeaponVirtuals::HolderAttachToPlayer(PlayerBase* basePlayer) -> void {
+        const auto& player = Players[basePlayer];
+        vars->move_type = MoveTypeEntity::Follow;
+        vars->solid = SolidType::NotSolid;
+        vars->aim_entity = player;
+        vars->owner = player;
+        vars->next_think = 0;
+        SetThink(nullptr);
+        SetTouch(nullptr);
+        if (static_cast<PlayerItemBase*>(player.getActiveItem()) != this) {
+            vars->effects |= EF_NO_DRAW;
+        }
     }
 
     VirtualHook WeaponVirtuals::updateClientData(
@@ -181,14 +159,14 @@ namespace rz::weapon
     );
 
     auto WeaponVirtuals::HolderUpdateClientData(PlayerBase* basePlayer) -> qboolean {
-        const auto weaponRef = weaponModule[vars->impulse];
+        const auto weaponRef = Weapons[vars->impulse];
         if (!weaponRef) {
             return updateClientData.Call<qboolean>(this, basePlayer);
         }
-        const auto& player = players[basePlayer];
+        const auto& player = Players[basePlayer];
         auto send = false;
         auto state = 0;
-        const auto activeItem = player.getActiveItem();
+        const PlayerItemBase* activeItem = player.getActiveItem();
         if (activeItem == this) {
             state = basePlayer->on_target ? WEAPON_IS_ON_TARGET : 1;
         }
@@ -223,7 +201,7 @@ namespace rz::weapon
     );
 
     auto WeaponVirtuals::HolderMaxSpeed() -> float {
-        const auto weaponRef = weaponModule[vars->impulse];
+        const auto weaponRef = Weapons[vars->impulse];
         if (!weaponRef) {
             return maxSpeed.Call<float>(this);
         }
@@ -238,7 +216,7 @@ namespace rz::weapon
     );
 
     auto WeaponVirtuals::HolderItemSlot() -> InventorySlot {
-        const auto weaponRef = weaponModule[vars->impulse];
+        const auto weaponRef = Weapons[vars->impulse];
         if (!weaponRef) {
             return itemSlot.Call<InventorySlot>(this);
         }
@@ -253,7 +231,7 @@ namespace rz::weapon
     );
 
     auto WeaponVirtuals::HolderPrimaryAttack() -> void {
-        const auto weaponRef = weaponModule[vars->impulse];
+        const auto weaponRef = Weapons[vars->impulse];
         if (!weaponRef) {
             primaryAttack.Call(this);
             return;
@@ -269,7 +247,7 @@ namespace rz::weapon
     );
 
     auto WeaponVirtuals::HolderSecondaryAttack() -> void {
-        const auto weaponRef = weaponModule[vars->impulse];
+        const auto weaponRef = Weapons[vars->impulse];
         if (!weaponRef) {
             secondaryAttack.Call(this);
             return;
@@ -285,7 +263,7 @@ namespace rz::weapon
     );
 
     auto WeaponVirtuals::HolderReload() -> void {
-        const auto weaponRef = weaponModule[vars->impulse];
+        const auto weaponRef = Weapons[vars->impulse];
         if (!weaponRef) {
             reload.Call(this);
             return;
@@ -301,7 +279,7 @@ namespace rz::weapon
     );
 
     auto WeaponVirtuals::HolderIdle() -> void {
-        const auto weaponRef = weaponModule[vars->impulse];
+        const auto weaponRef = Weapons[vars->impulse];
         if (!weaponRef) {
             idle.Call(this);
             return;
@@ -323,7 +301,7 @@ namespace rz::weapon
     //    EjectBrass(pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_up * -9 + gpGlobals->v_forward * 16,
     //      gpGlobals->v_right * -9, vecShellVelocity, pev->angles.y, m_iShellId, soundType, m_pPlayer->entindex());
 
-    //    const Vector &vecOrigin, const Vector &vecLeft, const Vector &vecVelocity, float rotation, int model,
+    //    const Vector &vecOrigin, const Vector &vecLeft, const Vector &vecVelocity, float rotation, int models,
     //      int soundtype, int entityIndex
 
     //    MessageBegin(MessageType::Pvs, gmsgBrass, vecOrigin);
@@ -338,7 +316,7 @@ namespace rz::weapon
     //    WriteCoord(vecVelocity.y);
     //    WriteCoord(vecVelocity.z);
     //    WriteAngle(rotation);
-    //    WriteShort(model);
+    //    WriteShort(models);
     //    WriteByte(soundtype);
     //    WriteByte(25); // life
     //    WriteByte(entityIndex);
@@ -352,7 +330,7 @@ namespace rz::weapon
     );
 
     auto WeaponVirtuals::HolderPostFrame() -> void {
-        const auto weaponRef = weaponModule[vars->impulse];
+        const auto weaponRef = Weapons[vars->impulse];
         if (!weaponRef) {
             postFrame.Call(this);
             return;
@@ -398,9 +376,9 @@ namespace rz::weapon
             // executeReloadEnd?
         }
         if ((usableButtons & IN_ATTACK2) && next_secondary_attack <= 0.f) {
-            // if (pszAmmo2() && !m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()]) {
-            //     fire_on_empty = TRUE;
-            // }
+            if (!player->ammo[secondary_ammo_type]) {
+                fire_on_empty = true;
+            }
             SecondaryAttack();
             player->vars->button &= ~IN_ATTACK2;
         } else if ((player->vars->button & IN_ATTACK) && next_primary_attack <= 0.f) {

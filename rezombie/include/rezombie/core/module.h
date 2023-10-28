@@ -1,13 +1,14 @@
 #pragma once
 
-#include "base_module.h"
-#include "modules_store.h"
+#include "rezombie/core/base_module.h"
+#include "rezombie/core/modules_store.h"
 #include <core/strings/mutation.h>
 #include <core/strings/path.h>
 #include <metamod/engine.h>
 #include <algorithm>
 #include <functional>
 #include <optional>
+#include <memory>
 #include <utility>
 
 namespace rz
@@ -16,14 +17,13 @@ namespace rz
 
     template<class T>
     class Module : public BaseModule {
-      private:
         std::vector<T*> data_;
         int offset_ = -1;
 
       public:
         explicit Module(std::string handle) : BaseModule(handle) {
             // check module already exists
-            int index = ModulesStore::add(this);
+            int index = Modules.add(this);
             setOffset((index + 1) * 1000);
         }
 
@@ -36,7 +36,7 @@ namespace rz
         }
 
         auto add(T* item) -> int {
-            data_.push_back(item);
+            data_.emplace_back(item);
             return (count() - 1) + getOffset();
         }
 
@@ -67,8 +67,8 @@ namespace rz
 
         auto forEachIndexed(const std::function<void(int, T&)>& action) -> void {
             const auto count = static_cast<int>(data_.size());
-            for (auto index = 0; index < count; ++index) {
-                action(index + getOffset(), *data_[index]);
+            for (auto i = 0; i < count; ++i) {
+                action(i + getOffset(), *data_[i]);
             }
         }
 

@@ -1,92 +1,131 @@
 #pragma once
 
-#include <messages/engine_message.h>
-#include "rezombie/player/long_jump.h"
-#include "rezombie/entity/player_model.h"
-#include "rezombie/player/player_preview.h"
+#include "rezombie/entity/models/models_pack.h"
+#include "rezombie/modelpreview/model_preview.h"
+#include "rezombie/map/modules/map_cameras.h"
 #include "rezombie/player/player_vars.h"
+#include "rezombie/player/flashlight_vars.h"
+#include "rezombie/player/nightvision_vars.h"
+#include "rezombie/player/extra_jump_vars.h"
+#include "rezombie/player/long_jump_vars.h"
+#include "rezombie/player/preview_vars.h"
+#include "rezombie/player/world_preview_vars.h"
+#include "rezombie/player/third_camera_vars.h"
+#include "rezombie/player/map_camera_vars.h"
 #include "rezombie/weapons/weapons.h"
-#include "rezombie/core/base_weapon.h"
+#include "rezombie/entity/weapons/base_weapon.h"
+#include "rezombie/entity/wrappers/player_item_wrapper.h"
+#include "rezombie/core/api/amxx_feature.h"
+#include "rezombie/messages/engine_message.h"
 #include <cssdk/engine/eiface.h>
 #include <cssdk/public/regamedll/cs_player.h>
 #include <cssdk/public/utils.h>
 #include <optional>
 
-namespace rz::player
+namespace rz
 {
     using namespace cssdk;
-    using namespace rz::weapon;
 
     constexpr auto NO_MOVE_PLAYER_FLAGS = PLAYER_PREVENT_DUCK | PLAYER_PREVENT_CLIMB | PLAYER_PREVENT_JUMP;
 
-    constexpr auto MAX_RGB_COLORS = 3;
-    using RgbColor = std::array<byte, MAX_RGB_COLORS>;
-
-    auto RegisterHooks() -> void;
+    auto RegisterPlayerHooks() -> void;
 
     class Player {
-      private:
         Edict* edict_ = nullptr;
         EntityVars* vars_ = nullptr;
         PlayerBase* base_ = nullptr;
         CsPlayer* cstrike_ = nullptr;
-        PlayerPreview* preview_ = nullptr;
         PlayerVars playerVars_ = {};
+        FlashlightVars flashlightVars_ = {};
+        NightVisionVars nightVisionVars_ = {};
+        ExtraJumpVars extraJumpVars_ = {};
+        LongJumpVars longJumpVars_ = {};
+        PreviewVars previewVars_ = {};
+        WorldPreviewVars worldPreviewVars_ = {};
+        ThirdCameraVars thirdCameraVars_ = {};
+        MapCameraVars mapCameraVars_ = {};
 
         auto SetFootSteps(bool footSteps) -> void;
         auto GiveHealth(int health) -> void;
         auto GiveArmor(int armor, bool helmet = false) -> void;
-        auto GiveModel(const PlayerModelHeader& model) -> void;
+        auto GiveModel(const Model& model) -> void;
 
       public:
         auto init(PlayerBase* base) -> void;
-        auto ResetVars() -> void;
-        auto ResetExtraJumps() -> void;
-        auto ResetLongJump() -> void;
+        auto ResetVars(bool isInit = false) -> void;
+        auto ResetSubclasses() -> void;
         auto disconnect() -> void;
 
         auto isValid() const {
             return (IsValidEntity(edict_) && vars_ != nullptr && base_ != nullptr && cstrike_ != nullptr);
         }
 
-        auto id() const {
-            return base_->EdictIndex();
-        }
+        auto id() const { return base_->EdictIndex(); }
 
         // auto getEntVars() const
         //{
         //     return vars_;
         // }
 
-        auto getEdict() const {
-            return edict_;
-        }
+        //auto getEdict() const {
+        //    return edict_;
+        //}
 
-        // auto getBase() const
-        //{
-        //     return base_;
-        // }
+        auto getBase() const {
+            return base_;
+        }
 
         // auto getCStrike() const
         //{
         //     return cstrike_;
         // }
 
-        auto ShowAppearance() -> void;
-        auto SelectAppearance() -> void;
+        auto getFlashlight() -> FlashlightVars& { return flashlightVars_; }
+
+        auto getNightVision() -> NightVisionVars& { return nightVisionVars_; }
+
+        auto getExtraJump() -> ExtraJumpVars& { return extraJumpVars_; }
+
+        auto getLongJump() -> LongJumpVars& { return longJumpVars_; }
+
+        auto getPreviewVars() -> PreviewVars& {
+            return previewVars_;
+        }
+
+        auto getWorldPreviewVars() -> WorldPreviewVars& {
+            return worldPreviewVars_;
+        }
+
+        auto getThirdCameraVars() -> ThirdCameraVars& {
+            return thirdCameraVars_;
+        }
+
+        auto getMapCameraVars() -> MapCameraVars& {
+            return mapCameraVars_;
+        }
+
+        auto Joining() -> void;
+        auto Joined() -> void;
         auto SelectItem(const char* name) -> bool;
         auto FindItemInInventoryByHud(const char* name) const -> PlayerItemBase*;
 
-        auto ChangeClass(int classIndex, Player* attackerUnsafe = nullptr, bool preSpawn = false) -> bool;
-        auto ChangeProps(int propsIndex, bool spawn = false) -> bool;
-        auto ChangeModel(int modelIndex) -> bool;
+        auto ChangeClass(int classId, Player* attackerUnsafe = nullptr, bool preSpawn = false) -> ForwardReturn;
+        auto ChangeSubclass(int subclassId) -> ForwardReturn;
+        auto ChangeProps(int propsId, bool spawn = false) -> bool;
+        auto ChangeModel(int modelId) -> bool;
+        auto SwitchFlashlight(bool isEnabled) -> void;
+        auto ChangeNightVision(int nightVisionId) -> bool;
+        auto SwitchNightVision(bool isEnabled) -> void;
 
         auto GiveWeapon(int weaponIndex, GiveType giveType = GiveType::Append) -> EntityBase*;
         auto DropOrReplace(InventorySlot slot, GiveType giveType) -> void;
+        auto DropPlayerItem(PlayerItem* item) -> EntityBase*;
         auto CreateBaseWeapon(int weaponIndex, BaseWeapon& weapon) -> EntityBase*;
-        auto GetFreeWeaponId(CrosshairSize crosshairSize) const -> std::optional<std::reference_wrapper<const WeaponId>>;
+        auto GetFreeWeaponId(CrosshairSize crosshairSize) const -> std::optional<WeaponId>;
         auto SendWeaponAnim(int animNumber, int body = 0) -> void;
         auto ResetFovZoom() -> void;
+
+        auto FlashlightUpdate() -> void;
 
         auto isFrozen() const -> bool;
         auto Freeze(float freezeTime) -> void;
@@ -99,12 +138,24 @@ namespace rz::player
         auto LongJump() -> void;
         auto LongJumpCooldown() -> void;
 
+        auto setPreview(bool isEnabled) -> void;
+        auto PreviewUpdate() -> void;
+        auto ChangePreviewCamera() -> void;
+
+        auto setWorldPreview(bool isEnabled) -> void;
+        auto WorldPreviewUpdate() -> void;
+
+        auto setThirdCamera(bool isEnabled) -> void;
+        auto ThirdCameraUpdate() -> void;
+
+        auto setMapCamera(int cameraId) -> void;
+        auto MapCameraUpdate() -> void;
+
         auto isPlayableTeam() const {
-            const auto team = getTeam();
-            return (team == Team::Human || team == Team::Zombie);
+            return (getTeam() == Team::Human || getTeam() == Team::Zombie);
         }
 
-        template<typename T = PlayerItemBase, typename F>
+        template<typename T = PlayerItem, typename F>
         T* forEachItem(InventorySlot slot, const F& func) {
             auto item = base_->player_items[toInt(slot)];
             while (item != nullptr) {
@@ -117,15 +168,12 @@ namespace rz::player
             return nullptr;
         }
 
-        operator Edict*() const {
-            return edict_;
-        }
+        operator Edict*() const { return edict_; }
 
-        operator PlayerBase*() const {
-            return base_;
-        }
+        operator PlayerBase*() const { return base_; }
 
-        // inlines?
+        operator int() const { return base_->EdictIndex(); }
+
         auto getHealth() const -> int;
         auto setHealth(int health) -> void;
         auto getMaxHealth() const -> int;
@@ -144,8 +192,10 @@ namespace rz::player
         auto setWeaponModel(unsigned int weaponModel) -> void;
         auto setRenderMode(Rendering mode) -> void;
         auto setRenderAmount(int amount) -> void;
-        auto setRenderColor(const Color24& color) -> void;
+        auto setRenderColor(const std::string& color) -> void;
         auto setRenderFx(RenderingFx fx) -> void;
+        auto getSkin() const -> int;
+        auto setSkin(int skin) -> void;
         auto getBody() const -> int;
         auto setBody(int body) -> void;
         auto getEffects() const -> int;
@@ -161,6 +211,9 @@ namespace rz::player
         auto getViewAngle() const -> Vector&;
         auto setViewAngle(Vector viewAngle) -> void;
         auto setFixAngleMode(FixAngleMode fixAngleMod) -> void;
+        auto getViewOfs() const -> Vector;
+        auto setViewOfs(Vector viewOfs) -> void;
+        auto setModelIndex(int modelIndex) -> void;
         auto getPunchAngle() const -> Vector&;
         auto setPunchAngle(Vector punchAngle) -> void;
         auto getNetName() const;
@@ -178,12 +231,11 @@ namespace rz::player
         auto setOldButtons(int oldButtons) -> void;
         auto getWaterLevel() const -> int;
         auto setWaterLevel(int waterLevel) -> void;
-        auto getIUser1() const -> ObserverMode;
+        auto getObserverMode() const -> ObserverMode;
         auto setIUser1(ObserverMode observerMode) -> void;
         auto getIUser3() const -> int;
         auto setIUser3(int iUser3) -> void;
 
-        // inlines?
         auto isAlive() const -> bool;
         auto isBot() const -> bool;
         auto isDormant() const -> bool;
@@ -191,7 +243,6 @@ namespace rz::player
         auto getBloodColor() const -> int;
         auto setBloodColor(int bloodColor) -> void;
         auto getTeam() const -> Team;
-        auto getTeamId() const -> int;
         auto setTeam(Team team) -> void;
         auto getAccount() const -> int;
         auto setAccount(int account) -> void;
@@ -199,6 +250,10 @@ namespace rz::player
         auto setMenu(MenuName menu) -> void;
         auto getJoiningState() const -> JoinState;
         auto setJoiningState(JoinState joinState) -> void;
+        auto getIntroCamera() const -> EntityBase*;
+        auto setIntroCamera(EntityBase* camera) -> void;
+        auto getIntroCameraTime() const -> float;
+        auto setIntroCameraTime(float nextCameraTime) -> void;
         auto getNumSpawns() const -> int;
         auto setNumSpawns(int numSpawns) -> void;
         auto setNextSprayTime(float nextTime) -> void;
@@ -219,7 +274,7 @@ namespace rz::player
         auto setNextAttack(float nextAttack) -> void;
         auto getPlayerItems(int slot) const -> PlayerItemBase*;
         auto setPlayerItems(int slot, PlayerItemBase* item) -> void;
-        auto getActiveItem() const -> PlayerItemBase*;
+        auto getActiveItem() const -> PlayerItem*;
         auto setActiveItem(PlayerItemBase* item) -> void;
         auto getLastItem() const -> PlayerItemBase*;
         auto setLastItem(PlayerItemBase* item) -> void;
@@ -232,55 +287,40 @@ namespace rz::player
         auto setButtonPressed(int button) -> void;
         auto getButtonReleased() const -> int;
         auto setButtonReleased(int button) -> void;
+        auto getLastCommandTime(TrackCommands command) const -> float;
+        auto setLastCommandTime(TrackCommands command, float time) -> void;
+        auto setHitBoxes(int modelIndex) -> void;
         auto setAnimExtension(const char* animExtension) -> void;
         auto ResetMaxSpeed() -> void;
         auto RemovePlayerItem(PlayerItemBase* item) -> qboolean;
         auto RoundRespawn() -> void;
 
-        // inlines?
         auto GiveDefaultItems() -> void;
         auto RemoveAllItems(bool removeSuit = false) -> void;
         auto GiveItem(const char* itemName) -> EntityBase*;
         auto DropPlayerItem(const char* itemName) -> void;
         auto SwitchWeapon(PlayerItemBase* weapon) -> bool;
-        auto AddAccount(int amount, RewardType type = RewardType::None, bool trackChange = true) -> void;
         auto SetAnimation(PlayerAnim playerAnim) -> void;
         auto TeamChangeUpdate() -> void;
         auto Reset() -> void;
         auto SpawnEquip() -> void;
 
-        // inlines?
         auto getClass() const -> int;
         auto setClass(int index) -> void;
         auto getSubclass() const -> int;
-        auto setSubclass(int index) -> void;
+        auto setSubclass(int subclassId) -> void;
+        auto getKeepSubclass(int classId) const -> int;
+        auto setKeepSubclass(int classId, int subclassId) -> void;
         auto getProps() const -> int;
         auto setProps(int index) -> void;
         auto getModel() const -> int;
         auto setModel(int index) -> void;
-        auto getSound() const -> int;
-        auto setSound(int index) -> void;
+        auto getSounds() const -> int;
+        auto setSounds(int index) -> void;
         auto getMelee() const -> int;
         auto setMelee(int index) -> void;
-        auto getNightVision() const -> int;
-        auto setNightVision(int index) -> void;
-        auto getExtraJumpsCount() const -> int;
-        auto setExtraJumpsCount(int amount) -> void;
-        auto getMaxExtraJumps() const -> int;
-        auto setMaxExtraJumps(int amount) -> void;
-        auto getLongJumpState() const -> LongJumpState;
-        auto setLongJumpState(LongJumpState state) -> void;
-        auto getLongJumpNextStateTime() const -> float;
-        auto setLongJumpNextStateTime(float nextStateTime) -> void;
-        auto getLongJumpForce() const -> int;
-        auto setLongJumpForce(int force) -> void;
-        auto getLongJumpHeight() const -> int;
-        auto setLongJumpHeight(int height) -> void;
-        auto getLongJumpCooldown() const -> float;
-        auto setLongJumpCooldown(float cooldown) -> void;
         auto getFreezeEndTime() const -> float;
         auto setFreezeEndTime(float freezeEndTime) -> void;
-        auto getPreview() const -> PlayerPreview*;
     };
 
     auto WeaponDefaultDeploy(

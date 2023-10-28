@@ -1,39 +1,100 @@
-#include <messages/engine_message.h>
-#include "rezombie/modules/weapon.h"
+#include "rezombie/weapons/modules/weapon.h"
 #include "rezombie/player/player.h"
 #include "rezombie/player/players.h"
 #include "rezombie/weapons/weapons.h"
-#include "rezombie/entity/weapon.h"
+#include "rezombie/entity/weapons/weapon.h"
+#include "rezombie/gamerules/game_rules.h"
+#include "rezombie/messages/engine_message.h"
+#include "rezombie/messages/user_message.h"
+#include "rezombie/player/modules/player_props.h"
 #include <metamod/engine.h>
 #include <metamod/gamedll.h>
 
-namespace rz::player
+namespace rz
 {
     using namespace core;
     using namespace cssdk;
     using namespace metamod;
     using namespace metamod::gamedll;
-    using namespace message;
 
     auto Player::DropOrReplace(InventorySlot slot, GiveType giveType) -> void {
         if (giveType == GiveType::Append) {
             return;
         }
-        forEachItem(slot, [&](PlayerItemBase* item) {
+        forEachItem(slot, [&](PlayerItem* item) {
             if (giveType == GiveType::Replace) {
                 setWeapons(getWeapons() & ~(1 << (item->vars->i_user1)));
                 RemovePlayerItem(item);
                 item->Kill();
             } else if (giveType == GiveType::DropAndReplace) {
-                DropPlayerItem(item->vars->class_name.CStr());
+                DropPlayerItem(item);
             }
             return false;
         });
     }
 
-    auto Player::GetFreeWeaponId(
-        CrosshairSize crosshairSize
-    ) const -> std::optional<std::reference_wrapper<const WeaponId>> {
+    auto Player::DropPlayerItem(PlayerItem* item) -> EntityBase* {
+        if (!item) {
+            return nullptr;
+        }
+        auto& player = Players[item->vars->owner];
+        const auto propsRef = Props[player.getProps()];
+        if (propsRef) {
+            const auto& props = propsRef->get();
+            if (!props.getWeaponsInteraction()) {
+                sendTextMsg(player, HudPrint::Center, "#Weapon_Cannot_Be_Dropped");
+                return nullptr;
+            }
+        }
+        if (!item->CanDrop()) {
+            sendTextMsg(player, HudPrint::Center, "#Weapon_Cannot_Be_Dropped");
+            return nullptr;
+        }
+        if (item->player) {
+            if (item->player->active_item == item) {
+                item->Holster();
+            }
+            if (!item->player->RemovePlayerItem(item)) {
+                return nullptr;
+            }
+        }
+        setWeapons(getWeapons() & ~(1 << toInt(item->id)));
+        if ((getWeapons() & ~(1 << WEAPON_SUIT)) == 0) {
+            setHideHud(getHideHud() | HIDE_HUD_WEAPONS);
+        }
+        gameRules->GetNextBestWeapon(*this, item);
+
+        MakeVectors(getAngles());
+        item->vars->origin = getOrigin() + g_global_vars->vec_forward * 10;
+        item->vars->angles = getAngles();
+        item->vars->angles.x = 0;
+        item->vars->angles.z = 0;
+        item->vars->velocity = g_global_vars->vec_forward * 400;
+
+        item->vars->move_type = MoveTypeEntity::Toss;
+        item->vars->solid = SolidType::Trigger;
+        item->vars->aim_entity = nullptr;
+        item->vars->effects &= ~EF_NO_DRAW;
+
+        const auto weaponRef = Weapons[item->vars->impulse];
+        if (weaponRef) {
+            const auto& weapon = weaponRef->get();
+            rz::setModel(item->vars, weapon.getWorldModel());
+        }
+        //pWeapon->pev->spawnflags |= SF_NORESPAWN;
+        //pWeapon->pev->owner = ENT(pev);
+        item->vars->next_think = g_global_vars->time + 5;
+        //item->SetThink(WeaponBox::Killed());
+        //pWeapon->SetThink(nullptr);
+        //pWeapon->SetTouch(nullptr);
+        item->player = nullptr;
+
+        item->SetThink(&PlayerItem::RemoveThink);
+        item->SetTouch(&PlayerItem::TouchWeapon);
+        return item;
+    }
+
+    auto Player::GetFreeWeaponId(CrosshairSize crosshairSize) const -> std::optional<WeaponId> {
         std::vector<WeaponId> freeIds;
         switch (crosshairSize) {
             case CrosshairSize::None: {
@@ -125,8 +186,7 @@ namespace rz::player
         if (freeIds.empty()) {
             return std::nullopt;
         }
-        const auto copiedWeaponId = freeIds[0];
-        return {copiedWeaponId};
+        return freeIds[0];
     }
 
     auto Player::CreateBaseWeapon(int weaponIndex, BaseWeapon& baseWeapon) -> EntityBase* {
@@ -140,9 +200,9 @@ namespace rz::player
             if (!freeWeaponId) {
                 return nullptr;
             }
-            freeId = toInt(freeWeaponId->get());
+            freeId = toInt(*freeWeaponId);
         }
-        const auto edict = CreateNamedEntity(AllocString(baseWeapon.getReference().c_str()));
+        const auto edict = UTIL_CreateNamedEntity(AllocString(baseWeapon.getReference().c_str()));
         if (!IsValidEntity(edict)) {
             return nullptr;
         }
@@ -161,7 +221,7 @@ namespace rz::player
     }
 
     auto Player::GiveWeapon(int weaponIndex, GiveType giveType) -> EntityBase* {
-        auto weaponRef = weaponModule[weaponIndex];
+        auto weaponRef = Weapons[weaponIndex];
         if (!weaponRef) {
             return nullptr;
         }
@@ -173,8 +233,8 @@ namespace rz::player
     auto Player::SendWeaponAnim(int animNumber, int body) -> void {
         setWeaponAnim(animNumber);
         netWeaponAnim(*this, animNumber, body);
-        players.forEachConnected([&](auto& player) {
-            if (player.getIUser1() != ObserverMode::InEye) {
+        Players.forEachConnected([&](auto& player) {
+            if (player.getObserverMode() != ObserverMode::InEye) {
                 return;
             }
             if (player.getObserverTarget() != *this) {
@@ -194,11 +254,16 @@ namespace rz::player
         if (!baseWeapon->CanDeploy()) {
             return false;
         }
-        const auto weaponRef = weaponModule[baseWeapon->vars->impulse];
+        const auto weaponRef = Weapons[baseWeapon->vars->impulse];
         if (weaponRef) {
             const auto& weapon = weaponRef->get();
-            player.setViewModel(AllocString(weapon.getViewModel().c_str()));
-            player.setWeaponModel(AllocString(weapon.getPlayerModel().c_str()));
+            const auto& viewModelRef = Models[weapon.getViewModel()];
+            if (viewModelRef) {
+                const auto viewModel = viewModelRef->get();
+                player.setViewModel(AllocString(viewModel.getPath().c_str()));
+            }
+            player.setWeaponModel(0);
+            setModel(baseWeapon->vars, weapon.getPlayerModel());
         }
         baseWeapon->time_weapon_idle = 1.5f;
         baseWeapon->last_fire_time = 0.f;
@@ -338,18 +403,21 @@ namespace rz::player
         const Vector& velocity,
         float actionTime
     ) -> Grenade* {
-        using namespace core::regamedll_api::detail;
-        auto grenadeEntity = regamedll_funcs->create_named_entity2(AllocString("grenade"));
-        auto grenade = EntityPrivateData<cssdk::Grenade>(grenadeEntity);
+        static auto grenadeClassName = AllocString("grenade");
+        auto grenadeEntity = UTIL_CreateNamedEntity(grenadeClassName);
+        auto grenade = EntityPrivateData<Grenade>(grenadeEntity);
         grenade->Spawn();
-        SetOrigin(grenadeEntity, origin);
-        const int weaponIndex = baseWeapon->vars->impulse;
-        const auto weaponRef = weaponModule[weaponIndex];
+        const int weaponId = baseWeapon->vars->impulse;
+        const auto weaponRef = Weapons[weaponId];
         if (weaponRef) {
-            auto& weapon = weaponRef->get();
-            SetModel(grenadeEntity, weapon.getWorldModel().c_str());
+            const auto& weapon = weaponRef->get();
+            const auto worldModelRef = Models[weapon.getWorldModel()];
+            if (worldModelRef) {
+                const auto& worldModel = worldModelRef->get();
+                grenade->vars->model_index = worldModel.getPrecacheId();
+            }
         }
-        grenade->vars->impulse = weaponIndex;
+        grenade->vars->impulse = weaponId;
         grenade->vars->velocity = velocity;
         grenade->vars->angles = player.getAngles();
         grenade->vars->owner = player;
@@ -361,6 +429,7 @@ namespace rz::player
         grenade->vars->gravity = 0.55f;
         grenade->vars->friction = 0.7f;
         grenade->team = static_cast<TeamName>(player.getTeam());
+        SetOrigin(grenadeEntity, origin);
         return grenade;
     }
 }

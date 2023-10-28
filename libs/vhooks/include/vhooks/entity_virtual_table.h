@@ -9,17 +9,14 @@ namespace vhooks
 {
     using namespace metamod;
 
-    class EntityVirtualTable
-    {
-      private:
+    class EntityVirtualTable {
         cssdk::Edict* entity_{};
         int** virtualTable_{};
         HookIndex hookIndex_{};
         bool success_{};
 
       public:
-        EntityVirtualTable(const std::string& className, HookIndex hookIndex)
-        {
+        EntityVirtualTable(const std::string& className, HookIndex hookIndex) {
             if (hookIndex < HookIndex::indexBegin || hookIndex > HookIndex::indexEnd) {
                 return;
             }
@@ -33,16 +30,15 @@ namespace vhooks
                 return;
             }
             const int base = 0x0;
-            void** pvtable = *((void***)((char*)entity_->private_data + base));
+            void** pvtable = *((void***) ((char*) entity_->private_data + base));
             if (!pvtable) {
                 return;
             }
             success_ = true;
-            virtualTable_ = (int**)pvtable;
+            virtualTable_ = (int**) pvtable;
         }
 
-        EntityVirtualTable(int** virtualTable, HookIndex hookIndex)
-        {
+        EntityVirtualTable(int** virtualTable, HookIndex hookIndex) {
             if (!virtualTable) {
                 return;
             }
@@ -51,11 +47,10 @@ namespace vhooks
             }
             success_ = true;
             hookIndex_ = hookIndex;
-            virtualTable_ = (int**)virtualTable;
+            virtualTable_ = (int**) virtualTable;
         }
 
-        ~EntityVirtualTable()
-        {
+        ~EntityVirtualTable() {
             if (entity_) {
                 engine::RemoveEntity(entity_);
             }
@@ -63,23 +58,21 @@ namespace vhooks
             virtualTable_ = nullptr;
         }
 
-        void* Exchange(void* function, int*** virtualTable = nullptr)
-        {
+        void* Exchange(void* function, int*** virtualTable = nullptr) {
             const auto hookIndex = static_cast<int>(hookIndex_);
-            void* pvAddressReturn = (void*)virtualTable_[hookIndex];
+            void* pvAddressReturn = (void*) virtualTable_[hookIndex];
             MemoryUnlocker lock(&virtualTable_[hookIndex], sizeof(void*));
             if (!lock.IsValid()) {
                 return nullptr;
             }
-            virtualTable_[hookIndex] = (int*)function;
+            virtualTable_[hookIndex] = (int*) function;
             if (virtualTable) {
                 *virtualTable = virtualTable_;
             }
             return pvAddressReturn;
         }
 
-        bool IsValid() const
-        {
+        bool IsValid() const {
             return virtualTable_ != nullptr;
         }
     };

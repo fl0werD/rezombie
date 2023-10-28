@@ -1,60 +1,332 @@
 #include "rezombie/player/player.h"
-#include "rezombie/amxmodx/player.h"
-#include "rezombie/amxmodx/player_class.h"
-#include <messages/user_message.h>
-#include "rezombie/modules/player_class.h"
-#include "rezombie/modules/player_model.h"
-#include "rezombie/modules/player_sound.h"
-#include "rezombie/modules/weapon.h"
-#include "rezombie/player/player_preview.h"
+#include "rezombie/player/api/player.h"
+#include "rezombie/player/api/player_class.h"
+#include "rezombie/player/api/player_subclass.h"
+#include "rezombie/player/modules/player_class.h"
+#include "rezombie/player/modules/player_subclass.h"
+#include "rezombie/player/modules/player_sounds.h"
+#include "rezombie/models/modules/models.h"
+#include "rezombie/models/modules/models_pack.h"
+#include "rezombie/weapons/modules/weapon.h"
 #include "rezombie/player/players.h"
-#include "rezombie/util.h"
-#include <core/menu.h>
+#include "rezombie/entity/wrappers/player_base_wrapper.h"
+#include "rezombie/main/util.h"
+#include "rezombie/map/environment.h"
+#include "rezombie/messages/user_message.h"
+#include "rezombie/messages/temporary_entity.h"
 #include <metamod/engine.h>
-#include <metamod/gamedll.h>
 #include <mhooks/reapi.h>
 
-namespace rz::player
+namespace rz
 {
     using namespace core;
-    using namespace cssdk;
     using namespace metamod;
-    using namespace message;
 
-    auto Player::init(PlayerBase* base) -> void
+/*
+    void EXT_FUNC CBasePlayer::__API_HOOK(Killed)(entvars_t *pevAttacker, int iGib)
     {
+        m_canSwitchObserverModes = false;
+
+        if (m_LastHitGroup == HITGROUP_HEAD)
+            m_bHeadshotKilled = true;
+
+        CBaseEntity *pAttackerEntity = CBaseEntity::Instance(pevAttacker);
+
+        if (!m_bKilledByBomb)
+        {
+            g_pGameRules->PlayerKilled(this, pevAttacker, g_pevLastInflictor);
+        }
+
+        MESSAGE_BEGIN(MSG_ONE, gmsgNVGToggle, nullptr, pev);
+        WRITE_BYTE(0);
+        MESSAGE_END();
+
+        m_bNightVisionOn = false;
+
+        for (int i = 1; i <= gpGlobals->maxClients; i++)
+        {
+            CBasePlayer *pObserver = UTIL_PlayerByIndex(i);
+
+            if (!pObserver)
+                continue;
+
+            if (pObserver->IsObservingPlayer(this))
+            {
+                MESSAGE_BEGIN(MSG_ONE, gmsgNVGToggle, nullptr, pObserver->pev);
+                WRITE_BYTE(0);
+                MESSAGE_END();
+
+                pObserver->m_bNightVisionOn = false;
+            }
+
+            if (pObserver->m_hObserverTarget == this)
+                pObserver->m_flNextFollowTime = 0.0f;
+        }
+
+        if (m_pTank)
+        {
+            m_pTank->Use(this, this, USE_OFF, 0);
+            m_pTank = nullptr;
+        }
+
+        SetAnimation(PLAYER_DIE);
+
+        if (m_pActiveItem && m_pActiveItem->m_pPlayer)
+        {
+            switch (m_pActiveItem->m_iId)
+            {
+                case WEAPON_HEGRENADE:
+                {
+                    CHEGrenade *pHEGrenade = static_cast<CHEGrenade *>(m_pActiveItem);
+                    if ((pev->button & IN_ATTACK) && m_rgAmmo[pHEGrenade->m_iPrimaryAmmoType])
+                    {
+                        ThrowGrenade(pHEGrenade, (pev->origin + pev->view_ofs), pev->angles, 1.5, pHEGrenade->m_usCreateExplosion);
+                        m_rgAmmo[m_pActiveItem->PrimaryAmmoIndex()]--;
+                        pHEGrenade->m_flStartThrow = 0;
+                    }
+                    break;
+                }
+                case WEAPON_FLASHBANG:
+                {
+                    CFlashbang *pFlashbang = static_cast<CFlashbang *>(m_pActiveItem);
+                    if ((pev->button & IN_ATTACK) && m_rgAmmo[pFlashbang->m_iPrimaryAmmoType])
+                    {
+                        ThrowGrenade(pFlashbang, (pev->origin + pev->view_ofs), pev->angles, 1.5);
+                        m_rgAmmo[m_pActiveItem->PrimaryAmmoIndex()]--;
+                        pFlashbang->m_flStartThrow = 0;
+                    }
+                    break;
+                }
+                case WEAPON_SMOKEGRENADE:
+                {
+                    CSmokeGrenade *pSmoke = static_cast<CSmokeGrenade *>(m_pActiveItem);
+                    if ((pev->button & IN_ATTACK) && m_rgAmmo[pSmoke->m_iPrimaryAmmoType])
+                    {
+                        ThrowGrenade(pSmoke, (pev->origin + pev->view_ofs), pev->angles, 1.5, pSmoke->m_usCreateSmoke);
+                        m_rgAmmo[m_pActiveItem->PrimaryAmmoIndex()]--;
+                        pSmoke->m_flStartThrow = 0;
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+
+        pev->modelindex = m_modelIndexPlayer;
+        pev->deadflag = DEAD_DYING;
+        pev->movetype = MOVETYPE_TOSS;
+        pev->takedamage = DAMAGE_NO;
+
+        pev->gamestate = HITGROUP_SHIELD_DISABLED;
+        m_bShieldDrawn = false;
+
+        pev->flags &= ~FL_ONGROUND;
+
+#ifdef REGAMEDLL_FIXES
+        // FlashlightTurnOff()
+        pev->effects &= ~EF_DIMLIGHT;
+#endif
+
+#ifndef REGAMEDLL_ADD
+        if (fadetoblack.value == 0.0)
+	{
+		pev->iuser1 = OBS_CHASE_FREE;
+		pev->iuser2 = ENTINDEX(edict());
+		pev->iuser3 = ENTINDEX(ENT(pevAttacker));
+
+		m_hObserverTarget = UTIL_PlayerByIndexSafe(pev->iuser3);
+
+		MESSAGE_BEGIN(MSG_ONE, gmsgADStop, nullptr, pev);
+		MESSAGE_END();
+	}
+	else
+	{
+		UTIL_ScreenFade(this, Vector(0, 0, 0), 3, 3, 255, (FFADE_OUT | FFADE_STAYOUT));
+	}
+#else
+
+        float flDyingDuration = GetSequenceDuration() + CGameRules::GetDyingTime();
+        switch ((int)fadetoblack.value)
+        {
+            default:
+            {
+                pev->iuser1 = OBS_CHASE_FREE;
+                pev->iuser2 = ENTINDEX(edict());
+                pev->iuser3 = ENTINDEX(ENT(pevAttacker));
+
+                m_hObserverTarget = UTIL_PlayerByIndexSafe(pev->iuser3);
+
+                MESSAGE_BEGIN(MSG_ONE, gmsgADStop, nullptr, pev);
+                MESSAGE_END();
+
+                break;
+            }
+            case FADETOBLACK_STAY:
+            {
+                UTIL_ScreenFade(this, Vector(0, 0, 0), 0.8f, flDyingDuration, 255, (FFADE_OUT | FFADE_STAYOUT));
+                break;
+            }
+            case FADETOBLACK_AT_DYING:
+            {
+                pev->iuser1 = OBS_CHASE_FREE;
+                pev->iuser2 = ENTINDEX(edict());
+                pev->iuser3 = ENTINDEX(ENT(pevAttacker));
+
+                m_hObserverTarget = UTIL_PlayerByIndexSafe(pev->iuser3);
+
+                MESSAGE_BEGIN(MSG_ONE, gmsgADStop, nullptr, pev);
+                MESSAGE_END();
+
+                UTIL_ScreenFade(this, Vector(0, 0, 0), 0.8f, flDyingDuration, 255, (FFADE_OUT));
+
+                break;
+            }
+        }
+#endif // REGAMEDLL_ADD
+
+        SetScoreboardAttributes();
+
+        if (m_iThrowDirection)
+        {
+            switch (m_iThrowDirection)
+            {
+                case THROW_FORWARD:
+                {
+                    UTIL_MakeVectors(pev->angles);
+                    pev->velocity = gpGlobals->v_forward * RANDOM_FLOAT(100, 200);
+                    pev->velocity.z = RANDOM_FLOAT(50, 100);
+                    break;
+                }
+                case THROW_BACKWARD:
+                {
+                    UTIL_MakeVectors(pev->angles);
+                    pev->velocity = gpGlobals->v_forward * RANDOM_FLOAT(-100, -200);
+                    pev->velocity.z = RANDOM_FLOAT(50, 100);
+                    break;
+                }
+                case THROW_HITVEL:
+                {
+                    if (FClassnameIs(pevAttacker, "player"))
+                    {
+                        UTIL_MakeVectors(pevAttacker->angles);
+
+                        pev->velocity = gpGlobals->v_forward * RANDOM_FLOAT(200, 300);
+                        pev->velocity.z = RANDOM_FLOAT(200, 300);
+                    }
+                    break;
+                }
+                case THROW_BOMB:
+                {
+                    // TODO: fix test demo
+                    pev->velocity = m_vBlastVector * (1.0f / m_vBlastVector.Length()) * float(2300.0f - m_vBlastVector.Length()) * 0.25f;
+                    pev->velocity.z = (2300.0f - m_vBlastVector.Length()) / 2.75f;
+                    break;
+                }
+                case THROW_GRENADE:
+                {
+                    pev->velocity = m_vBlastVector * (1 / m_vBlastVector.Length()) * (500 - m_vBlastVector.Length());
+                    pev->velocity.z = (350 - m_vBlastVector.Length()) * 1.5;
+                    break;
+                }
+                case THROW_HITVEL_MINUS_AIRVEL:
+                {
+                    if (FClassnameIs(pevAttacker, "player"))
+                    {
+                        UTIL_MakeVectors(pevAttacker->angles);
+                        pev->velocity = gpGlobals->v_forward * RANDOM_FLOAT(200, 300);
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+
+            pev->angles.y = UTIL_VecToAngles(-pev->velocity).y;
+            pev->v_angle.y = pev->angles.y;
+
+            m_iThrowDirection = THROW_NONE;
+        }
+
+        m_iClientHealth = 0;
+        MESSAGE_BEGIN(MSG_ONE, gmsgHealth, nullptr, pev);
+        WRITE_BYTE(m_iClientHealth);
+        MESSAGE_END();
+
+        MESSAGE_BEGIN(MSG_ONE, gmsgCurWeapon, nullptr, pev);
+        WRITE_BYTE(0);
+        WRITE_BYTE(0xFF);
+        WRITE_BYTE(0xFF);
+        MESSAGE_END();
+
+        SendFOV(0);
+
+        CSGameRules()->CheckWinConditions();
+        m_bNotKilled = false;
+
+        BuyZoneIcon_Clear(this);
+
+#ifdef REGAMEDLL_ADD
+        CSPlayer()->OnKilled();
+#endif
+
+        SetThink(&CBasePlayer::PlayerDeathThink);
+        pev->nextthink = gpGlobals->time + 0.1f;
+        pev->solid = SOLID_NOT;
+
+        if ((pev->health < -9000 && iGib != GIB_NEVER) || iGib == GIB_ALWAYS)
+        {
+
+#ifndef REGAMEDLL_FIXES
+            pev->solid = SOLID_NOT;
+#endif
+            GibMonster();
+            pev->effects |= EF_NODRAW;
+
+#ifndef REGAMEDLL_FIXES
+            CSGameRules()->CheckWinConditions();
+#endif
+            return;
+        }
+
+        DeathSound();
+
+        pev->angles.x = 0;
+        pev->angles.z = 0;
+    }
+*/
+    auto Player::init(PlayerBase* base) -> void {
         edict_ = base->GetEdict();
         vars_ = &edict_->vars;
         base_ = base;
         cstrike_ = base->GetCsPlayer();
-        ResetVars();
+        ResetVars(true);
     }
 
-    auto Player::disconnect() -> void
-    {
+    auto Player::disconnect() -> void {
         edict_ = nullptr;
         vars_ = nullptr;
         base_ = nullptr;
         cstrike_ = nullptr;
     }
 
-    auto Player_Spawn(const ReGamePlayerSpawnMChain& chain, PlayerBase* base) -> void
-    {
-        auto& player = players[base];
-        if (player.isJustConnected() && player.getJoiningState() == JoinState::PickingTeam) {
-            chain.CallNext(base);
+    auto Player_Spawn(ReHookPlayerSpawn* chain, PlayerBase* base) -> void {
+        auto& player = Players[base];
+        if (player.isJustConnected()) {
+            chain->CallNext(base);
+            player.setHideHud(player.getHideHud() | HIDE_HUD_MONEY);
             return;
         }
-        // if (!player.isPlayableTeam()) { // maybe no need
-        //     chain.CallNext(base);
-        //     return;
-        // }
+        if (!player.isPlayableTeam()) {
+            chain->CallNext(base);
+            return;
+        }
         if (gameRules->isCanMove()) {
             player.setIUser3(player.getIUser3() & ~NO_MOVE_PLAYER_FLAGS);
         }
-        auto newClass = gameRules->getDefaultPlayerClass(Team::Human);
+        auto newClass = gameRules->defaultPlayerClass(Team::Human);
         if (gameRules->getGameState() == GameState::Playing && gameRules->getRoundState() == RoundState::Playing) {
-            newClass = gameRules->getDefaultPlayerClass(Team::Zombie);
+            newClass = gameRules->defaultPlayerClass(Team::Zombie);
         }
         if (player.getClass() != newClass) {
             player.setKilled(true);
@@ -62,18 +334,16 @@ namespace rz::player
         }
         player.ChangeClass(player.getClass(), &player, true);
         const auto body = player.getBody();
-        chain.CallNext(base);
+        chain->CallNext(base);
         player.setBody(body);
-        player.setHideHud(player.getHideHud() | HIDE_HUD_TIMER);
+        //player.setThirdCamera(true);
     }
 
-    auto Player_PreThink(const ReGamePlayerPreThinkMChain& chain, PlayerBase* base)
-    {
-        chain.CallNext(base);
-        auto& player = players[base];
-        if (player.getMenu() == MenuName::ChooseAppearance) {
-            // player.getPreview()->UpdatePosition(player.getGunPosition(), player.getViewAngle());
-        }
+    auto Player_PreThink(ReHookPlayerPreThink* chain, PlayerBase* base) {
+        chain->CallNext(base);
+        auto& player = Players[base];
+        player.PreviewUpdate();
+        player.MapCameraUpdate();
         if (!player.isAlive()) {
             return;
         }
@@ -81,14 +351,27 @@ namespace rz::player
             player.RemoveFreeze();
         }
         player.LongJumpCooldown();
+        //player.ThirdCameraUpdate();
     }
 
-    auto Player_AddPlayerItem(const ReGamePlayerAddPlayerItemMChain&, PlayerBase* base, PlayerItemBase* item)
-      -> qboolean
-    {
-        // add can interact?
+    auto Player_PostThink(ReHookPlayerPreThink* chain, PlayerBase* base) {
+        auto& player = Players[base];
+        if (player.isAlive()) {
+            if (player.getImpulse() == 100) {
+                player.SwitchFlashlight(!player.getFlashlight().isEnabled());
+                player.setImpulse(0);
+            }
+        }
+        chain->CallNext(base);
+        if (!player.isAlive()) {
+            return;
+        }
+        player.ThirdCameraUpdate();
+    }
+
+    auto Player_AddPlayerItem(ReHookPlayerAddPlayerItem*, PlayerBase* base, PlayerItemBase* item) -> qboolean {
+        auto& player = Players[base];
         const auto itemSlot = item->GetCsPlayerItem()->item_info.slot;
-        auto& player = players[base];
         auto insert = player.getPlayerItems(itemSlot);
         while (insert != nullptr) {
             if (insert->vars->impulse == item->vars->impulse) {
@@ -111,10 +394,8 @@ namespace rz::player
         return true;
     }
 
-    auto Player_RemovePlayerItem(const ReGamePlayerRemovePlayerItemMChain&, PlayerBase* base, PlayerItemBase* item)
-      -> qboolean
-    {
-        auto& player = players[base];
+    auto Player_RemovePlayerItem(ReHookPlayerRemovePlayerItem*, PlayerBase* base, PlayerItemBase* item) -> qboolean {
+        auto& player = Players[base];
         if (player.getActiveItem() == item) {
             player.ResetFovZoom();
             player.ResetMaxSpeed();
@@ -128,43 +409,50 @@ namespace rz::player
             player.setLastItem(nullptr);
         }
         const auto itemSlot = item->GetCsPlayerItem()->item_info.slot;
-        auto prev = player.getPlayerItems(itemSlot);
-        if (prev == item) {
+        auto previous = player.getPlayerItems(itemSlot);
+        if (previous == item) {
             player.setPlayerItems(itemSlot, item->next);
             return true;
         }
-        while (prev != nullptr && prev->next != item) {
-            prev = prev->next;
+        while (previous != nullptr && previous->next != item) {
+            previous = previous->next;
         }
-        if (prev != nullptr) {
-            prev->next = item->next;
+        if (previous != nullptr) {
+            previous->next = item->next;
             return true;
         }
         return false;
     }
 
-    auto Player_SpawnEquip(const ReGamePlayerSpawnEquipMChain&, PlayerBase* base, bool, bool) -> void
-    {
-        auto& player = players[base];
+    auto Player_DropPlayerItem(ReHookPlayerDropPlayerItem*, PlayerBase* base, const char*) -> EntityBase* {
+        auto& player = Players[base];
+        return player.DropPlayerItem(player.getActiveItem());
+    }
+
+    auto Player_SpawnEquip(ReHookPlayerOnSpawnEquip*, PlayerBase* base, bool, bool) -> void {
+        auto& player = Players[base];
         player.ChangeProps(player.getProps(), true);
-        if (!player.isKilled()) {
+        /*if (!player.isKilled()) {
             return;
-        }
+        }*/
         player.GiveDefaultItems();
     }
 
-    auto Player_GiveDefaultItems(const ReGamePlayerGiveDefaultItemsMChain&, PlayerBase* base) -> void
-    {
-        auto& player = players[base];
+    auto Player_GiveDefaultItems(ReHookPlayerGiveDefaultItems*, PlayerBase* base) -> void {
+        auto& player = Players[base];
         player.RemoveAllItems();
         player.GiveWeapon(player.getMelee(), GiveType::Replace);
-        amxxPlayer.PlayerGiveDefaultItems(player);
+        const auto& classRef = Classes[player.getClass()];
+        if (classRef) {
+            const auto& playerClass = classRef->get();
+            playerClass.executeGiveDefaultItems(player);
+        }
+        PlayerApi.GiveDefaultItems(player, player.getClass());
     }
 
-    auto Player_Jump(const ReGamePlayerJumpMChain& chain, PlayerBase* base) -> void
-    {
-        chain.CallNext(base);
-        auto& player = players[base];
+    auto Player_Jump(ReHookPlayerJump* chain, PlayerBase* base) -> void {
+        chain->CallNext(base);
+        auto& player = Players[base];
         if (player.getIUser3() & NO_MOVE_PLAYER_FLAGS) {
             return;
         }
@@ -172,11 +460,26 @@ namespace rz::player
         player.LongJump();
     }
 
-    auto Player_ResetMaxSpeed(const ReGamePlayerResetMaxSpeedMChain& chain, PlayerBase* base) -> void
-    {
-        chain.CallNext(base);
-        auto& player = players[base];
-        if (!player.isAlive()) {
+    auto Player_UpdateClientData(ReHookPlayerUpdateClientData* chain, PlayerBase* base) -> void {
+        auto& player = Players[base];
+        player.FlashlightUpdate();
+        chain->CallNext(base);
+    }
+
+    auto Player_ImpulseCommands(ReHookPlayerImpulseCommands* chain, PlayerBase* base) -> void {
+        auto& player = Players[base];
+        chain->CallNext(base);
+    }
+
+    auto Player_AddAccount(ReHookPlayerAddAccount*, PlayerBase*, int, RewardType, bool) -> void {
+        // no op
+    }
+
+    auto Player_ResetMaxSpeed(ReHookPlayerResetMaxSpeed*, PlayerBase* base) -> void {
+        auto& player = Players[base];
+        // if joining
+        if (player.getObserverMode() != ObserverMode::None) {
+            player.setMaxSpeed(900);
             return;
         }
         if (!gameRules->isCanMove() || player.isFrozen()) {
@@ -191,16 +494,15 @@ namespace rz::player
         }
     }
 
-    auto Player_Pain(const ReGamePlayerPainMChain& chain, PlayerBase* base, HitBoxGroup lastHitGroup, bool hasArmour)
-      -> void
-    {
-        const auto& player = players[base];
-        const auto soundRef = playerSoundModule[player.getSound()];
-        if (!soundRef) {
-            chain.CallNext(base, lastHitGroup, hasArmour);
+    auto Player_Pain(ReHookPlayerPain* chain, PlayerBase* base, HitBoxGroup lastHitGroup, bool hasArmour)
+    -> void {
+        const auto& player = Players[base];
+        const auto soundsRef = PlayerSounds[player.getSounds()];
+        if (!soundsRef) {
+            chain->CallNext(base, lastHitGroup, hasArmour);
             return;
         }
-        const auto& sound = soundRef->get();
+        const auto& sound = soundsRef->get();
         if (lastHitGroup == HitBoxGroup::Head) {
             if (player.getHelmet()) {
                 UTIL_EmitSound(player, SoundChannel::Voice, sound.getRandom(PlayerSoundType::ArmoredHead));
@@ -218,97 +520,109 @@ namespace rz::player
         }
     }
 
-    auto Player_DeathSound(const ReGamePlayerDeathSoundMChain& chain, PlayerBase* base) -> void
-    {
-        const auto& player = players[base];
-        const auto soundRef = playerSoundModule[player.getSound()];
-        if (!soundRef) {
-            chain.CallNext(base);
+    auto Player_DeathSound(ReHookPlayerDeathSound* chain, PlayerBase* base) -> void {
+        const auto& player = Players[base];
+        const auto soundsRef = PlayerSounds[player.getSounds()];
+        if (!soundsRef) {
+            chain->CallNext(base);
             return;
         }
-        const auto& sound = soundRef->get();
+        const auto& sound = soundsRef->get();
         UTIL_EmitSound(player, SoundChannel::Voice, sound.getRandom(PlayerSoundType::Death));
     }
 
-    auto Player_JoiningThink(const ReGamePlayerJoiningThinkMChain& chain, PlayerBase* base) -> void
-    {
-        const auto& player = players[base];
-        chain.CallNext(base);
-        // if (player.getJoiningState() == JoinState::Joined || player.getJoiningState() == JoinState::GetIntoGame)
-        // {
-        //     chain.CallNext(base);
-        //     return;
-        // }
-        //  if (m_pIntroCamera && gpGlobals->time >= m_fIntroCamTime) {
-        //      // find the next another camera
-        //      m_pIntroCamera = UTIL_FindEntityByClassname(m_pIntroCamera, "trigger_camera");
+    auto Player_JoiningThink(ReHookPlayerJoiningThink* chain, PlayerBase* base) -> void {
+        chain->CallNext(base);
+        auto& player = Players[base];
 
-        //    // could not find, go back to the start
-        //    if (!m_pIntroCamera) {
-        //        m_pIntroCamera = UTIL_FindEntityByClassname(nullptr, "trigger_camera");
-        //    }
+        switch (player.getJoiningState()) {
+            case JoinState::Joined: {
+                break;
+            }
+            case JoinState::ShowText: {
+                break;
+            }
+            case JoinState::ReadingText: {
+                break;
+            }
+            case JoinState::ShowTeamSelect: {
+                break;
+            }
+            case JoinState::PickingTeam: {
+                break;
+            }
+            case JoinState::GetIntoGame: {
+                break;
+            }
+        }
 
-        //    CBaseEntity* Target = UTIL_FindEntityByTargetname(nullptr, STRING(m_pIntroCamera->pev->target));
-        //    if (Target) {
-        //        Vector vecAngles = UTIL_VecToAngles((Target->pev->origin -
-        //        m_pIntroCamera->pev->origin).Normalize());
+        if (player.getJoiningState() == JoinState::Joined || player.getJoiningState() == JoinState::GetIntoGame) {
+            return;
+        }
+        /*if (player.getJoiningState() != JoinState::ShowTeamSelect) {
+            chain.CallNext(base);
+            return;
+        }*/
 
-        //        vecAngles.x = -vecAngles.x;
-        //        UTIL_SetOrigin(pev, m_pIntroCamera->pev->origin);
-
-        //        pev->angles = vecAngles;
-        //        pev->v_angle = pev->angles;
-
-        //        pev->velocity = g_vecZero;
-        //        pev->punchangle = g_vecZero;
-
-        //        pev->fixangle = 1;
-        //        pev->view_ofs = g_vecZero;
-        //        m_fIntroCamTime = gpGlobals->time + 6;
-        //    } else {
-        //        m_pIntroCamera = nullptr;
-        //    }
-        //}
     }
 
-    auto InternalCommand(const ReGameInternalCommandMChain& chain, Edict* client, const char* command, const char* arg1)
-      -> void
-    {
-        auto& player = players[client];
-        if (str::Equals(command, "menuselect")) {
-            if (player.getMenu() == MenuName::ChooseAppearance) {
-                player.SelectAppearance();
+    auto InternalCommand(ReHookInternalCommand* chain, Edict* client, const char* command, const char* arg1) -> void {
+        auto& player = Players[client];
+        if (str::Equals(command, "chooseteam")) {
+            if (player.getJoiningState() == JoinState::Joined) {
+                chain->CallNext(client, command, arg1);
+            }
+            return;
+        } else if (str::Equals(command, "nightvision")) {
+            if (!player.isAlive() || !player.getNightVision().isEnabled()) {
                 return;
             }
-        } else if (str::Equals(command, "chooseteam")) {
-            chain.CallNext(client, command, arg1);
+            if (g_global_vars->time >= player.getLastCommandTime(TrackCommands::NightVision)) {
+                player.setLastCommandTime(TrackCommands::NightVision, g_global_vars->time + 0.3f);
+                player.SwitchNightVision(!player.getNightVision().isEnabled());
+            }
             return;
         } else {
             if (player.SelectItem(command)) {
                 return;
             }
         }
-        chain.CallNext(client, command, arg1);
+        chain->CallNext(client, command, arg1);
     }
 
-    auto RegisterHooks() -> void
-    {
-        using namespace mhooks;
+    auto Player_Killed(ReHookPlayerKilled* chain, PlayerBase* victim, EntityVars* attacker, int gib) -> void {
+        chain->CallNext(victim, attacker, gib);
+        //victim->SetThink(&PlayerBaseWrapper::PlayerDeathThink);
+        auto& player = Players[victim];
+        player.setIUser1(ObserverMode::None);
+        //player.setThirdCamera(true);
+    }
 
-        MHookReGameInternalCommand(DELEGATE_ARG<InternalCommand>);
+    auto RegisterPlayerHooks() -> void {
+        auto hooks = regamedll_api::HookChains();
 
-        MHookReGamePlayerSpawn(DELEGATE_ARG<Player_Spawn>);
-        MHookReGamePlayerPreThink(DELEGATE_ARG<Player_PreThink>);
-        MHookReGamePlayerAddPlayerItem(DELEGATE_ARG<Player_AddPlayerItem>);
-        MHookReGamePlayerRemovePlayerItem(DELEGATE_ARG<Player_RemovePlayerItem>);
-        MHookReGamePlayerSpawnEquip(DELEGATE_ARG<Player_SpawnEquip>);
-        MHookReGamePlayerGiveDefaultItems(DELEGATE_ARG<Player_GiveDefaultItems>);
-        MHookReGamePlayerJump(DELEGATE_ARG<Player_Jump>);
-        MHookReGamePlayerResetMaxSpeed(DELEGATE_ARG<Player_ResetMaxSpeed>);
+        hooks->InternalCommand()->RegisterHook(&InternalCommand);
 
-        MHookReGamePlayerPain(DELEGATE_ARG<Player_Pain>);
-        MHookReGamePlayerDeathSound(DELEGATE_ARG<Player_DeathSound>);
-        MHookReGamePlayerJoiningThink(DELEGATE_ARG<Player_JoiningThink>);
+        hooks->PlayerSpawn()->RegisterHook(&Player_Spawn);
+        hooks->PlayerPreThink()->RegisterHook(&Player_PreThink);
+        hooks->PlayerPostThink()->RegisterHook(&Player_PostThink);
+        hooks->PlayerAddPlayerItem()->RegisterHook(&Player_AddPlayerItem);
+        hooks->PlayerRemovePlayerItem()->RegisterHook(&Player_RemovePlayerItem);
+        hooks->PlayerDropPlayerItem()->RegisterHook(&Player_DropPlayerItem);
+        hooks->PlayerOnSpawnEquip()->RegisterHook(&Player_SpawnEquip);
+        hooks->PlayerGiveDefaultItems()->RegisterHook(&Player_GiveDefaultItems);
+        hooks->PlayerResetMaxSpeed()->RegisterHook(&Player_ResetMaxSpeed);
+        hooks->PlayerJump()->RegisterHook(&Player_Jump);
+
+        hooks->PlayerUpdateClientData()->RegisterHook(&Player_UpdateClientData);
+        hooks->PlayerImpulseCommands()->RegisterHook(&Player_ImpulseCommands);
+        hooks->PlayerAddAccount()->RegisterHook(&Player_AddAccount);
+
+        hooks->PlayerPain()->RegisterHook(&Player_Pain);
+        hooks->PlayerDeathSound()->RegisterHook(&Player_DeathSound);
+        hooks->PlayerJoiningThink()->RegisterHook(&Player_JoiningThink);
+
+        hooks->PlayerKilled()->RegisterHook(&Player_Killed);
     }
 
     /*
@@ -322,51 +636,29 @@ namespace rz::player
     ) -> void {
         // No op
     }
-
-    auto ImpulseCommands(const ReGamePlayerImpulseCommandsMChain& chain, PlayerBase* base) -> void
-    {
-        auto& player = g_players[basePlayer];
-        if (!player.getImpulse()) {
-            chain->callNext(basePlayer);
-            return;
-        }
-        chain->callNext(basePlayer);
-    }
-
-    auto playerSetClientUserInfoModel(IReGameHook_CBasePlayer_SetClientUserInfoModel* chain, CBasePlayer* player,
-      const char* infoBuffer, const char* newModel) -> void
-    {
-        chain->callNext(player, infoBuffer, "");
-    }
-
-    */
+*/
 
     /*auto chooseAppearance(IReGameHook_HandleMenu_ChooseAppearance* chain, CBasePlayer* basePlayer, int slot) -> void
     {
         auto& player = g_players[basePlayer];
-        SelectAppearance(player, 0);
+        Joined(player, 0);
     }
     */
 
-    auto Player::ShowAppearance() -> void
-    {
-        // getPreview()->CreatePreview();
-        setMenu(MenuName::ChooseAppearance);
-        amxxPlayer.ChooseDefaultSubclass(*this);
+    auto Player::Joining() -> void {
+        PlayerApi.Joining(*this);
+        //setMenu(MenuName::ChooseAppearance);
     }
 
-    auto Player::SelectAppearance() -> void
-    {
-        // getPreview()->RemovePreview();
-        setMenu(MenuName::Off);
+    auto Player::Joined() -> void {
+        //setMenu(MenuName::Off);
         setTeam(Team::Human);
         setJoiningState(JoinState::GetIntoGame);
         TeamChangeUpdate();
-        gameRules->CheckWinConditions();
+        PlayerApi.Joined(*this);
     }
 
-    auto Player::SelectItem(const char* name) -> bool
-    {
+    auto Player::SelectItem(const char* name) -> bool {
         if (name == nullptr) {
             return false;
         }
@@ -394,12 +686,11 @@ namespace rz::player
         return true;
     }
 
-    auto Player::FindItemInInventoryByHud(const char* name) const -> PlayerItemBase*
-    {
+    auto Player::FindItemInInventoryByHud(const char* name) const -> PlayerItemBase* {
         for (auto slot = 0; slot < MAX_ITEM_TYPES; ++slot) {
             auto item = getPlayerItems(slot);
             while (item != nullptr) {
-                const auto weaponRef = weaponModule[item->vars->impulse];
+                const auto weaponRef = Weapons[item->vars->impulse];
                 if (weaponRef) {
                     const auto& weapon = weaponRef->get();
                     if (str::Equals(weapon.getHud(), name)) {
@@ -412,67 +703,92 @@ namespace rz::player
         return nullptr;
     }
 
-    auto Player::ChangeClass(int classIndex, Player* attackerUnsafe, bool preSpawn) -> bool
-    {
-        auto attackerIndex = 0;
-        if (attackerUnsafe != nullptr) {
-            attackerIndex = attackerUnsafe->id();
-        }
+    auto Player::ChangeClass(int classId, Player* attackerUnsafe, bool preSpawn) -> ForwardReturn {
         ResetVars();
-        if (amxxPlayerClass.ChangeClassPre(*this, classIndex, attackerIndex) >= ForwardReturn::Supercede) {
-            return false;
+        const auto attackerId = attackerUnsafe ? attackerUnsafe->id() : 0;
+        const auto result = PlayerClassApi.ChangeClassPre(*this, classId, attackerId);
+        if (result > ForwardReturn::Continue) {
+            return result;
         }
-        const auto playerClassRef = playerClassModule[classIndex];
-        if (!playerClassRef) {
-            return false;
+        const auto& classRef = Classes[classId];
+        if (!classRef) {
+            return result;
         }
-        auto& playerClass = playerClassRef->get();
-        setClass(classIndex);
-        setSubclass(0);
-        setTeam(playerClass.getTeam()); // put into pre/ost
-        setSound(playerClass.getSound());
+        auto& playerClass = classRef->get();
+        setClass(classId);
+        setTeam(playerClass.getTeam());
+        setProps(playerClass.getProps());
+        setSounds(playerClass.getSounds());
         setMelee(playerClass.getMelee());
-        setNightVision(playerClass.getNightVision());
-        if (preSpawn) {
-            setProps(playerClass.getProps());
-            ChangeModel(playerClass.getModel());
-        } else {
-            if (attackerUnsafe != nullptr) {
+        //setNightVision(playerClass.getNightVision());
+        ChangeModel(playerClass.getModelsPack());
+        ChangeSubclass(getKeepSubclass(classId));
+        if (!preSpawn) {
+            ChangeProps(getProps());
+            GiveDefaultItems();
+        }
+        if (!attackerUnsafe) {
+            sendTeamInfo(TO_ALL, id(), playerClass.getTeam());
+        }
+        PlayerClassApi.ChangeClassPost(*this, classId, attackerId);
+        if (attackerUnsafe) {
+            sendTeamInfo(TO_ALL, id(), playerClass.getTeam());
+        }
+        /*if (!preSpawn) {
+            if (attackerUnsafe) {
                 auto& attacker = *attackerUnsafe;
-                setDeaths(getDeaths() + 1);
-                attacker.setFrags(attacker.getFrags() + 1);
-                sendDeathMsg(TO_ALL, attacker.id(), id(), false, "teammate");
+                sendDeathMsg(TO_ALL, attacker.id(), id(), INFECTION_ICON);
                 sendScoreAttrib(TO_ALL, id(), 0);
-                sendTeamInfo(TO_ALL, id(), getTeam());
-                sendScoreInfo(TO_ALL, id(), getFrags(), getDeaths(), 0, getTeamId());
+                sendTeamInfo(TO_ALL, id(), playerClass.getTeam());
+                setDeaths(getDeaths() + 1);
+                sendScoreInfo(TO_ALL, id(), getFrags(), getDeaths(), playerClass.getTeam());
+                attacker.setFrags(attacker.getFrags() + 1);
                 sendScoreInfo(
-                  TO_ALL, attacker.id(), attacker.getFrags(), attacker.getDeaths(), 0, attacker.getTeamId()
+                    TO_ALL,
+                    attacker.id(),
+                    attacker.getFrags(),
+                    attacker.getDeaths(),
+                    attacker.getTeam()
                 );
             } else {
-                sendTeamInfo(TO_ALL, id(), getTeam());
-                sendDeathMsg(TO_ALL, id(), id(), false, "teammate");
+                sendTeamInfo(TO_ALL, id(), playerClass.getTeam());
+                sendDeathMsg(TO_ALL, id(), id(), INFECTION_ICON);
                 sendScoreAttrib(TO_ALL, id(), 0);
             }
-            GiveDefaultItems();
-            ChangeProps(playerClass.getProps());
-            ChangeModel(playerClass.getModel());
-        }
-        gameRules->CheckWinConditions();
-        amxxPlayerClass.ChangeClassPost(*this, classIndex, attackerIndex);
-        return true;
+        }*/
+        return result;
     }
 
-    auto Player::ChangeProps(int propsIndex, bool spawn) -> bool
-    {
-        const auto propsRef = playerPropsModule[propsIndex];
+    auto Player::ChangeSubclass(int subclassId) -> ForwardReturn {
+        const auto result = PlayerSubclassApi.ChangeSubclassPre(*this, subclassId);
+        if (result > ForwardReturn::Continue) {
+            return result;
+        }
+        const auto& subclassRef = Subclasses[subclassId];
+        if (!subclassRef) {
+            return result;
+        }
+        const auto& subclass = subclassRef->get();
+        setSubclass(subclassId);
+        setProps(subclass.getProps());
+        setSounds(subclass.getSounds());
+        setMelee(subclass.getMelee());
+        getNightVision().setId(0);
+        //switchFlashlight
+        ChangeModel(subclass.getModel());
+        PlayerSubclassApi.ChangeSubclassPost(*this, subclassId);
+        return result;
+    }
+
+    auto Player::ChangeProps(int propsId, bool spawn) -> bool {
+        const auto propsRef = Props[propsId];
         if (!propsRef) {
             return false;
         }
-        setProps(propsIndex);
+        setProps(propsId);
         const auto& props = propsRef->get();
         if (props.getBaseHealth()) {
-            // maybe all?
-            GiveHealth(props.getBaseHealth() * getPlayersCount(Team::Unassigned, PlayersCountType::Alive));
+            GiveHealth(props.getBaseHealth() * getPlayersCount(PlayersCountFlags::Alive));
         } else {
             GiveHealth(props.getHealth());
         }
@@ -491,27 +807,31 @@ namespace rz::player
         return true;
     }
 
-    auto Player::ChangeModel(int modelIndex) -> bool
-    {
-        const auto modelRef = playerModelModule[modelIndex];
+    auto Player::ChangeModel(int modelId) -> bool {
+        const auto& modelsPackRef = ModelsPack[modelId];
+        if (modelsPackRef) {
+            const auto& modelsPack = modelsPackRef->get();
+            if (modelsPack.count()) {
+                modelId = modelsPack.getRandom();
+            } else {
+                modelId = Models.getDefaultPlayerModel();
+            }
+        }
+        const auto& modelRef = Models[modelId];
         if (!modelRef) {
             return false;
         }
-        setModel(modelIndex);
-        const auto& model = modelRef->get();
-        const auto& modelOnce = model.getRandom();
-        GiveModel(modelOnce);
+        setModel(modelId);
+        GiveModel(*modelRef);
         return true;
     }
 
-    auto Player::GiveHealth(int health) -> void
-    {
+    auto Player::GiveHealth(int health) -> void {
         setHealth(health);
         setMaxHealth(health);
     }
 
-    auto Player::GiveArmor(int armor, bool helmet) -> void
-    {
+    auto Player::GiveArmor(int armor, bool helmet) -> void {
         setArmor(armor);
         if (getArmor() > 0) {
             setKevlar(helmet ? ArmorType::VestHelm : ArmorType::Kevlar);
@@ -521,18 +841,14 @@ namespace rz::player
         sendArmorType(*this, helmet);
     }
 
-    auto Player::GiveModel(const PlayerModelHeader& model) -> void
-    {
-        cstrike_->SetPlayerModelEx(model.getPath().c_str());
-        cstrike_->SetPlayerModel(false);
-        base_->model_index_player = model.getModelIndex();
-        vars_->model = AllocString(model.getPath().c_str()); // really need? maybe ""
-        vars_->model_index = model.getModelIndex();
+    auto Player::GiveModel(const Model& model) -> void {
+        setModelIndex(model.getPrecacheId());
+        setHitBoxes(model.getPrecacheId());
         setBody(model.getBody());
+        setSkin(model.getSkin());
     }
 
-    auto Player::SetFootSteps(bool footSteps) -> void
-    {
+    auto Player::SetFootSteps(bool footSteps) -> void {
         if (footSteps) {
             vars_->time_step_sound = 400;
             base_->time_step_sound = 0;
@@ -542,27 +858,23 @@ namespace rz::player
         }
     }
 
-    auto Player::ResetFovZoom() -> void
-    {
+    auto Player::ResetFovZoom() -> void {
         vars_->field_of_view = DEFAULT_FOV;
         base_->fov = DEFAULT_FOV;
         base_->last_zoom = DEFAULT_FOV;
         base_->resume_zoom = false;
     }
 
-    auto Player::isFrozen() const -> bool
-    {
+    auto Player::isFrozen() const -> bool {
         return getFreezeEndTime() != 0.f;
     }
 
-    auto Player::Freeze(float freezeTime) -> void
-    {
+    auto Player::Freeze(float freezeTime) -> void {
         setFreezeEndTime(g_global_vars->time + freezeTime);
         ResetMaxSpeed();
     }
 
-    auto Player::RemoveFreeze() -> void
-    {
+    auto Player::RemoveFreeze() -> void {
         setFreezeEndTime(0.f);
         ResetMaxSpeed();
     }

@@ -1,25 +1,25 @@
-#include "rezombie/amxmodx/player.h"
+#include "rezombie/player/api/player.h"
 #include "rezombie/player/player.h"
-#include <messages/user_message.h>
+#include "rezombie/messages/user_message.h"
 
-namespace rz::player
+namespace rz
 {
-    using namespace message;
-
     auto Player::GiveLongJump(int force, int height, float cooldown) -> void {
-        setLongJumpState(LongJumpState::Ready);
-        setLongJumpForce(force);
-        setLongJumpHeight(height);
-        setLongJumpCooldown(cooldown);
+        auto& longJump = getLongJump();
+        longJump.setState(LongJumpState::Ready);
+        longJump.setForce(force);
+        longJump.setHeight(height);
+        longJump.setCooldown(cooldown);
         sendItemPickup(*this, ITEM_LONG_JUMP);
     }
 
     auto Player::RemoveLongJump() -> void {
-        ResetLongJump();
+        getLongJump().reset();
     }
 
     auto Player::LongJump() -> void {
-        if (getLongJumpState() != LongJumpState::Ready) {
+        auto& longJump = getLongJump();
+        if (longJump.getState() != LongJumpState::Ready) {
             return;
         }
         if (getFlags() & FL_ON_GROUND) {
@@ -41,25 +41,25 @@ namespace rz::player
             return;
         }
         MakeVectors(getViewAngle());
-        Vector velocity;
-        velocity = g_global_vars->vec_forward * static_cast<float>(getLongJumpForce());
-        velocity.z = g_global_vars->vec_forward.z * static_cast<float>(getLongJumpHeight());
+        Vector velocity = g_global_vars->vec_forward * static_cast<float>(longJump.getForce());
+        velocity.z = g_global_vars->vec_forward.z * static_cast<float>(longJump.getHeight());
         setVelocity(velocity);
-        if (getLongJumpCooldown() != 0.f) {
-            setLongJumpNextStateTime(g_global_vars->time + getLongJumpCooldown());
-            setLongJumpState(LongJumpState::Cooldown);
+        if (longJump.getCooldown() != 0.f) {
+            longJump.setNextStateTime(g_global_vars->time + longJump.getCooldown());
+            longJump.setState(LongJumpState::Cooldown);
         }
-        amxxPlayer.LongJumpActivated(*this);
+        PlayerApi.LongJumpActivated(*this);
     }
 
     auto Player::LongJumpCooldown() -> void {
-        if (getLongJumpState() != LongJumpState::Cooldown) {
+        auto& longJump = getLongJump();
+        if (longJump.getState() != LongJumpState::Cooldown) {
             return;
         }
-        if (getLongJumpNextStateTime() > g_global_vars->time) {
+        if (longJump.getNextStateTime() > g_global_vars->time) {
             return;
         }
-        setLongJumpNextStateTime(0.f);
-        setLongJumpState(LongJumpState::Ready);
+        longJump.setNextStateTime(0.f);
+        longJump.setState(LongJumpState::Ready);
     }
 }

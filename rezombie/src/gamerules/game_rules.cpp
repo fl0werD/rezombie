@@ -1,14 +1,14 @@
 #include "rezombie/gamerules/game_rules.h"
-#include "rezombie/amxmodx/game_rules.h"
-#include <messages/user_message.h>
-#include <messages/engine_message.h>
-#include "rezombie/modules/game_mode.h"
+#include "rezombie/gamerules/api/game_rules.h"
+#include "rezombie/gamerules/api/modes.h"
+#include "rezombie/gamerules/modules/modes.h"
 #include "rezombie/player/players.h"
-#include "rezombie/util.h"
+#include "rezombie/map/environment.h"
+#include "rezombie/main/util.h"
+#include "rezombie/messages/user_message.h"
 #include <core/strings/format.h>
 #include <metamod/engine.h>
 #include <metamod/gamedll.h>
-#include <metamod/utils.h>
 #include <mhooks/reapi.h>
 
 namespace rz
@@ -17,12 +17,14 @@ namespace rz
     using namespace metamod::engine;
     using namespace metamod::gamedll;
     using namespace mhooks;
-    using namespace player;
-    using namespace message;
 
-    auto InstallGameRules(const ReGameRulesInstallGameRulesMChain& chain) -> cssdk::GameRules*
-    {
-        g_originalGameRules = chain.CallNext();
+    auto RegisterGameRulesHooks() -> void {
+        MHookReGameRulesInstallGameRules(DELEGATE_ARG<InstallGameRules>, HookChainPriority::Low);
+        MHookReGameRulesFreeGameRules(DELEGATE_ARG<FreeGameRules>);
+    }
+
+    auto InstallGameRules(const ReGameRulesInstallGameRulesMChain& chain) -> cssdk::GameRules* {
+        OriginalGameRules = chain.CallNext();
         ConVarInit();
         if (!gameRules) {
             gameRules = new TeamPlayGameRules();
@@ -30,24 +32,14 @@ namespace rz
         return gameRules;
     }
 
-    auto FreeGameRules(const ReGameRulesFreeGameRulesMChain& chain, cssdk::GameRules**) -> void
-    {
-        chain.CallNext(&g_originalGameRules);
-        g_originalGameRules = nullptr;
+    auto FreeGameRules(const ReGameRulesFreeGameRulesMChain& chain, cssdk::GameRules**) -> void {
+        chain.CallNext(&OriginalGameRules);
+        OriginalGameRules = nullptr;
         delete gameRules;
         gameRules = nullptr;
     }
 
-    auto RegisterGameRulesHooks() -> void
-    {
-        using namespace mhooks;
-
-        MHookReGameRulesInstallGameRules(DELEGATE_ARG<InstallGameRules>, HookChainPriority::Low);
-        MHookReGameRulesFreeGameRules(DELEGATE_ARG<FreeGameRules>);
-    }
-
-    TeamPlayGameRules::TeamPlayGameRules()
-    {
+    TeamPlayGameRules::TeamPlayGameRules() {
         // setGameState(GameState::Warmup);
         // setRoundRemainingTime(10);
         roundRemainingTime_ = 10;
@@ -56,9 +48,6 @@ namespace rz
         setWinStatus(WinStatus::None);
 
         // m_VoiceGameMgr.Init(&g_GameMgrHelper, MaxClients());
-
-        setPlayersCount(Team::Human, 0);
-        setPlayersCount(Team::Zombie, 0);
 
         setTeamWins(Team::Human, 0, false);
         setTeamWins(Team::Zombie, 0, false);
@@ -89,20 +78,20 @@ namespace rz
         CvarSetFloat(sv_accelerate->name, 5);
         CvarSetFloat(sv_friction->name, 4);
         CvarSetFloat(sv_stopspeed->name, 75);
+
+        Environment.reset();
     }
 
-    auto TeamPlayGameRules::ReadMultiplayCvars() -> void
-    {
-        limit_teams = 0;
-        unbalanced_rounds = 0;
-        CvarSetFloat(mp_limitteams->name, 0);
-        CvarSetFloat(mp_autoteambalance->name, 0);
+    auto TeamPlayGameRules::ReadMultiplayCvars() -> void {
+        //limit_teams = 0;
+        //unbalanced_rounds = 0;
+        //CvarSetFloat(mp_limitteams->name, 0);
+        //CvarSetFloat(mp_autoteambalance->name, 0);
         round_time = std::clamp(3 * 60, 0, 30000);
         CheckRoundLimits();
     }
 
-    auto TeamPlayGameRules::CheckRoundLimits() -> void
-    {
+    auto TeamPlayGameRules::CheckRoundLimits() -> void {
         max_rounds = static_cast<int>(mp_maxrounds->value);
         if (max_rounds < 0) {
             max_rounds = 0;
@@ -116,8 +105,7 @@ namespace rz
         }
     }
 
-    auto TeamPlayGameRules::RestartRound() -> void
-    {
+    auto TeamPlayGameRules::RestartRound() -> void {
         // change to listener
         CvarSetFloat(sv_accelerate->name, 5);
         CvarSetFloat(sv_friction->name, 4);
@@ -133,11 +121,10 @@ namespace rz
             setRoundsPlayed(0);
             setTeamWins(Team::Human, 0);
             setTeamWins(Team::Zombie, 0);
-            players.forEachConnected(
-              [](auto& player)
-              {
-                  player.Reset();
-              }
+            Players.forEachConnected(
+                [](auto& player) {
+                    player.Reset();
+                }
             );
         } else {
             setRoundsPlayed(getRoundsPlayed() + 1);
@@ -146,36 +133,38 @@ namespace rz
         ReadMultiplayCvars();
         CleanUpMap();
 
+        setLastMode(getMode());
+        setMode(0);
+        setDefaultPlayerClassOverride(Team::Human, 0);
+        setDefaultPlayerClassOverride(Team::Zombie, 0);
         setWinStatus(WinStatus::None);
 
         if (getGameState() == GameState::Playing) {
             setRoundState(RoundState::Prepare);
         }
 
-        players.forEachConnected(
-          [](auto& player)
-          {
-              player.setNumSpawns(0);
-              if (!player.isPlayableTeam()) {
-                  return;
-              }
-              player.RoundRespawn();
-          }
+        Players.forEachConnected(
+            [](auto& player) {
+                player.setNumSpawns(0);
+                if (!player.isPlayableTeam()) {
+                    return;
+                }
+                player.RoundRespawn();
+            }
         );
 
         if (getGameState() == GameState::Playing) {
             setRoundRemainingTime(10);
         }
 
-        amxxGameRules.RoundStart(isReset());
+        Environment.reset();
+
+        GameRulesApi.RoundStart(isReset());
         setReset(false);
     }
 
-    auto TeamPlayGameRules::Think() -> void
-    {
+    auto TeamPlayGameRules::Think() -> void {
         // m_VoiceGameMgr.Update(gpGlobals->frametime);
-
-        CountPlayers();
 
         if (getGameState() != GameState::Warmup && getGameState() != GameState::Over) {
             if (mp_timelimit->value < 0) {
@@ -194,8 +183,36 @@ namespace rz
                 if (timeRemaining != lastTime) {
                     lastTime = timeRemaining;
                     CvarDirectSet(
-                      mp_timeleft, core::str::Format("%02d:%02d", timeRemaining / 60, timeRemaining % 60).c_str()
+                        mp_timeleft, core::str::Format("%02d:%02d", timeRemaining / 60, timeRemaining % 60).c_str()
                     );
+                }
+            }
+        }
+
+        if (getGameState() != GameState::Warmup && getGameState() != GameState::Over) {
+            int aliveTr, aliveCt, deadTr, deadCt;
+            InitializePlayerCounts(aliveTr, aliveCt, deadTr, deadCt);
+            if (getPlayersCount(PlayersCountFlags::Humans | PlayersCountFlags::Zombies) >= 2) {
+                switch (getGameState()) {
+                    case GameState::NeedPlayers: {
+                        EndRound(EndRoundEvent::GameCommence);
+                        break;
+                    }
+                    case GameState::Playing: {
+                        if (getRoundState() == RoundState::Playing) {
+                            if (!aliveTr) {
+                                EndRound(EndRoundEvent::HumansWin);
+                            } else if (!aliveCt) {
+                                EndRound(EndRoundEvent::ZombiesWin);
+                            }
+                        }
+                        break;
+                    }
+                }
+            } else {
+                if (getGameState() != GameState::NeedPlayers) {
+                    setGameState(GameState::NeedPlayers);
+                    setRoundState(RoundState::None);
                 }
             }
         }
@@ -216,15 +233,17 @@ namespace rz
             case GameState::Warmup: {
                 if (getRoundState() != RoundState::Terminate) {
                     EndRound(EndRoundEvent::WarmupEnd);
-                    players.forEachConnected(
-                      [](auto& player)
-                      {
-                          player.setIUser3(player.getIUser3() | NO_MOVE_PLAYER_FLAGS);
-                          player.ResetMaxSpeed();
-                      }
+                    Players.forEachConnected(
+                        [](auto& player) {
+                            if (!player.isAlive()) {
+                                return;
+                            }
+                            player.setIUser3(player.getIUser3() | NO_MOVE_PLAYER_FLAGS);
+                            player.ResetMaxSpeed();
+                        }
                     );
                 } else {
-                    if (getPlayersCount(Team::Human) + getPlayersCount(Team::Zombie) < 2) {
+                    if (getPlayersCount(PlayersCountFlags::Humans | PlayersCountFlags::Zombies) < 2) {
                         setGameState(GameState::NeedPlayers);
                         setRoundState(RoundState::None);
                     } else {
@@ -241,20 +260,21 @@ namespace rz
             case GameState::Playing: {
                 switch (getRoundState()) {
                     case RoundState::Prepare: {
-                        setRoundState(RoundState::Playing);
-                        const auto gameModeIndex = getRandomGameMode();
-                        const auto gameModeRef = gameModeModule[gameModeIndex];
-                        setGameMode(gameModeIndex);
-                        if (gameModeRef) {
-                            const auto& gameMode = gameModeRef->get();
-                            if (gameMode.getRoundTime()) {
-                                setRoundRemainingTime(gameMode.getRoundTime());
+                        const auto modeId = getRandomMode();
+                        const auto modeRef = Modes[modeId];
+                        if (modeRef) {
+                            setMode(modeId);
+                            const auto& mode = modeRef->get();
+                            if (mode.getRoundTime()) {
+                                setRoundRemainingTime(mode.getRoundTime());
                             } else {
                                 setRoundRemainingTime(round_time);
                             }
-                            gameMode.executeLaunch(gameModeIndex);
+                            mode.executeLaunch(modeId);
                         }
-                        amxxGameRules.GameModeStart(gameModeIndex);
+                        // TODO: no need?
+                        ModesApi.ModeStart(modeId);
+                        setRoundState(RoundState::Playing);
                         break;
                     }
                     case RoundState::Playing: {
@@ -275,48 +295,44 @@ namespace rz
         }
     }
 
-    auto TeamPlayGameRules::getRandomGameMode() const -> int
-    {
-        if (gameModeModule.count() == 1) {
-            return gameModeModule.begin();
+    auto TeamPlayGameRules::getRandomMode() const -> int {
+        if (Modes.count() == 1) {
+            return Modes.begin();
         }
         auto total = 0.f;
         std::unordered_map<int, float> indexAndChance;
-        auto playersCount = getPlayersCount(Team::Unassigned);
-        gameModeModule.forEachIndexed(
-          [&](int index, GameMode& item)
-          {
-              if (playersCount < item.getMinPlayers()) {
-                  return;
-              }
-              const auto chance = item.getDropChance() / 100.f;
-              indexAndChance[index] = chance;
-              total += chance;
-          }
+        auto playersCount = getPlayersCount();
+        Modes.forEachIndexed(
+            [&](int index, Mode& item) {
+                if (playersCount < item.getMinPlayers()) {
+                    return;
+                }
+                const auto chance = static_cast<float>(item.getDropChance()) / 100;
+                indexAndChance[index] = chance;
+                total += chance;
+            }
         );
         if (indexAndChance.size() == 1) {
             return indexAndChance.begin()->first;
         }
         const auto chance = total * RandomFloat(0.0, 1.0);
         auto current = 0.f;
-        auto resultGameMode = 0;
+        auto resultMode = 0;
         std::all_of(
-          indexAndChance.cbegin(), indexAndChance.cend(),
-          [&](const auto& gameMode)
-          {
-              if (current <= chance && chance < current + gameMode.second) {
-                  resultGameMode = gameMode.first;
-                  return false;
-              }
-              current += gameMode.second;
-              return true;
-          }
+            indexAndChance.cbegin(), indexAndChance.cend(),
+            [&](const auto& mode) {
+                if (current <= chance && chance < current + mode.second) {
+                    resultMode = mode.first;
+                    return false;
+                }
+                current += mode.second;
+                return true;
+            }
         );
-        return resultGameMode;
+        return resultMode;
     }
 
-    auto TeamPlayGameRules::EndRound(EndRoundEvent event) -> void
-    {
+    auto TeamPlayGameRules::EndRound(EndRoundEvent event) -> void {
         switch (event) {
             case EndRoundEvent::WarmupEnd: {
                 setReset(true);
@@ -332,7 +348,6 @@ namespace rz
                 setRoundState(RoundState::Terminate);
                 setWinStatus(WinStatus::Draw);
                 setRoundRemainingTime(3);
-                sendTextMsg(TO_ALL, HudPrint::Center, "Game Commencing!");
                 break;
             }
             case EndRoundEvent::GameRestart: {
@@ -341,7 +356,6 @@ namespace rz
                 setRoundState(RoundState::Terminate);
                 setWinStatus(WinStatus::Draw);
                 setRoundRemainingTime(1);
-                sendTextMsg(TO_ALL, HudPrint::Center, "Restart!");
                 break;
             }
             case EndRoundEvent::GameOver: {
@@ -349,7 +363,6 @@ namespace rz
                 setRoundState(RoundState::Terminate);
                 setWinStatus(WinStatus::Draw);
                 setRoundRemainingTime(10);
-                sendTextMsg(TO_ALL, HudPrint::Center, "Game Over!");
                 break;
             }
             case EndRoundEvent::HumansWin: {
@@ -357,7 +370,6 @@ namespace rz
                 setWinStatus(WinStatus::Cts);
                 setTeamWins(Team::Human, getTeamWins(Team::Human) + 1);
                 setRoundRemainingTime(static_cast<int>(mp_round_restart_delay->value));
-                sendTextMsg(TO_ALL, HudPrint::Center, "Humans Win!");
                 CheckRoundsLimit();
                 break;
             }
@@ -366,64 +378,56 @@ namespace rz
                 setWinStatus(WinStatus::Terrorists);
                 setTeamWins(Team::Zombie, getTeamWins(Team::Zombie) + 1);
                 setRoundRemainingTime(static_cast<int>(mp_round_restart_delay->value));
-                sendTextMsg(TO_ALL, HudPrint::Center, "Zombies Win!");
                 CheckRoundsLimit();
                 break;
             }
         }
-        amxxGameRules.RoundEnd(event, getGameMode(), getRoundRemainingTime());
+        GameRulesApi.RoundEnd(event, getMode(), getRoundRemainingTime());
     }
 
-    auto TeamPlayGameRules::UpdateTeamScores() -> void
-    {
+    auto TeamPlayGameRules::UpdateTeamScores() -> void {
         sendTeamScore(TO_ALL, Team::Human, getTeamWins(Team::Human));
         sendTeamScore(TO_ALL, Team::Zombie, getTeamWins(Team::Zombie));
     }
 
-    auto TeamPlayGameRules::GoToIntermission() -> void
-    {
+    auto TeamPlayGameRules::GoToIntermission() -> void {
         if (getGameState() == GameState::Over) {
             return;
         }
         int chatTime = std::clamp(static_cast<int>(mp_chattime->value), 0, MAX_INTERMISSION_TIME);
         setGameState(GameState::Over); // endRound?
         setRoundRemainingTime(chatTime);
-        players.forEachConnected(
-          [](auto& player)
-          {
-              if (!(player.getButton() & IN_SCORE)) {
-                  metamod::engine::ClientCommand(player, "togglescores");
-              }
-              player.setIUser3(player.getIUser3() | NO_MOVE_PLAYER_FLAGS);
-              player.ResetMaxSpeed();
-          }
+        Players.forEachConnected(
+            [](auto& player) {
+                if (!(player.getButton() & IN_SCORE)) {
+                    metamod::engine::ClientCommand(player, "togglescores");
+                }
+                player.setIUser3(player.getIUser3() | NO_MOVE_PLAYER_FLAGS);
+                player.ResetMaxSpeed();
+            }
         );
     }
 
-    auto TeamPlayGameRules::ChangeLevel() -> void
-    {
+    auto TeamPlayGameRules::ChangeLevel() -> void {
         const char* nextMap = "de_dust2";
         metamod::engine::ChangeLevel(nextMap, nullptr);
     }
 
-    auto TeamPlayGameRules::CleanUpMap() -> void
-    {
-        g_originalGameRules->CsGameRules()->CleanUpMap();
+    auto TeamPlayGameRules::CleanUpMap() -> void {
+        OriginalGameRules->CsGameRules()->CleanUpMap();
     }
 
-    auto TeamPlayGameRules::RemoveGuns() -> void
-    {
-        g_originalGameRules->CsGameRules()->RemoveGuns();
+    auto TeamPlayGameRules::RemoveGuns() -> void {
+        OriginalGameRules->CsGameRules()->RemoveGuns();
     }
 
-    auto TeamPlayGameRules::CheckWinConditions() -> void
-    {
-        if (getGameState() == GameState::Warmup || getGameState() == GameState::Over) {
+    auto TeamPlayGameRules::CheckWinConditions() -> void {
+        /*if (getGameState() == GameState::Warmup || getGameState() == GameState::Over) {
             return;
         }
         int aliveTr, aliveCt, deadTr, deadCt;
         InitializePlayerCounts(aliveTr, aliveCt, deadTr, deadCt);
-        if (getPlayersCount(Team::Human) + getPlayersCount(Team::Zombie) < 2) {
+        if (getPlayersCount(PlayersCountFlags::Humans | PlayersCountFlags::Zombies) < 2) {
             setGameState(GameState::NeedPlayers);
             setRoundState(RoundState::None);
             return;
@@ -443,12 +447,12 @@ namespace rz
                 }
                 break;
             }
-        }
+        }*/
     }
 
-    auto TeamPlayGameRules::CheckRoundsLimit() -> bool
-    {
-        if (max_rounds_won != 0 && (getTeamWins(Team::Human) >= max_rounds_won || getTeamWins(Team::Zombie) >= max_rounds_won)) {
+    auto TeamPlayGameRules::CheckRoundsLimit() -> bool {
+        if (max_rounds_won != 0 &&
+            (getTeamWins(Team::Human) >= max_rounds_won || getTeamWins(Team::Zombie) >= max_rounds_won)) {
             GoToIntermission();
             return true;
         }
@@ -459,18 +463,7 @@ namespace rz
         return false;
     }
 
-    auto TeamPlayGameRules::setRoundRemainingTime(int remainingTime) -> void
-    {
-        if (remainingTime < 0) {
-            remainingTime = 0;
-        }
-        roundRemainingTime_ = remainingTime;
-        nextRoundTimeUpdateTime_ = g_global_vars->time + 1.0f;
-        amxxGameRules.RoundTimer(getRoundRemainingTime());
-    }
-
-    auto TeamPlayGameRules::changeGameState(GameState gameState) -> void
-    {
+    auto TeamPlayGameRules::changeGameState(GameState gameState) -> void {
         /*if (getGameState() == gameState) {
             return;
         }*/
@@ -508,65 +501,23 @@ namespace rz
         }
     }
 
-    auto TeamPlayGameRules::GetRoundRemainingTime() const
-    {
-        return round_time_secs - g_global_vars->time + round_start_time;
-    }
-
-    auto TeamPlayGameRules::GetRoundRemainingTimeReal() const
-    {
-        return round_time_secs - g_global_vars->time + round_start_time_real;
-    }
-
-    auto TeamPlayGameRules::GetTimeLeft() const
-    {
+    auto TeamPlayGameRules::GetTimeLeft() const {
         return time_limit_ - g_global_vars->time;
     }
 
-    auto TeamPlayGameRules::GetRoundElapsedTime() const
-    {
+    auto TeamPlayGameRules::GetRoundElapsedTime() const {
         return g_global_vars->time - round_start_time;
     }
 
-    auto TeamPlayGameRules::GetMapElapsedTime() const
-    {
+    auto TeamPlayGameRules::GetMapElapsedTime() const {
         return g_global_vars->time;
     }
 
-    auto TeamPlayGameRules::GetRoundRespawnTime() const
-    {
+    auto TeamPlayGameRules::GetRoundRespawnTime() const {
         return mp_roundrespawn_time->value;
     }
 
-    auto TeamPlayGameRules::getPlayersCount(Team team) const -> int
-    {
-        switch (team) {
-            case Team::Human: {
-                return num_ct;
-            }
-            case Team::Zombie: {
-                return num_terrorist;
-            }
-        }
-        return 0;
-    }
-
-    auto TeamPlayGameRules::setPlayersCount(Team team, int playersCount) -> void
-    {
-        switch (team) {
-            case Team::Human: {
-                num_ct = playersCount;
-                break;
-            }
-            case Team::Zombie: {
-                num_terrorist = playersCount;
-                break;
-            }
-        }
-    }
-
-    auto TeamPlayGameRules::getTeamWins(Team team) const -> short
-    {
+    auto TeamPlayGameRules::getTeamWins(Team team) const -> short {
         switch (team) {
             case Team::Human: {
                 return num_ct_wins;
@@ -580,149 +531,141 @@ namespace rz
         }
     }
 
-    auto TeamPlayGameRules::setTeamWins(Team team, short wins, bool update) -> void
-    {
+    auto TeamPlayGameRules::setTeamWins(Team team, int wins, bool update) -> void {
         switch (team) {
             case Team::Human: {
-                num_ct_wins = wins;
+                num_ct_wins = static_cast<short>(wins);
                 if (update) {
                     sendTeamScore(TO_ALL, team, getTeamWins(team));
                 }
                 break;
             }
             case Team::Zombie: {
-                num_terrorist_wins = wins;
+                num_terrorist_wins = static_cast<short>(wins);
                 if (update) {
                     sendTeamScore(TO_ALL, team, getTeamWins(team));
                 }
                 break;
             }
+            default: {
+                break;
+            }
         }
     }
 
-    auto TeamPlayGameRules::getWinStatus() const -> WinStatus
-    {
+    auto TeamPlayGameRules::getWinStatus() const -> WinStatus {
         return round_win_status;
     }
 
-    auto TeamPlayGameRules::setWinStatus(WinStatus winStatus) -> void
-    {
+    auto TeamPlayGameRules::setWinStatus(WinStatus winStatus) -> void {
         round_win_status = winStatus;
     }
 
-    auto TeamPlayGameRules::isReset() const -> bool
-    {
+    auto TeamPlayGameRules::isReset() const -> bool {
         return complete_reset;
     }
 
-    auto TeamPlayGameRules::setReset(bool isReset) -> void
-    {
+    auto TeamPlayGameRules::setReset(bool isReset) -> void {
         complete_reset = isReset;
     }
 
-    auto TeamPlayGameRules::getRoundsPlayed() const -> int
-    {
+    auto TeamPlayGameRules::getRoundsPlayed() const -> int {
         return total_rounds_played;
     }
 
-    auto TeamPlayGameRules::setRoundsPlayed(int roundsPlayed) -> void
-    {
+    auto TeamPlayGameRules::setRoundsPlayed(int roundsPlayed) -> void {
         total_rounds_played = roundsPlayed;
     }
 
-    auto TeamPlayGameRules::getRoundRemainingTime() const -> int
-    {
+    auto TeamPlayGameRules::getRoundRemainingTime() const -> int {
         return roundRemainingTime_;
     }
 
-    auto setRoundRemainingTime(int remainingTime) -> void;
+    auto TeamPlayGameRules::setRoundRemainingTime(int remainingTime) -> void {
+        if (remainingTime < 0) {
+            remainingTime = 0;
+        }
+        roundRemainingTime_ = remainingTime;
+        nextRoundTimeUpdateTime_ = g_global_vars->time + 1.0f;
+        GameRulesApi.RoundTimer(getRoundRemainingTime());
+    }
 
-    auto TeamPlayGameRules::getGameState() const -> GameState
-    {
+    auto TeamPlayGameRules::getGameState() const -> GameState {
         return gameState_;
     }
 
-    auto TeamPlayGameRules::setGameState(GameState gameState) -> void
-    {
+    auto TeamPlayGameRules::setGameState(GameState gameState) -> void {
         const auto oldState = gameState_;
         gameState_ = gameState;
-        amxxGameRules.GameStateChanged(oldState, gameState);
+        GameRulesApi.GameStateChanged(oldState, gameState);
     }
 
-    auto TeamPlayGameRules::getNextGameState() const -> GameState
-    {
+    auto TeamPlayGameRules::getNextGameState() const -> GameState {
         return nextGameState_;
     }
 
-    auto TeamPlayGameRules::setNextGameState(GameState gameState) -> void
-    {
+    auto TeamPlayGameRules::setNextGameState(GameState gameState) -> void {
         nextGameState_ = gameState;
     }
 
-    auto TeamPlayGameRules::getRoundState() const -> RoundState
-    {
+    auto TeamPlayGameRules::getRoundState() const -> RoundState {
         return roundState_;
     }
 
-    auto TeamPlayGameRules::setRoundState(RoundState roundState) -> void
-    {
+    auto TeamPlayGameRules::setRoundState(RoundState roundState) -> void {
         const auto oldState = roundState_;
         roundState_ = roundState;
-        amxxGameRules.RoundStateChanged(oldState, roundState);
+        GameRulesApi.RoundStateChanged(oldState, roundState);
     }
 
-    auto TeamPlayGameRules::getNextRoundState() const -> RoundState
-    {
+    auto TeamPlayGameRules::getNextRoundState() const -> RoundState {
         return roundState_;
     }
 
-    auto TeamPlayGameRules::setNextRoundState(RoundState roundState) -> void
-    {
+    auto TeamPlayGameRules::setNextRoundState(RoundState roundState) -> void {
         nextRoundState_ = roundState;
     }
 
-    auto TeamPlayGameRules::getGameMode() const -> int
-    {
-        return gameModeIndex_;
+    auto TeamPlayGameRules::getMode() const -> int {
+        return modeId_;
     }
 
-    auto TeamPlayGameRules::setGameMode(int gameModeIndex) -> void
-    {
-        gameModeIndex_ = gameModeIndex;
+    auto TeamPlayGameRules::setMode(int modeId) -> void {
+        modeId_ = modeId;
     }
 
-    auto TeamPlayGameRules::getLastGameMode() const -> int
-    {
-        return lastGameModeIndex_;
+    auto TeamPlayGameRules::getLastMode() const -> int {
+        return lastModeId_;
     }
 
-    auto TeamPlayGameRules::setLastGameMode(int lastGameModeIndex) -> void
-    {
-        lastGameModeIndex_ = lastGameModeIndex;
+    auto TeamPlayGameRules::setLastMode(int lastModeId) -> void {
+        lastModeId_ = lastModeId;
     }
 
-    auto TeamPlayGameRules::getDefaultPlayerClass(Team team) const -> int
-    {
+    auto TeamPlayGameRules::getDefaultPlayerClass(Team team) const -> int {
         return defaultPlayerClass_[toInt(team)];
     }
 
-    auto TeamPlayGameRules::setDefaultPlayerClass(Team team, int playerClass) -> void
-    {
+    auto TeamPlayGameRules::setDefaultPlayerClass(Team team, int playerClass) -> void {
         defaultPlayerClass_[toInt(team)] = playerClass;
     }
 
-    auto TeamPlayGameRules::getDefaultPlayerClassOverride(Team team) const -> int
-    {
+    auto TeamPlayGameRules::getDefaultPlayerClassOverride(Team team) const -> int {
         return defaultPlayerClassOverride_[toInt(team)];
     }
 
-    auto TeamPlayGameRules::setDefaultPlayerClassOverride(Team team, int playerClass) -> void
-    {
+    auto TeamPlayGameRules::setDefaultPlayerClassOverride(Team team, int playerClass) -> void {
         defaultPlayerClassOverride_[toInt(team)] = playerClass;
     }
 
-    auto TeamPlayGameRules::isCanMove() const -> bool
-    {
+    auto TeamPlayGameRules::defaultPlayerClass(Team team) const -> int {
+        if (!getDefaultPlayerClassOverride(team)) {
+            return getDefaultPlayerClass(team);
+        }
+        return getDefaultPlayerClassOverride(team);
+    }
+
+    auto TeamPlayGameRules::isCanMove() const -> bool {
         switch (getGameState()) {
             case GameState::Warmup: {
                 if (getRoundState() == RoundState::Terminate) {
@@ -737,8 +680,7 @@ namespace rz
         return true;
     }
 
-    auto TeamPlayGameRules::precache() -> void
-    {
+    auto TeamPlayGameRules::precache() -> void {
         shadowSprite_ = PrecacheModel("sprites/shadow_circle.spr");
     }
 }
