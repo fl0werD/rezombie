@@ -41,22 +41,12 @@
 #include <cssdk/common/hook_chains.h>
 #include <cssdk/dll/game_rules.h>
 #include <cssdk/dll/gib.h>
+#include <cssdk/game_shared/game_event.h>
 
 namespace cssdk
 {
-    /**
-     * @brief N/D
-     */
     constexpr auto REGAMEDLL_API_VERSION_MAJOR = 5;
-
-    /**
-     * @brief N/D
-     */
-    constexpr auto REGAMEDLL_API_VERSION_MINOR = 22;
-
-    /**
-     * @brief N/D
-     */
+    constexpr auto REGAMEDLL_API_VERSION_MINOR = 26;
     constexpr auto VREGAMEDLL_API_VERSION = "VRE_GAMEDLL_API_VERSION001";
 
     // PlayerBase::Spawn hook
@@ -420,7 +410,7 @@ namespace cssdk
     using ReHookGrenadeExplodeHeGrenade = IHookChainClass<void, Grenade, TraceResult*, int>;
     using ReHookRegistryGrenadeExplodeHeGrenade = IHookChainClassRegistry<void, Grenade, TraceResult*, int>;
 
-    // Grenade::Explodeflash_bang hook
+    // Grenade::ExplodeFlashbang hook
     using ReHookGrenadeExplodeFlashBang = IHookChainClass<void, Grenade, TraceResult*, int>;
     using ReHookRegistryGrenadeExplodeFlashBang = IHookChainClassRegistry<void, Grenade, TraceResult*, int>;
 
@@ -437,7 +427,7 @@ namespace cssdk
     using ReHookRegistryThrowHeGrenade =
         IHookChainRegistry<Grenade*, EntityVars*, Vector&, Vector&, float, int, unsigned short>;
 
-    // Throw_flash_bang hook
+    // ThrowFlashbang hook
     using ReHookThrowFlashBang = IHookChain<Grenade*, EntityVars*, Vector&, Vector&, float>;
     using ReHookRegistryThrowFlashBang = IHookChainRegistry<Grenade*, EntityVars*, Vector&, Vector&, float>;
 
@@ -534,7 +524,7 @@ namespace cssdk
     using ReHookEntityBaseFireBullets3 =
         IHookChainClass<Vector&, EntityBase, Vector&, Vector&, float, float, int, int, int, float, EntityVars*, bool, int>;
     using ReHookRegistryEntityBaseFireBullets3 = IHookChainClassRegistry<Vector&, EntityBase, Vector&, Vector&, float, float,
-                                                                         int, int, int, float, EntityVars*, bool, int>;
+        int, int, int, float, EntityVars*, bool, int>;
 
     // CBasePlayer::Observer_SetMode hook
     using ReHookPlayerObserverSetMode = IHookChainClass<void, PlayerBase, int>;
@@ -560,9 +550,109 @@ namespace cssdk
     using ReHookFreeGameRules = IHookChain<void, GameRules**>;
     using ReHookRegistryFreeGameRules = IHookChainRegistry<void, GameRules**>;
 
+    // PM_LadderMove hook
+    using ReHookPmLadderMove = IHookChain<void, PhysEntity*>;
+    using ReHookRegistryPmLadderMove = IHookChainRegistry<void, PhysEntity*>;
+
+    // PM_WaterJump hook
+    using ReHookPmWaterJump = IHookChain<void>;
+    using ReHookRegistryPmWaterJump = IHookChainRegistry<void>;
+
+    // PM_CheckWaterJump hook
+    using ReHookPmCheckWaterJump = IHookChain<void>;
+    using ReHookRegistryPmCheckWaterJump = IHookChainRegistry<void>;
+
+    // PM_Jump hook
+    using ReHookPmJump = IHookChain<void>;
+    using ReHookRegistryPmJump = IHookChainRegistry<void>;
+
+    // PM_Duck hook
+    using ReHookPmDuck = IHookChain<void>;
+    using ReHookRegistryPmDuck = IHookChainRegistry<void>;
+
+    // PM_UnDuck hook
+    using ReHookPmUnDuck = IHookChain<void>;
+    using ReHookRegistryPmUnDuck = IHookChainRegistry<void>;
+
+    // PM_PlayStepSound hook
+    using ReHookPmPlayStepSound = IHookChain<void, int, float>;
+    using ReHookRegistryPmPlayStepSound = IHookChainRegistry<void, int, float>;
+
+    // PM_AirAccelerate hook
+    using ReHookPmAirAccelerate = IHookChain<void, Vector*, float, float>;
+    using ReHookRegistryPmAirAccelerate = IHookChainRegistry<void, Vector*, float, float>;
+
+    // ClearMultiDamage hook
+    using ReHookClearMultiDamage = IHookChain<void>;
+    using ReHookRegistryClearMultiDamage = IHookChainRegistry<void>;
+
+    // AddMultiDamage hook
+    using ReHookAddMultiDamage = IHookChain<void, EntityVars*, EntityBase*, float, int>;
+    using ReHookRegistryAddMultiDamage = IHookChainRegistry<void, EntityVars*, EntityBase*, float, int>;
+
+    // ApplyMultiDamage hook
+    using ReHookApplyMultiDamage = IHookChain<void, EntityVars*, EntityVars*>;
+    using ReHookRegistryApplyMultiDamage = IHookChainRegistry<void, EntityVars*, EntityVars*>;
+
+    // BuyItem hook
+    using ReHookBuyItem = IHookChain<void, PlayerBase*, int>;
+    using ReHookRegistryBuyItem = IHookChainRegistry<void, PlayerBase*, int>;
+
+    // CHalfLifeMultiplay::Think hook
+    using ReHookGameRulesThink = IHookChain<void>;
+    using ReHookRegistryGameRulesThink = IHookChainRegistry<void>;
+
+    // CHalfLifeMultiplay::TeamFull hook
+    using ReHookGameRulesTeamFull = IHookChain<BOOL, int>;
+    using ReHookRegistryGameRulesTeamFull = IHookChainRegistry<BOOL, int>;
+
+    // CHalfLifeMultiplay::TeamStacked hook
+    using ReHookGameRulesTeamStacked = IHookChain<BOOL, int, int>;
+    using ReHookRegistryGameRulesTeamStacked = IHookChainRegistry<BOOL, int, int>;
+
+    // CHalfLifeMultiplay::PlayerGotWeapon hook
+    using ReHookGameRulesPlayerGotWeapon = IHookChain<void, PlayerBase*, PlayerItemBase*>;
+    using ReHookRegistryGameRulesPlayerGotWeapon = IHookChainRegistry<void, PlayerBase*, PlayerItemBase*>;
+
+    // CHalfLifeMultiplay::SendDeathMessage hook
+    using ReHookGameRulesSendDeathMessage = IHookChain<void, EntityBase*, PlayerBase*, PlayerBase*, EntityVars*, const char*, int, int>;
+    using ReHookRegistryGameRulesSendDeathMessage = IHookChainRegistry<void, EntityBase*, PlayerBase*, PlayerBase*, EntityVars*, const char*, int, int>;
+
+    // CBotManager::OnEvent hook
+    using ReHookBotManagerOnEvent = IHookChain<void, GameEventType, EntityBase*, EntityBase*>;
+    using ReHookRegistryBotManagerOnEvent = IHookChainRegistry<void, GameEventType, EntityBase*, EntityBase*>;
+
+    // CBasePlayer::CheckTimeBasedDamage hook
+    using ReHookPlayerCheckTimeBasedDamage = IHookChainClass<void, PlayerBase>;
+    using ReHookRegistryPlayerCheckTimeBasedDamage = IHookChainClassRegistry<void, PlayerBase>;
+
+    // CBasePlayer::EntSelectSpawnPoint hook
+    using ReHookPlayerEntSelectSpawnPoint = IHookChainClass<Edict*, PlayerBase>;
+    using ReHookRegistryPlayerEntSelectSpawnPoint = IHookChainClassRegistry<Edict*, PlayerBase>;
+
+    // CBasePlayerWeapon::ItemPostFrame hook
+    using ReHookPlayerWeaponItemPostFrame = IHookChainClass<void, PlayerWeaponBase>;
+    using ReHookRegistryPlayerWeaponItemPostFrame = IHookChainClassRegistry<void, PlayerWeaponBase>;
+
+    // CBasePlayerWeapon::KickBack hook
+    using ReHookPlayerWeaponKickBack = IHookChainClass<void, PlayerWeaponBase, float, float, float, float, float, float, int>;
+    using ReHookRegistryPlayerWeaponKickBack = IHookChainClassRegistry<void, PlayerWeaponBase, float, float, float, float, float, float, int>;
+
+    // CBasePlayerWeapon::SendWeaponAnim hook
+    using ReHookPlayerWeaponSendWeaponAnim = IHookChainClass<void, PlayerWeaponBase, int, int>;
+    using ReHookRegistryPlayerWeaponSendWeaponAnim = IHookChainClassRegistry<void, PlayerWeaponBase, int, int>;
+
+    // CBasePlayer::PlayerDeathThink hook
+    using ReHookPlayerDeathThink = IHookChainClass<void, PlayerBase>;
+    using ReHookRegistryPlayerDeathThink = IHookChainClassRegistry<void, PlayerBase>;
+
+    // CBasePlayer::Observer_Think hook
+    using ReHookPlayerObserverThink = IHookChainClass<void, PlayerBase>;
+    using ReHookRegistryPlayerObserverThink = IHookChainClassRegistry<void, PlayerBase>;
+
     class IReGameDllHookChains // NOLINT(cppcoreguidelines-special-member-functions)
     {
-    public:
+      public:
         virtual ~IReGameDllHookChains() = default;
 
         virtual ReHookRegistryPlayerSpawn* PlayerSpawn() = 0;
@@ -686,168 +776,103 @@ namespace cssdk
         virtual ReHookRegistryPlayerDeathSound* PlayerDeathSound() = 0;
         virtual ReHookRegistryPlayerJoiningThink* PlayerJoiningThink() = 0;
         virtual ReHookRegistryFreeGameRules* FreeGameRules() = 0;
+        virtual ReHookRegistryPmLadderMove* PmLadderMove() = 0;
+        virtual ReHookRegistryPmWaterJump* PmWaterJump() = 0;
+        virtual ReHookRegistryPmCheckWaterJump* PmCheckWaterJump() = 0;
+        virtual ReHookRegistryPmJump* PmJump() = 0;
+        virtual ReHookRegistryPmDuck* PmDuck() = 0;
+        virtual ReHookRegistryPmUnDuck* PmUnDuck() = 0;
+        virtual ReHookRegistryPmPlayStepSound* PmPlayStepSound() = 0;
+        virtual ReHookRegistryPmAirAccelerate* PmAirAccelerate() = 0;
+        virtual ReHookRegistryClearMultiDamage* ClearMultiDamage() = 0;
+        virtual ReHookRegistryAddMultiDamage* AddMultiDamage() = 0;
+        virtual ReHookRegistryApplyMultiDamage* ApplyMultiDamage() = 0;
+        virtual ReHookRegistryBuyItem* BuyItem() = 0;
+        virtual ReHookRegistryGameRulesThink* GameRulesThink() = 0;
+        virtual ReHookRegistryGameRulesTeamFull* GameRulesTeamFull() = 0;
+        virtual ReHookRegistryGameRulesTeamStacked* GameRulesTeamStacked() = 0;
+        virtual ReHookRegistryGameRulesPlayerGotWeapon* GameRulesPlayerGotWeapon() = 0;
+        virtual ReHookRegistryBotManagerOnEvent* BotManagerOnEvent() = 0;
+        virtual ReHookRegistryPlayerCheckTimeBasedDamage* PlayerCheckTimeBasedDamage() = 0;
+        virtual ReHookRegistryPlayerEntSelectSpawnPoint* PlayerEntSelectSpawnPoint() = 0;
+        virtual ReHookRegistryPlayerWeaponItemPostFrame* PlayerWeaponItemPostFrame() = 0;
+        virtual ReHookRegistryPlayerWeaponKickBack* PlayerWeaponKickBack() = 0;
+        virtual ReHookRegistryPlayerWeaponSendWeaponAnim* PlayerWeaponSendWeaponAnim() = 0;
+        virtual ReHookRegistryGameRulesSendDeathMessage* GameRulesSendDeathMessage() = 0;
+        virtual ReHookRegistryPlayerDeathThink* PlayerDeathThink() = 0;
+        virtual ReHookRegistryPlayerObserverThink* PlayerObserverThink() = 0;
     };
 
-    struct RegamedllFuncs
-    {
-        /**
-         * @brief N/D
-         */
-        Edict* (*create_named_entity2)(Strind class_name){};
-
-        /**
-         * @brief N/D
-         */
-        void (*change_string)(char*& dest, const char* source){};
-
-        /**
-         * @brief N/D
-         */
-        void (*radius_damage)(Vector src, EntityVars* inflictor, EntityVars* attacker, float damage, float radius,
-                              int class_ignore, int damage_type){};
-
-        /**
-         * @brief N/D
-         */
-        void (*clear_multi_damage)(){};
-
-        /**
-         * @brief N/D
-         */
-        void (*apply_multi_damage)(EntityVars* inflictor, EntityVars* attacker){};
-
-        /**
-         * @brief N/D
-         */
-        void (*add_multi_damage)(EntityVars* inflictor, EntityBase* entity, float damage, int damage_type){};
-
-        /**
-         * @brief N/D
-         */
-        EntityBase* (*find_entity_by_string)(EntityBase* start_entity, const char* keyword, const char* value){};
-
-        /**
-         * @brief N/D
-         */
-        void (*add_entity_hash_value)(EntityVars* ent_vars, const char* value, HashType field_type){};
-
-        /**
-         * @brief N/D
-         */
-        void (*remove_entity_hash_value)(EntityVars* ent_vars, const char* value, HashType field_type){};
-
-        /**
-         * @brief N/D
-         */
-        int (*cmd_argc)(){};
-
-        /**
-         * @brief N/D
-         */
-        const char* (*cmd_argv)(int i){};
-
-        /**
-         * @brief N/D
-         */
-        Grenade* (*plant_bomb)(EntityVars* owner, Vector& start, Vector& velocity){};
-
-        /**
-         * @brief N/D
-         */
-        Gib* (*spawn_head_gib)(EntityVars* victim){};
-
-        /**
-         * @brief N/D
-         */
-        void (*spawn_random_gibs)(EntityVars* victim, int gibs, int human){};
+    struct RegamedllFuncs {
+        Edict* (* create_named_entity2)(Strind class_name){};
+        void (* change_string)(char*& dest, const char* source){};
+        void (* radius_damage)(
+            Vector src,
+            EntityVars* inflictor,
+            EntityVars* attacker,
+            float damage,
+            float radius,
+            int classIgnore,
+            int damageType
+        ){};
+        void (* clear_multi_damage)(){};
+        void (* apply_multi_damage)(EntityVars* inflictor, EntityVars* attacker){};
+        void (* add_multi_damage)(EntityVars* inflictor, EntityBase* entity, float damage, int damage_type){};
+        EntityBase* (* find_entity_by_string)(EntityBase* start_entity, const char* keyword, const char* value){};
+        void (* add_entity_hash_value)(EntityVars* ent_vars, const char* value, HashType field_type){};
+        void (* remove_entity_hash_value)(EntityVars* ent_vars, const char* value, HashType field_type){};
+        int (* cmd_argc)(){};
+        const char* (* cmd_argv)(int i){};
+        Grenade* (* plant_bomb)(EntityVars* owner, Vector& start, Vector& velocity){};
+        Gib* (* spawn_head_gib)(EntityVars* victim){};
+        void (* spawn_random_gibs)(EntityVars* victim, int gibs, int human){};
+        void (* util_restart_other)(const char* classname){};
+        void (* util_reset_entities)(){};
+        void (* util_remove_other)(const char* classname, int count){};
+        void (* util_decal_trace)(TraceResult* trace, int decalNumber){};
+        void (* util_remove)(EntityBase* entity){};
+        int (* add_ammo_name_to_ammo_registry)(const char* ammoName){};
+        void (* texture_type_play_sound)(TraceResult* trace, Vector src, Vector end, int bulletType){};
+        WeaponBox* (* create_weapon_box)(
+            PlayerItemBase* item,
+            PlayerBase* owner,
+            const char* modelName,
+            Vector& origin,
+            Vector& angles,
+            Vector& velocity,
+            float lifeTime,
+            bool packAmmo
+        ){};
+        Grenade* (* spawn_grenade)(
+            WeaponId weaponId,
+            EntityVars* owner,
+            Vector& src,
+            Vector& direction,
+            float time,
+            int team,
+            unsigned short usEvent
+        ){};
     };
 
     class IReGameDllApi // NOLINT(cppcoreguidelines-special-member-functions)
     {
-    public:
-        /**
-         * @brief N/D
-         */
+      public:
         virtual ~IReGameDllApi() = default;
-
-        /**
-         * @brief N/D
-         */
         virtual int GetMajorVersion() = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual int GetMinorVersion() = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual const RegamedllFuncs* GetFuncs() = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual IReGameDllHookChains* GetHookChains() = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual GameRules* GetGameRules() = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual WeaponInfoStruct* GetWeaponInfo(WeaponId weapon) = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual WeaponInfoStruct* GetWeaponInfo(const char* weapon) = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual PlayerMove* GetPlayerMove() = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual WeaponSlotInfo* GetWeaponSlot(WeaponId weapon) = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual WeaponSlotInfo* GetWeaponSlot(const char* weapon) = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual ItemInfo* GetItemInfo(WeaponId weapon) = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual AmmoInfo* GetAmmoInfo(AmmoType ammo) = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual AmmoInfoStruct* GetAmmoInfoEx(AmmoType ammo) = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual AmmoInfoStruct* GetAmmoInfoEx(const char* ammo) = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual bool CheckCsEntityVersion(const char* version) const = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual bool CheckGameRulesVersion(const char* version) const = 0;
     };
 }
