@@ -57,17 +57,18 @@ add_library(${PROJECT_NAME} SHARED
 
         "include/rezombie/gamerules/game_rules.h"
         "include/rezombie/gamerules/consts.h"
-        "include/rezombie/gamerules/modules/modes.h"
         "include/rezombie/gamerules/api/game_rules.h"
-        "include/rezombie/gamerules/api/modes.h"
+
+        "include/rezombie/modes/modules/modes.h"
+        "include/rezombie/modes/api/modes.h"
 
         "include/rezombie/player/players.h"
         "include/rezombie/player/player.h"
         "include/rezombie/player/flashlight_vars.h"
         "include/rezombie/player/nightvision_vars.h"
         "include/rezombie/player/long_jump_vars.h"
-        "include/rezombie/player/preview_vars.h"
-        "include/rezombie/player/world_preview.h"
+        "include/rezombie/player/join_preview_vars.h"
+        "include/rezombie/preview/world_preview.h"
         "include/rezombie/player/world_preview_vars.h"
         "include/rezombie/player/third_camera_vars.h"
         "include/rezombie/player/map_camera_vars.h"
@@ -103,8 +104,10 @@ add_library(${PROJECT_NAME} SHARED
         "include/rezombie/items/modules/item.h"
         "include/rezombie/items/api/items.h"
 
-        "include/rezombie/modelpreview/model_preview.h"
-        "include/rezombie/modelpreview/api/model_preview.h"
+        "include/rezombie/preview/join_preview.h"
+        "include/rezombie/preview/world_preview.h"
+        "include/rezombie/preview/api/join_preview.h"
+        "include/rezombie/preview/api/world_preview.h"
 
         "include/rezombie/thirdcamera/third_camera.h"
         "include/rezombie/thirdcamera/api/third_camera.h"
@@ -133,7 +136,8 @@ add_library(${PROJECT_NAME} SHARED
         "src/gamerules/game_rules.cpp"
         "src/gamerules/player.cpp"
         "src/gamerules/api/game_rules.cpp"
-        "src/gamerules/api/modes.cpp"
+
+        "src/modes/api/modes.cpp"
 
         "src/player/players.cpp"
         "src/player/player.cpp"
@@ -143,8 +147,8 @@ add_library(${PROJECT_NAME} SHARED
         "src/player/nightvision.cpp"
         "src/player/extra_jumps.cpp"
         "src/player/long_jump.cpp"
-        "src/player/preview.cpp"
-        "src/player/world_preview.cpp"
+        "src/player/join_preview.cpp"
+        "src/preview/world_preview.cpp"
         "src/player/third_camera.cpp"
         "src/player/map_camera.cpp"
         "src/player/core/player_entity_vars.cpp"
@@ -171,8 +175,10 @@ add_library(${PROJECT_NAME} SHARED
 
         "src/items/api/items.cpp"
 
-        "src/modelpreview/model_preview.cpp"
-        "src/modelpreview/api/model_preview.cpp"
+        "src/preview/join_preview.cpp"
+        "src/preview/world_preview.cpp"
+        "src/preview/api/join_preview.cpp"
+        "src/preview/api/world_preview.cpp"
 
         "src/thirdcamera/third_camera.cpp"
         "src/thirdcamera/api/third_camera.cpp"
@@ -241,8 +247,9 @@ set(META_DETACH "__OnMetaDetach")    # void OnMetaDetach()
 # Add dependencies to the build
 #-------------------------------------------------------------------------------------------
 
-FetchContent_MakeAvailable(CSSDK)
 target_link_libraries(${PROJECT_NAME} PRIVATE cssdk)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE vhooks)
 
 FetchContent_MakeAvailable(Metamod)
 target_link_libraries(${PROJECT_NAME} PRIVATE metamod)
@@ -255,5 +262,3 @@ target_link_libraries(${PROJECT_NAME} PRIVATE mhooks)
 
 FetchContent_MakeAvailable(Core)
 target_link_libraries(${PROJECT_NAME} PRIVATE core)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE vhooks)

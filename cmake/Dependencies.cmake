@@ -13,12 +13,6 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
-  CSSDK
-  GIT_REPOSITORY https://github.com/fl0werD/cssdk
-  GIT_TAG        fl0wer
-)
-
-FetchContent_Declare(
   Metamod
   GIT_REPOSITORY https://github.com/fl0werD/metamod
   GIT_TAG        main

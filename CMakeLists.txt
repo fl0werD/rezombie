@@ -51,5 +51,6 @@ include(Dependencies)
 include(Config)
 include(${CMAKE_HOST_SYSTEM_NAME})
 
+add_subdirectory("libs/cssdk")
 add_subdirectory("libs/vhooks")
 add_subdirectory("rezombie")
