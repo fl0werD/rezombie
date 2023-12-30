@@ -44,366 +44,125 @@
 
 namespace cssdk
 {
-    enum class WeaponInfiniteAmmoMode
-    {
-        /**
-         * @brief N/D
-         */
+    enum class WeaponInfiniteAmmoMode {
         Clip = 1,
-
-        /**
-         * @brief N/D
-         */
-        BackpackAmmo
+        BackpackAmmo,
     };
 
-    enum class ProtectionState
-    {
-        /**
-         * @brief N/D
-         */
+    enum class ProtectionState {
         NoSet = 0,
-
-        /**
-         * @brief N/D
-         */
         Active,
-
-        /**
-         * @brief N/D
-         */
-        Expired
+        Expired,
     };
 
-    class CsPlayer : public CsMonster
-    {
-    public:
-        /**
-         * @brief N/D
-         */
+    class CsPlayer : public CsMonster {
+      public:
         [[nodiscard]] virtual bool IsConnected() const = 0;
-
-        /**
-         * @brief N/D
-         */
-        virtual void SetAnimation(PlayerAnim player_anim) = 0;
-
-        /**
-         * @brief N/D
-         */
-        virtual void AddAccount(int amount, RewardType type = RewardType::None, bool track_change = true) = 0;
-
-        /**
-         * @brief N/D
-         */
+        virtual void SetAnimation(PlayerAnim playerAnim) = 0;
+        virtual void AddAccount(int amount, RewardType type = RewardType::None, bool trackChange = true) = 0;
         virtual EntityBase* GiveNamedItem(const char* name) = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual EntityBase* GiveNamedItemEx(const char* name) = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual void GiveDefaultItems() = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual void GiveShield(bool deploy = true) = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual void DropShield(bool deploy = true) = 0;
-
-        /**
-         * @brief N/D
-         */
-        virtual void DropPlayerItem(const char* item_name) = 0;
-
-        /**
-         * @brief N/D
-         */
+        virtual void DropPlayerItem(const char* itemName) = 0;
         virtual bool RemoveShield() = 0;
-
-        /**
-         * @brief N/D
-         */
-        virtual void RemoveAllItems(bool remove_suit) = 0;
-
-        /**
-         * @brief N/D
-         */
-        virtual bool RemovePlayerItem(const char* item_name) = 0;
-
-        /**
-         * @brief N/D
-         */
-        virtual void SetPlayerModel(bool has_c4) = 0;
-
-        /**
-         * @brief N/D
-         */
-        virtual void SetPlayerModelEx(const char* model_name) = 0;
-
-        /**
-         * @brief N/D
-         */
-        virtual void SetNewPlayerModel(const char* model_name) = 0;
-
-        /**
-         * @brief N/D
-         */
-        virtual void ClientCommand(const char* cmd, const char* arg1 = nullptr, const char* arg2 = nullptr,
-                                   const char* arg3 = nullptr) = 0;
-
-        /**
-         * @brief N/D
-         */
+        virtual void RemoveAllItems(bool removeSuit) = 0;
+        virtual bool RemovePlayerItem(const char* itemName) = 0;
+        virtual void SetPlayerModel(bool hasC4) = 0;
+        virtual void SetPlayerModelEx(const char* modelName) = 0;
+        virtual void SetNewPlayerModel(const char* modelName) = 0;
+        virtual void ClientCommand(
+            const char* cmd,
+            const char* arg1 = nullptr,
+            const char* arg2 = nullptr,
+            const char* arg3 = nullptr
+        ) = 0;
         virtual void SetProgressBarTime(int time) = 0;
-
-        /**
-         * @brief N/D
-         */
-        virtual void SetProgressBarTime2(int time, float time_elapsed) = 0;
-
-        /**
-         * @brief N/D
-         */
+        virtual void SetProgressBarTime2(int time, float timeElapsed) = 0;
         virtual Edict* EntSelectSpawnPoint() = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual void SetBombIcon(bool flash = false) = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual void SetScoreAttribute(PlayerBase* dest) = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual void SendItemStatus() = 0;
-
-        /**
-         * @brief N/D
-         */
-        virtual void ReloadWeapons(PlayerItemBase* weapon = nullptr, bool force_reload = false, bool force_refill = false) = 0;
-
-        /**
-         * @brief N/D
-         */
+        virtual void ReloadWeapons(
+            PlayerItemBase* weapon = nullptr,
+            bool forceReload = false,
+            bool forceRefill = false
+        ) = 0;
         virtual void ObserverSetMode(int mode) = 0;
-
-        /**
-         * @brief N/D
-         */
-        virtual bool SelectSpawnSpot(const char* ent_class_name, EntityBase*& spot) = 0;
-
-        /**
-         * @brief N/D
-         */
+        virtual bool SelectSpawnSpot(const char* entityClassName, EntityBase*& spot) = 0;
         virtual bool SwitchWeapon(PlayerItemBase* weapon) = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual void SwitchTeam() = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual bool JoinTeam(TeamName team) = 0;
-
-        /**
-         * @brief N/D
-         */
-        virtual void StartObserver(Vector& position, Vector& view_angle) = 0;
-
-        /**
-         * @brief N/D
-         */
+        virtual void StartObserver(Vector& position, Vector& viewAngle) = 0;
         virtual void TeamChangeUpdate() = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual void DropSecondary() = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual void DropPrimary() = 0;
-
-        /**
-         * @brief N/D
-         */
-        virtual bool HasPlayerItem(PlayerItemBase* check_item) = 0;
-
-        /**
-         * @brief N/D
-         */
-        virtual bool HasNamedPlayerItem(const char* item_name) = 0;
-
-        /**
-         * @brief N/D
-         */
+        virtual bool HasPlayerItem(PlayerItemBase* checkItem) = 0;
+        virtual bool HasNamedPlayerItem(const char* itemName) = 0;
         virtual PlayerItemBase* GetItemById(WeaponId weapon) = 0;
-
-        /**
-         * @brief N/D
-         */
-        virtual PlayerItemBase* GetItemByName(const char* item_name) = 0;
-
-        /**
-         * @brief N/D
-         */
+        virtual PlayerItemBase* GetItemByName(const char* itemName) = 0;
         virtual void Disappear() = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual void MakeVip() = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual bool MakeBomber() = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual void ResetSequenceInfo() = 0;
-
-        /**
-         * @brief N/D
-         */
         virtual void StartDeathCam() = 0;
-
-        /**
-         * @brief N/D
-         */
-        virtual bool RemovePlayerItemEx(const char* item_name, bool remove_ammo) = 0;
-
-        /**
-         * @brief N/D
-         */
-        virtual void SetSpawnProtection(float protection_time) = 0;
-
-        /**
-         * @brief N/D
-         */
+        virtual bool RemovePlayerItemEx(const char* itemName, bool removeAmmo) = 0;
+        virtual void SetSpawnProtection(float protectionTime) = 0;
         virtual void RemoveSpawnProtection() = 0;
+        virtual bool HintMessageEx(
+            const char* message,
+            float duration = 6.F,
+            bool displayIfPlayerDead = false,
+            bool override = false
+        ) = 0;
+        virtual void Reset() = 0;
+        virtual void OnSpawnEquip(bool addDefault = true, bool equipGame = true) = 0;
+        virtual void SetScoreboardAttributes(PlayerBase* destination = nullptr) = 0;
 
-        /**
-         * @brief N/D
-         */
-        virtual bool HintMessageEx(const char* message, float duration = 6.F, bool display_if_player_dead = false,
-                                   bool override = false) = 0;
-
-        /**
-         * @brief N/D
-         */
-        virtual void Reset();
-
-        /**
-         * @brief N/D
-         */
-        virtual void OnSpawnEquip(bool addDefault = true, bool equipGame = true);
-
-        /**
-         * @brief N/D
-         */
-        virtual void SetScoreboardAttributes(PlayerBase* destination = nullptr);
-
-        /**
-         * @brief N/D
-         */
         char model[32]{};
-
-        /**
-         * @brief N/D
-         */
         bool force_show_menu{};
-
-        /**
-         * @brief N/D
-         */
         float respawn_pending{};
-
-        /**
-         * @brief N/D
-         */
         float spawn_protection_end_time{};
-
-        /**
-         * @brief N/D
-         */
         Vector old_viewing_angle{};
-
-        /**
-         * @brief N/D
-         */
         WeaponInfiniteAmmoMode infinite_ammo_mode{};
-
-        /**
-         * @brief N/D
-         */
         int weapon_infinite_ids{};
-
-        /**
-         * @brief N/D
-         */
         bool can_shoot_override{};
-
-        /**
-         * @brief N/D
-         */
         bool game_forcing_respawn{};
-
-        /**
-         * @brief N/D
-         */
         bool auto_bunny_hopping{};
-
-        /**
-         * @brief N/D
-         */
         bool mega_bunny_jumping{};
-
-        /**
-         * @brief N/D
-         */
         bool plant_c4_anywhere{};
 
-        /**
-         * @brief N/D
-         */
-        [[nodiscard]] PlayerBase* GetPlayerBase() const
-        {
+        bool spawn_protection_effects{};
+        double jump_height{};
+        double long_jump_height{};
+        double long_jump_force{};
+        double duck_speed_multiplier{};
+
+        int userId;
+        struct DamageRecord {
+            float damage = 0.0f;
+            float flashDurationTime = 0.0f;
+            int userId = -1;
+        };
+        using DamageList = DamageRecord[MAX_CLIENTS];
+        //using DamageList = CUtlArray<DamageRecord, MAX_CLIENTS>;
+        DamageList damageList;
+        int numKilledByUnanswered[MAX_CLIENTS];
+        bool playerDominated[MAX_CLIENTS];
+        int gibDamageThreshold;
+
+        [[nodiscard]] PlayerBase* GetPlayerBase() const {
             return reinterpret_cast<PlayerBase*>(this->containing_entity);
         }
 
-        /**
-         * @brief N/D
-         */
-        [[nodiscard]] ProtectionState GetProtectionState() const
-        {
-            // No protection set.
+        [[nodiscard]] ProtectionState GetProtectionState() const {
             if (spawn_protection_end_time <= 0.0f) {
                 return ProtectionState::NoSet;
             }
-
-            // Check if end time of protection isn't expired yet.
             if (spawn_protection_end_time >= g_global_vars->time) {
                 return ProtectionState::Active;
             }
-
-            // Has expired.
             return ProtectionState::Expired;
         }
     };

@@ -44,43 +44,57 @@
 
 namespace cssdk
 {
-    /**
-     * @brief N/D
-    */
-    constexpr auto CS_ENTITY_API_INTERFACE_VERSION = "CSENTITY_API_INTERFACE_VERSION002";
+    constexpr auto CS_ENTITY_API_INTERFACE_VERSION = "CSENTITY_API_INTERFACE_VERSION003";
 
     class CsEntity // NOLINT(cppcoreguidelines-special-member-functions)
     {
-    public:
-        /**
-         * @brief N/D
-        */
+      public:
         virtual ~CsEntity() = default;
 
-        /**
-         * @brief N/D
-        */
-        virtual void FireBullets(int shots, Vector& src, Vector& dir_shooting, Vector& spread, float distance,
-                                 BulletType bullet_type, int tracer_freq, int damage, EntityVars* attacker) = 0;
+        virtual void FireBullets(
+            int shots,
+            Vector& src,
+            Vector& direction,
+            Vector& spread,
+            float distance,
+            BulletType bulletType,
+            int tracerFreq,
+            int damage,
+            EntityVars* attacker
+        ) = 0;
 
-        /**
-         * @brief N/D
-        */
-        virtual void FireBuckshots(unsigned long shots, Vector& src, Vector& dir_shooting, Vector& spread,
-                                   float distance, int tracer_freq, int damage, EntityVars* attacker) = 0;
+        virtual void FireBuckshots(
+            unsigned long shots,
+            Vector& src,
+            Vector& direction,
+            Vector& spread,
+            float distance,
+            int tracerFreq,
+            int damage,
+            EntityVars* attacker
+        ) = 0;
 
-        /**
-         * @brief N/D
-        */
-        virtual Vector FireBullets3(Vector& src, Vector& dir_shooting, float spread, float distance, int penetration,
-                                    BulletType bullet_type, int damage, float range_modifier, EntityVars* attacker,
-                                    bool pistol, int shared_rand) = 0;
-        /**
-         * @brief N/D
-        */
+        virtual Vector FireBullets3(
+            Vector& src,
+            Vector& direction,
+            float spread,
+            float distance,
+            int penetration,
+            BulletType bulletType,
+            int damage,
+            float rangeModifier,
+            EntityVars* attacker,
+            bool pistol,
+            int sharedRand
+        ) = 0;
+
         EntityBase* containing_entity{};
+        unsigned char damagePenetrationLevel;
+        EntityVars *lastInflictor;
 
-    private:
+      private:
+        char CCSEntity_Reserve[0x3FF7];
+
         virtual void FuncReserve1() = 0;
         virtual void FuncReserve2() = 0;
         virtual void FuncReserve3() = 0;
@@ -113,19 +127,19 @@ namespace cssdk
         virtual void FuncReserve30() = 0;
     };
 
-    class CsDelay : public CsEntity
-    {
+    class CsDelay : public CsEntity {
+        int CsDelay_Reserve[0x100];
     };
 
-    class CsAnimating : public CsDelay
-    {
+    class CsAnimating : public CsDelay {
+        int CsAnimating_Reserve[0x100];
     };
 
-    class CsToggle : public CsAnimating
-    {
+    class CsToggle : public CsAnimating {
+        int CsToggle_Reserve[0x100];
     };
 
-    class CsMonster : public CsToggle
-    {
+    class CsMonster : public CsToggle {
+        int CsMonster_Reserve[0x100];
     };
 }
