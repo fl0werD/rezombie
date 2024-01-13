@@ -31,17 +31,18 @@ add_library(${PROJECT_NAME} SHARED
         "include/rezombie/entity/currency/price.h"
         "include/rezombie/entity/weapons/base_weapon.h"
         "include/rezombie/entity/weapons/weapon.h"
+        "include/rezombie/entity/weapons/melee.h"
         "include/rezombie/entity/models/model.h"
         "include/rezombie/entity/models/models_pack.h"
         "include/rezombie/entity/items/item.h"
         "include/rezombie/entity/colors/color.h"
-        "include/rezombie/entity/wrappers/player_base_wrapper.h"
         "include/rezombie/entity/wrappers/player_item_wrapper.h"
 
         "include/rezombie/messages/engine_message.h"
         "include/rezombie/messages/user_message.h"
         "include/rezombie/messages/temporary_entity.h"
         "include/rezombie/messages/hud_message_params.h"
+        "include/rezombie/messages/api/engine_message.h"
         "include/rezombie/messages/api/user_message.h"
 
         "include/rezombie/colors/colors.h"
@@ -68,7 +69,6 @@ add_library(${PROJECT_NAME} SHARED
         "include/rezombie/player/nightvision_vars.h"
         "include/rezombie/player/long_jump_vars.h"
         "include/rezombie/player/join_preview_vars.h"
-        "include/rezombie/preview/world_preview.h"
         "include/rezombie/player/world_preview_vars.h"
         "include/rezombie/player/third_camera_vars.h"
         "include/rezombie/player/map_camera_vars.h"
@@ -84,6 +84,8 @@ add_library(${PROJECT_NAME} SHARED
         "include/rezombie/player/api/player_props.h"
         "include/rezombie/player/api/flashlight.h"
         "include/rezombie/player/api/nightvision.h"
+        "include/rezombie/player/api/jumps.h"
+        "include/rezombie/player/api/long_jump.h"
 
         "include/rezombie/currency/modules/currency.h"
         "include/rezombie/currency/modules/price.h"
@@ -112,6 +114,8 @@ add_library(${PROJECT_NAME} SHARED
         "include/rezombie/thirdcamera/third_camera.h"
         "include/rezombie/thirdcamera/api/third_camera.h"
 
+        "include/rezombie/configs/main_config.h"
+
         "src/main/main.cpp"
         "src/main/engine_hooks.cpp"
         "src/main/gamedll_hooks.cpp"
@@ -121,6 +125,7 @@ add_library(${PROJECT_NAME} SHARED
 
         "src/messages/engine_message.cpp"
         "src/messages/user_message.cpp"
+        "src/messages/api/engine_message.cpp"
         "src/messages/api/user_message.cpp"
 
         "src/colors/colors.cpp"
@@ -145,10 +150,9 @@ add_library(${PROJECT_NAME} SHARED
         "src/player/player_weapons.cpp"
         "src/player/flashlight.cpp"
         "src/player/nightvision.cpp"
-        "src/player/extra_jumps.cpp"
+        "src/player/jumps.cpp"
         "src/player/long_jump.cpp"
         "src/player/join_preview.cpp"
-        "src/preview/world_preview.cpp"
         "src/player/third_camera.cpp"
         "src/player/map_camera.cpp"
         "src/player/core/player_entity_vars.cpp"
@@ -160,6 +164,8 @@ add_library(${PROJECT_NAME} SHARED
         "src/player/api/player_props.cpp"
         "src/player/api/flashlight.cpp"
         "src/player/api/nightvision.cpp"
+        "src/player/api/jumps.cpp"
+        "src/player/api/long_jump.cpp"
 
         "src/currency/api/currency.cpp"
         "src/currency/api/price.cpp"
@@ -183,8 +189,9 @@ add_library(${PROJECT_NAME} SHARED
         "src/thirdcamera/third_camera.cpp"
         "src/thirdcamera/api/third_camera.cpp"
 
-        "src/wrappers/player_base_wrapper.cpp"
         "src/wrappers/player_item_wrapper.cpp"
+
+        "src/configs/main_config.cpp"
         )
 
 target_include_directories(${PROJECT_NAME} PRIVATE "include")
@@ -250,6 +257,8 @@ set(META_DETACH "__OnMetaDetach")    # void OnMetaDetach()
 target_link_libraries(${PROJECT_NAME} PRIVATE cssdk)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE vhooks)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE json)
 
 FetchContent_MakeAvailable(Metamod)
 target_link_libraries(${PROJECT_NAME} PRIVATE metamod)
