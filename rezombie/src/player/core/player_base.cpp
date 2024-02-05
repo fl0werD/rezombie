@@ -138,6 +138,14 @@ namespace rz
         base_->can_shoot = canShoot;
     }
 
+    auto Player::getDeadTime() const -> float {
+        return base_->dead_time;
+    }
+
+    auto Player::setDeadTime(float time) -> void {
+        base_->dead_time = time;
+    }
+
     auto Player::getHideHud() const -> int {
         return base_->hide_hud;
     }
@@ -184,6 +192,10 @@ namespace rz
 
     auto Player::getObserverTarget() const -> Edict* {
         return base_->observer_target.Get();
+    }
+
+    auto Player::setWeaponVolume(int volume) -> void {
+        base_->weapon_volume = volume;
     }
 
     auto Player::getButtonLast() const -> int {

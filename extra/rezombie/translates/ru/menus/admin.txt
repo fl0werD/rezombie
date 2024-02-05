@@ -1,0 +1,27 @@
+[ru]
+ADMIN_MENU_ITEM = Меню админа
+ADMIN_MENU_TITLE = Меню админа
+ADMIN_GAME_SUBTITLE = Игра
+ADMIN_PLAYERS_SUBTITLE = Игроки
+
+MODES_MENU_ITEM = Запустить режим
+MODES_MENU_TITLE = Игровые режимы
+MODE_WITH_TARGET = цель
+LAUNCH_MODE_AFTER_PREPARE = После подготовки
+LAUNCH_MODE_AFTER_INSTANTLY = Мгновенно
+
+SELECT_MODE_TARGET_TITLE = Выбор цели
+SELECT_MODE_TARGET_SUBTITLE = для режима \r%l
+SELECT_MODE_TARGET_RANDOM = Случайный игрок
+
+COMPLETE_WARMUP_ITEM = Завершить разминку
+COMPLETE_ROUND_ITEM = Завершить раунд
+COMPLETE_ROUND_TITLE = Завершить раунд
+
+CHANGE_CLASS_MENU_ITEM = Сменить класс
+CHANGE_CLASS_MENU_TITLE = Сменить класс
+TURN_INTO_CLASS_ITEM = превратить в
+
+RESPAWN_MENU_ITEM = Возродить
+RESPAWN_MENU_TITLE = Возродить
+RESPAWN_MENU_SUBTITLE = Мертвых игроков: \r%d

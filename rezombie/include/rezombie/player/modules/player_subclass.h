@@ -7,7 +7,7 @@ namespace rz
 {
     class PlayerSubclassModule : public Module<PlayerSubclass> {
       public:
-        PlayerSubclassModule() : Module<PlayerSubclass>("player_subclass") {}
+        PlayerSubclassModule() : Module("player_subclass") {}
 
         auto add(std::string handle, int classIndex) -> int {
             return Module::add(new PlayerSubclass(std::move(handle), classIndex));

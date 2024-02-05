@@ -1,0 +1,3 @@
+[ru]
+RZ_SUBZOMBIE_STONE_NAME = Камень
+RZ_SUBZOMBIE_STONE_DESC = Здоровье+

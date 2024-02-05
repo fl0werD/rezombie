@@ -1,0 +1,4 @@
+[en]
+MODE_SNIPER_NAME = Sniper
+MODE_SNIPER_DESC = Sniper vs Zombies
+MODE_SNIPER_NOTICE = Sniper (%n) vs zombies

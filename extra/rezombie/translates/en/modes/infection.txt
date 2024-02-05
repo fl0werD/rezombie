@@ -1,0 +1,4 @@
+[en]
+MODE_INFECTION_NAME = Multiple Infection
+MODE_INFECTION_DESC = Humans vs Zombies
+MODE_INFECTION_NOTICE = Humans vs zombies

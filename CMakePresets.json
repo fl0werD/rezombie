@@ -24,7 +24,7 @@
       "cacheVariables": {
         "BUILD_SHARED_LIBS": "OFF",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "DEFAULT_OUTPUT_DIR": "C:/Program Files (x86)/Steam/steamapps/common/Half-Life/cstrike/addons/amxmodx/modules"
+        "DEFAULT_OUTPUT_DIR": "C:\\Users\\fl0wer\\Desktop\\hlds_win\\cstrike\\addons\\amxmodx\\modules"
       }
     },
     {

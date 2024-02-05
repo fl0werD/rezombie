@@ -46,10 +46,29 @@ namespace rz
         const auto target = params[arg_target];
         const auto attribFlags = params[arg_attrib_flags];
         if (receiver) {
-            auto& player = Players[receiver];
+            const auto& player = Players[receiver];
             sendScoreAttrib(player, target, attribFlags);
         } else {
             sendScoreAttrib(TO_ALL, target, attribFlags);
+        }
+        return true;
+    }
+
+    auto send_item_pickup(Amx* amx, cell* params) -> cell {
+        enum {
+            arg_count,
+            arg_receiver,
+            arg_class_name,
+        };
+
+        // Check arg count
+        const auto receiver = params[arg_receiver];
+        const auto className = GetAmxString(amx, params[arg_class_name], 0);
+        if (receiver) {
+            const auto& player = Players[receiver];
+            sendItemPickup(player, className);
+        } else {
+            sendItemPickup(TO_ALL, className);
         }
         return true;
     }
@@ -68,7 +87,7 @@ namespace rz
         const auto amount = params[arg_amount];
         const auto isTrackChange = params[arg_track_change];
         if (receiver) {
-            auto& player = Players[receiver];
+            const auto& player = Players[receiver];
             sendMoney(player, amount, isTrackChange);
         } else {
             sendMoney(TO_ALL, amount, isTrackChange);
@@ -91,7 +110,7 @@ namespace rz
         const auto sprite = GetAmxString(amx, params[arg_sprite], 0);
         const auto color = GetAmxString(amx, params[arg_color], 1);
         if (receiver) {
-            auto& player = Players[receiver];
+            const auto& player = Players[receiver];
             sendStatusIcon(player, status, sprite, color);
         } else {
             sendStatusIcon(TO_ALL, status, sprite, color);
@@ -103,6 +122,7 @@ namespace rz
         static AmxNativeInfo natives[] = {
             {"send_death_msg",    send_death_msg},
             {"send_score_attrib", send_score_attrib},
+            {"send_item_pickup",  send_item_pickup},
             {"send_money",        send_money},
             {"send_status_icon",  send_status_icon},
 

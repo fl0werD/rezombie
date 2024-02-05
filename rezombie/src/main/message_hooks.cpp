@@ -8,6 +8,7 @@ namespace rz
 
     auto RegisterMessageHooks() -> void {
         MHookNetworkMessage("HideWeapon", DELEGATE_ARG<MessageHideWeapon>);
+        MHookNetworkMessage("ScreenFade", DELEGATE_ARG<MessageScreenFade>);
     }
 
     auto MessageHideWeapon(
@@ -21,6 +22,17 @@ namespace rz
         //auto& flags = args.GetInteger(0);
         //flags |= HIDE_HUD_TIMER;
         sendHideWeapon(client, args.GetInteger(0) | HIDE_HUD_TIMER);
+        return true;
+    }
+
+    auto MessageScreenFade(
+        const NetworkMessageMChain&,
+        const MessageType&,
+        int,
+        const float*,
+        Edict*,
+        MessageArgs&
+    ) -> bool {
         return true;
     }
 }

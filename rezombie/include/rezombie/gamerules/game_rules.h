@@ -11,15 +11,15 @@ namespace rz
 
     auto RegisterGameRulesHooks() -> void;
 
-    auto InstallGameRules(const ReGameRulesInstallGameRulesMChain& chain) -> GameRules*;
+    auto InstallGameRules(ReHookInstallGameRules* chain) -> GameRulesBase*;
 
-    auto FreeGameRules(const ReGameRulesFreeGameRulesMChain& chain, GameRules**) -> void;
+    auto FreeGameRules(ReHookFreeGameRules* chain, GameRulesBase**) -> void;
 
-    class TeamPlayGameRules : public HalfLifeMultiplay {
+    class TeamGameRules : public HalfLifeMultiplay {
       public:
-        TeamPlayGameRules();
+        TeamGameRules();
 
-        ~TeamPlayGameRules() override = default;
+        ~TeamGameRules() override = default;
 
         auto RefreshSkillData() -> void override {};
 
@@ -40,9 +40,7 @@ namespace rz
 
         auto IsCoop() -> qboolean override { return false; }
 
-        auto GetGameDescription() -> const char* override {
-            return "ReZombie";
-        }
+        auto GetGameDescription() -> const char* override;
 
         auto ClientConnected(Edict* entity, const char* name, const char* address, char rejectReason[128])
         -> qboolean override;
@@ -196,6 +194,8 @@ namespace rz
 
         auto IsBombPlanted() -> bool override { return false; }
 
+        auto Reset() -> void;
+
         auto ReadMultiplayCvars() -> void;
         auto CheckRoundLimits() -> void;
 
@@ -222,8 +222,8 @@ namespace rz
         auto setReset(bool isReset) -> void;
         auto getRoundsPlayed() const -> int;
         auto setRoundsPlayed(int roundsPlayed) -> void;
-        auto getRoundRemainingTime() const -> int;
-        auto setRoundRemainingTime(int remainingTime) -> void;
+        auto getTimer() const -> int;
+        auto setTimer(int timer) -> void;
 
         auto getGameState() const -> GameState;
         auto setGameState(GameState gameState) -> void;
@@ -243,6 +243,7 @@ namespace rz
         auto setDefaultPlayerClassOverride(Team team, int playerClass) -> void;
 
         auto defaultPlayerClass(Team team) const -> int;
+        auto getRespawnTeam() const -> Team;
 
         auto isCanMove() const -> bool;
 
@@ -253,7 +254,7 @@ namespace rz
         GameState nextGameState_ = GameState::Warmup;
         RoundState roundState_ = RoundState::None;
         RoundState nextRoundState_ = RoundState::None;
-        int roundRemainingTime_ = 0;
+        int timer_ = 0;
         float nextRoundTimeUpdateTime_ = 0;
         int modeId_ = 0;
         int lastModeId_ = 0;
@@ -263,6 +264,6 @@ namespace rz
         int shadowSprite_ = 0;
     };
 
-    inline TeamPlayGameRules* gameRules{};
-    inline GameRules* OriginalGameRules{};
+    inline TeamGameRules GameRules;
+    inline GameRulesBase* OriginalGameRules{};
 }

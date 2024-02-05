@@ -1,0 +1,8 @@
+[en]
+GAME_MENU_TITLE = Game Menu
+GAME_MENU_SELECT_WPNS = Select Weapons
+GAME_MENU_BUY_EXTRA = Buy Extra Items
+GAME_MENU_CHOOSE_SUBCLASS = Choose %l Class
+GAME_MENU_JOIN_GAME = Join Game
+GAME_MENU_JOIN_SPECS = Join Spectators
+GAME_MENU_ADMIN = Admin Menu

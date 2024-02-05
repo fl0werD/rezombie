@@ -7,7 +7,7 @@ namespace rz
 {
     class ModelsPackModule : public Module<ModelsPack> {
       public:
-        ModelsPackModule() : Module<ModelsPack>("models_pack") {}
+        ModelsPackModule() : Module("models_pack") {}
 
         auto add(std::string handle) -> int {
             return Module::add(new ModelsPack(std::move(handle)));

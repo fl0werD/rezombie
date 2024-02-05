@@ -7,10 +7,10 @@ namespace rz
 {
     class NightVisionModule : public Module<NightVision> {
       public:
-        NightVisionModule() : Module<NightVision>("nightvisions") {}
+        NightVisionModule() : Module("nightvisions") {}
 
-        auto add(std::string color, int radius, int fogId) -> int {
-            return Module::add(new NightVision(std::move(color), radius, fogId));
+        auto add(std::string color, int fogId) -> int {
+            return Module::add(new NightVision(std::move(color), fogId));
         }
     };
 

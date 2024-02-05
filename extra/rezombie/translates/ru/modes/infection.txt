@@ -1,0 +1,4 @@
+[ru]
+MODE_INFECTION_NAME = Массовое Заражение
+MODE_INFECTION_DESC = Люди vs. Зомби
+MODE_INFECTION_NOTICE = Люди против зомби

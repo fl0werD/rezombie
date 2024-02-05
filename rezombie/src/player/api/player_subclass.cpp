@@ -172,11 +172,15 @@ namespace rz
         return HandleSubclassVar(amx, params, false);
     }
 
-    auto subclass_begin(Amx*, cell*) -> cell {
+    auto subclasses_count(Amx*, cell*) -> cell {
+        return Subclasses.count();
+    }
+
+    auto subclasses_begin(Amx*, cell*) -> cell {
         return Subclasses.begin();
     }
 
-    auto subclass_end(Amx*, cell*) -> cell {
+    auto subclasses_end(Amx*, cell*) -> cell {
         return Subclasses.end();
     }
 
@@ -195,8 +199,9 @@ namespace rz
             {"create_subclass",  create_subclass},
             {"get_subclass_var", get_subclass_var},
             {"set_subclass_var", set_subclass_var},
-            {"subclass_begin",   subclass_begin},
-            {"subclass_end",     subclass_end},
+            {"subclasses_count", subclasses_count},
+            {"subclasses_begin", subclasses_begin},
+            {"subclasses_end",   subclasses_end},
             {"find_subclass",    find_subclass},
 
             {nullptr,            nullptr},

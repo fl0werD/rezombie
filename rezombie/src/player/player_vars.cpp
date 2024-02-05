@@ -1,7 +1,6 @@
 #pragma once
 
 #include "rezombie/player/player.h"
-#include "rezombie/player/api/player.h"
 
 namespace rz
 {
@@ -14,11 +13,12 @@ namespace rz
         setMelee(0);
         //setNightVision(0);
         //setNightVisionEnabled(false);
-        getExtraJump().reset();
-        getLongJump().reset();
+        Jumps().reset(*this);
+        LongJump().reset(*this);
         setFreezeEndTime(0.f);
         if (isInit) {
             ResetSubclasses();
+            Extras().reset();
         }
     }
 

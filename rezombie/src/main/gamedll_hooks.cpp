@@ -1,14 +1,15 @@
 #include "rezombie/gamerules/game_rules.h"
 #include "rezombie/weapons/modules/weapon.h"
 #include "rezombie/player/players.h"
-#include "rezombie/player/world_preview.h"
-#include "rezombie/player/modules/nightvision.h"
+#include "rezombie/preview/world_preview.h"
 #include "rezombie/map/environment.h"
 #include "rezombie/map/map_spawns.h"
+#include "rezombie/map/extras.h"
 #include "rezombie/map/modules/map_cameras.h"
-#include "rezombie/modelpreview/model_preview.h"
+#include "rezombie/preview/join_preview.h"
 #include "rezombie/thirdcamera/third_camera.h"
 #include "rezombie/main/gamedll_hooks.h"
+#include "rezombie/configs/main_config.h"
 #include "rezombie/messages/user_message.h"
 #include <mhooks/metamod.h>
 #include <metamod/utils.h>
@@ -30,21 +31,11 @@ namespace rz
         MHookGameDllGetWeaponData(DELEGATE_ARG<GetWeaponData_Post>, true);
     }
 
-/*
-    const std::unordered_map<std::string> USELESS_ENTITIES = {
-        {"armoury_entity", 0},
-        {"hostage_entity", 0},
-    };
-*/
     auto Spawn_Pre(const GameDllDispatchSpawnMChain& chain, Edict* entity) -> int {
-        if (entity->vars.class_name == "armoury_entity") {
-            RETURN_META_VALUE(Result::Supercede, -1);
-        }
-        if (entity->vars.class_name == "weaponbox") {
-            RETURN_META_VALUE(Result::Supercede, -1);
-        }
-        if (entity->vars.class_name == "hostage_entity") {
-            RETURN_META_VALUE(Result::Supercede, -1);
+        for (auto &className : MainConfig.getUselessEntities()) {
+            if (entity->vars.class_name == className.c_str()) {
+                RETURN_META_VALUE(Result::Supercede, -1);
+            }
         }
         return chain.CallNext(entity);
     }
@@ -71,7 +62,7 @@ namespace rz
     ) -> void {
         IsServerActive = true;
         Environment.precache();
-        gameRules->precache();
+        GameRules.precache();
         initUserMessagesIds();
         VirtualHook::RegisterHooks();
         Modules.precache();
@@ -79,6 +70,7 @@ namespace rz
         MapCameras.collect();
         MapCameras.createEntity();
         ModelPreview.createEntities();
+        WorldPreview.createEntity();
         ThirdCamera.createEntity();
     }
 
@@ -89,6 +81,7 @@ namespace rz
         IsServerActive = false;
         VirtualHook::UnregisterHooks();
         Modules.clear();
+        MapExtras.reset();
     }
 
     auto AddToFullPack_Pre(
@@ -102,24 +95,30 @@ namespace rz
         unsigned char* set
     ) -> qboolean {
         auto& host = Players[hostEntity];
-        auto& thirdCamera = host.getThirdCameraVars();
+        const auto& thirdCamera = host.getThirdCameraVars();
         if (!thirdCamera.isEnabled()) {
             if (entity == ThirdCamera.getCamera()) {
                 RETURN_META_VALUE(Result::Supercede, false);
             }
         }
-        auto& camera = host.getMapCameraVars();
+        const auto& camera = host.getMapCameraVars();
         if (!camera.isEnabled()) {
             if (entity == MapCameras.getCamera()) {
                 RETURN_META_VALUE(Result::Supercede, false);
             }
         }
-        auto& preview = host.getPreviewVars();
-        if (!preview.isEnabled()) {
-            if (entity == ModelPreview[PreviewType::ParentModel] ||
-                entity == ModelPreview[PreviewType::AttachModel] ||
-                entity == ModelPreview[PreviewType::ExtraAttachModel]
+        const auto& joinPreview = host.getJoinPreviewVars();
+        if (!joinPreview.isEnabled()) {
+            if (entity == ModelPreview[JoinPreviewType::ParentModel] ||
+                entity == ModelPreview[JoinPreviewType::AttachModel] ||
+                entity == ModelPreview[JoinPreviewType::ExtraAttachModel]
                 ) {
+                RETURN_META_VALUE(Result::Supercede, false);
+            }
+        }
+        const auto& worldPreview = host.getWorldPreviewVars();
+        if (!worldPreview.isEnabled()) {
+            if (entity == WorldPreview.getEntity()) {
                 RETURN_META_VALUE(Result::Supercede, false);
             }
         }
@@ -139,21 +138,21 @@ namespace rz
         //metamod::utils::LogConsole("host %d ent %d %s", IndexOfEdict(hostEntity), IndexOfEdict(entity), entity->vars.class_name.CStr());
         auto& host = Players[hostEntity];
         if (hostEntity == entity) {
-            if (host.getFlashlight().isEnabled()) {
+            if (host.Flashlight().isEnabled() && !host.Flashlight().getNextDynamicUpdate()) {
                 state->effects |= EF_DIM_LIGHT;
             }
-            if (host.getNightVision().isEnabled()) {
+            if (host.NightVision().isEnabled()) {
                 state->effects |= EF_BRIGHT_LIGHT;
             }
         }
-        auto& thirdCamera = host.getThirdCameraVars();
+        const auto& thirdCamera = host.getThirdCameraVars();
         if (thirdCamera.isEnabled()) {
             if (entity == ThirdCamera.getCamera()) {
                 state->origin = thirdCamera.getOrigin();
                 state->angles = thirdCamera.getAngles();
             }
         }
-        auto& mapCamera = host.getMapCameraVars();
+        const auto& mapCamera = host.getMapCameraVars();
         if (mapCamera.isEnabled()) {
             if (entity == MapCameras.getCamera()) {
                 const auto& cameraRef = MapCameras[mapCamera.getCamera()];
@@ -164,20 +163,20 @@ namespace rz
                 }
             }
         }
-        auto& preview = host.getPreviewVars();
-        if (preview.isEnabled()) {
-            if (entity == ModelPreview[PreviewType::ParentModel]) {
-                state->origin = preview.getOrigin();
-                state->angles = preview.getAngles();
+        const auto& joinPreview = host.getJoinPreviewVars();
+        if (joinPreview.isEnabled()) {
+            if (entity == ModelPreview[JoinPreviewType::ParentModel]) {
+                state->origin = joinPreview.getOrigin();
+                state->angles = joinPreview.getAngles();
                 state->velocity = host.getVelocity();
-                setModel(state, preview.getModel(PreviewType::ParentModel));
-            } else if (entity == ModelPreview[PreviewType::AttachModel]) {
-                setModel(state, preview.getModel(PreviewType::AttachModel));
-            } else if (entity == ModelPreview[PreviewType::ExtraAttachModel]) {
-                setModel(state, preview.getModel(PreviewType::ExtraAttachModel));
+                setModel(state, joinPreview.getModel(JoinPreviewType::ParentModel));
+            } else if (entity == ModelPreview[JoinPreviewType::AttachModel]) {
+                setModel(state, joinPreview.getModel(JoinPreviewType::AttachModel));
+            } else if (entity == ModelPreview[JoinPreviewType::ExtraAttachModel]) {
+                setModel(state, joinPreview.getModel(JoinPreviewType::ExtraAttachModel));
             }
         }
-        auto& worldPreview = host.getWorldPreviewVars();
+        const auto& worldPreview = host.getWorldPreviewVars();
         if (worldPreview.isEnabled()) {
             if (entity == WorldPreview.getEntity()) {
                 state->origin = worldPreview.getOrigin();

@@ -47,6 +47,11 @@
 #include <cassert>
 #include <cstddef>
 
+namespace rz
+{
+ class Extras;
+}
+
 namespace cssdk
 {
     /**
@@ -455,7 +460,7 @@ namespace cssdk
         /**
          * @brief N/D
         */
-        EntityBase* link{};
+        rz::Extras* link{};
 
         /**
          * @brief N/D

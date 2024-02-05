@@ -1,0 +1,4 @@
+[en]
+MODE_SWARM_NAME = Swarm
+MODE_SWARM_DESC = Humans vs Zombies
+MODE_SWARM_NOTICE = Humans vs zombies

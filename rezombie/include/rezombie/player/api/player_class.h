@@ -1,7 +1,6 @@
 #pragma once
 
 #include "rezombie/core/api/amxx_feature.h"
-#include "rezombie/player/player.h"
 
 namespace rz
 {

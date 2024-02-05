@@ -1,8 +1,6 @@
 #pragma once
 
 #include "rezombie/core/api/amxx_feature.h"
-#include <string>
-#include <unordered_map>
 
 namespace rz
 {

@@ -17,4 +17,13 @@ namespace rz
         Edict* client,
         MessageArgs& args
     ) -> bool;
+
+    auto MessageScreenFade(
+        const NetworkMessageMChain& chain,
+        const MessageType& type,
+        int id,
+        const float* origin,
+        Edict* client,
+        MessageArgs& args
+    ) -> bool;
 }

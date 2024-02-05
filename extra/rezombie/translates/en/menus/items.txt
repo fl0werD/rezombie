@@ -1,0 +1,6 @@
+[en]
+ITEMS_MENU_TITLE = Extra Items
+ITEMS_MENU_PLAYER_BOUGHT = %l ^3%n ^1bought ^4%l ^1for ^4%s
+ITEMS_MENU_PLAYER_TAKEN = %l ^3%n ^1taken ^4%l
+ITEMS_MENU_INSUFFICIENT_FUNDS = Insufficient funds to purchase ^4%l^1! Not enough: ^3%s
+ITEMS_MENU_SOMETHING_WENT_WRONG = ^3Something went wrong during the purchase...

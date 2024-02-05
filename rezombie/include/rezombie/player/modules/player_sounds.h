@@ -7,7 +7,7 @@ namespace rz
 {
     class PlayerSoundModule : public Module<PlayerSounds> {
       public:
-        PlayerSoundModule() : Module<PlayerSounds>("player_sound") {}
+        PlayerSoundModule() : Module("player_sound") {}
 
         auto add(std::string handle) -> int {
             return Module::add(new PlayerSounds(std::move(handle)));

@@ -20,11 +20,11 @@ namespace rz
 
     auto WeaponVirtuals::HolderSpawn() -> void {
         spawn.Call(this);
-        const auto weaponRef = Weapons[vars->impulse];
+        const auto& weaponRef = Weapons[vars->impulse];
         if (!weaponRef) {
             return;
         }
-        const auto itemInfo = GetCsPlayerItem()->item_info;
+        const auto& itemInfo = GetCsPlayerItem()->item_info;
         id = itemInfo.id;
         clip = itemInfo.max_clip;
         primary_ammo_type = toInt(itemInfo.id);
@@ -37,15 +37,15 @@ namespace rz
         &WeaponVirtuals::HolderAddToPlayer
     );
 
-    auto WeaponVirtuals::HolderAddToPlayer(PlayerBase* basePlayer) -> qboolean {
+    auto WeaponVirtuals::HolderAddToPlayer(PlayerBase* base) -> qboolean {
         const auto weaponRef = Weapons[vars->impulse];
         if (!weaponRef) {
-            return addToPlayer.Call<qboolean>(this, basePlayer);
+            return addToPlayer.Call<qboolean>(this, base);
         }
         const auto& weapon = weaponRef->get();
-        player = basePlayer;
-        auto& player = Players[basePlayer];
-        auto itemInfo = GetCsPlayerItem()->item_info;
+        player = base;
+        auto& player = Players[base];
+        const auto& itemInfo = GetCsPlayerItem()->item_info;
         player.setWeapons(player.getWeapons() | (1 << toInt(itemInfo.id)));
         sendWeaponList(
             player,
@@ -70,14 +70,14 @@ namespace rz
     );
 
     auto WeaponVirtuals::HolderGetItemInfo(ItemInfo* info) -> qboolean {
-        const auto weaponRef = Weapons[vars->impulse];
+        const auto& weaponRef = Weapons[vars->impulse];
         if (!weaponRef) {
             return getItemInfo.Call<qboolean>(this, info);
         }
-        auto& weapon = weaponRef->get();
+        const auto& weapon = weaponRef->get();
         const auto fakeId = static_cast<WeaponId>(vars->i_user1);
         id = fakeId;
-        info->slot = toInt(weapon.getInventorySlot()) - 1;
+        info->slot = toInt(weapon.getSlot()) - 1;
         info->position = regamedll_api::GetItemInfo(fakeId)->position;
         info->ammo1 = nullptr;
         info->max_ammo1 = weapon.getMaxAmmo();
@@ -98,17 +98,17 @@ namespace rz
     );
 
     auto WeaponVirtuals::HolderDeploy() -> qboolean {
-        const auto weaponRef = Weapons[vars->impulse];
+        const auto& weaponRef = Weapons[vars->impulse];
         if (!weaponRef) {
             return deploy.Call<qboolean>(this);
         }
-        auto& weapon = weaponRef->get();
-        auto& player = Players[this->player];
-        auto isDeployed = weapon.executeDeploy(EdictIndex(), player);
-        if (isDeployed) {
+        const auto& weapon = weaponRef->get();
+        const auto& player = Players[this->player];
+        const auto result = weapon.executeDeploy(EdictIndex(), player);
+        if (result) {
             vars->effects &= ~EF_NO_DRAW;
         }
-        return isDeployed;
+        return result;
     }
 
     VirtualHook WeaponVirtuals::holster(
@@ -118,12 +118,12 @@ namespace rz
     );
 
     auto WeaponVirtuals::HolderHolster(int skipLocal) -> void {
-        const auto weaponRef = Weapons[vars->impulse];
+        const auto& weaponRef = Weapons[vars->impulse];
         if (!weaponRef) {
             holster.Call(this, skipLocal);
             return;
         }
-        auto& weapon = weaponRef->get();
+        const auto& weapon = weaponRef->get();
         auto& player = Players[this->player];
         in_reload = false;
         vars->effects |= EF_NO_DRAW;
@@ -138,8 +138,8 @@ namespace rz
         &WeaponVirtuals::HolderAttachToPlayer
     );
 
-    auto WeaponVirtuals::HolderAttachToPlayer(PlayerBase* basePlayer) -> void {
-        const auto& player = Players[basePlayer];
+    auto WeaponVirtuals::HolderAttachToPlayer(PlayerBase* base) -> void {
+        const auto& player = Players[base];
         vars->move_type = MoveTypeEntity::Follow;
         vars->solid = SolidType::NotSolid;
         vars->aim_entity = player;
@@ -158,38 +158,39 @@ namespace rz
         &WeaponVirtuals::HolderUpdateClientData
     );
 
-    auto WeaponVirtuals::HolderUpdateClientData(PlayerBase* basePlayer) -> qboolean {
+    // TODO: why?
+    auto WeaponVirtuals::HolderUpdateClientData(PlayerBase* base) -> qboolean {
         const auto weaponRef = Weapons[vars->impulse];
         if (!weaponRef) {
-            return updateClientData.Call<qboolean>(this, basePlayer);
+            return updateClientData.Call<qboolean>(this, base);
         }
-        const auto& player = Players[basePlayer];
+        const auto& player = Players[base];
         auto send = false;
         auto state = 0;
         const PlayerItemBase* activeItem = player.getActiveItem();
         if (activeItem == this) {
-            state = basePlayer->on_target ? WEAPON_IS_ON_TARGET : 1;
+            state = base->on_target ? WEAPON_IS_ON_TARGET : 1;
         }
-        if (!basePlayer->weapon) {
+        if (!base->weapon) {
             send = true;
         }
-        if (activeItem == this || basePlayer->client_active_item == this) {
-            if (activeItem != basePlayer->client_active_item) {
+        if (activeItem == this || base->client_active_item == this) {
+            if (activeItem != base->client_active_item) {
                 send = true;
             }
         }
         if (clip != client_clip || state != client_weapon_state ||
-            static_cast<int>(basePlayer->field_of_view) != basePlayer->client_fov) {
+            static_cast<int>(base->field_of_view) != base->client_fov) {
             send = true;
         }
         if (send) {
             sendCurWeapon(player, state, id, clip);
             client_clip = clip;
             client_weapon_state = state;
-            basePlayer->weapon = true;
+            base->weapon = true;
         }
         if (next) {
-            next->UpdateClientData(basePlayer);
+            next->UpdateClientData(base);
         }
         return true;
     }
@@ -205,7 +206,7 @@ namespace rz
         if (!weaponRef) {
             return maxSpeed.Call<float>(this);
         }
-        auto& weapon = weaponRef->get();
+        const auto& weapon = weaponRef->get();
         return static_cast<float>(weapon.executeMaxSpeed(EdictIndex(), player->EdictIndex(), player->fov));
     }
 
@@ -216,12 +217,12 @@ namespace rz
     );
 
     auto WeaponVirtuals::HolderItemSlot() -> InventorySlot {
-        const auto weaponRef = Weapons[vars->impulse];
+        const auto& weaponRef = Weapons[vars->impulse];
         if (!weaponRef) {
             return itemSlot.Call<InventorySlot>(this);
         }
-        auto& weapon = weaponRef->get();
-        return weapon.getInventorySlot();
+        const auto& weapon = weaponRef->get();
+        return weapon.getSlot();
     }
 
     VirtualHook WeaponVirtuals::primaryAttack(
@@ -231,12 +232,12 @@ namespace rz
     );
 
     auto WeaponVirtuals::HolderPrimaryAttack() -> void {
-        const auto weaponRef = Weapons[vars->impulse];
+        const auto& weaponRef = Weapons[vars->impulse];
         if (!weaponRef) {
             primaryAttack.Call(this);
             return;
         }
-        auto& weapon = weaponRef->get();
+        const auto& weapon = weaponRef->get();
         weapon.executePrimaryAttack(EdictIndex(), player->EdictIndex(), clip, player->ammo[primary_ammo_type]);
     }
 
@@ -247,12 +248,12 @@ namespace rz
     );
 
     auto WeaponVirtuals::HolderSecondaryAttack() -> void {
-        const auto weaponRef = Weapons[vars->impulse];
+        const auto& weaponRef = Weapons[vars->impulse];
         if (!weaponRef) {
             secondaryAttack.Call(this);
             return;
         }
-        auto& weapon = weaponRef->get();
+        const auto& weapon = weaponRef->get();
         weapon.executeSecondaryAttack(EdictIndex(), player->EdictIndex(), weapon_state, player->fov);
     }
 
@@ -263,12 +264,12 @@ namespace rz
     );
 
     auto WeaponVirtuals::HolderReload() -> void {
-        const auto weaponRef = Weapons[vars->impulse];
+        const auto& weaponRef = Weapons[vars->impulse];
         if (!weaponRef) {
             reload.Call(this);
             return;
         }
-        auto& weapon = weaponRef->get();
+        const auto& weapon = weaponRef->get();
         weapon.executeReload(EdictIndex(), player->EdictIndex());
     }
 
@@ -279,12 +280,12 @@ namespace rz
     );
 
     auto WeaponVirtuals::HolderIdle() -> void {
-        const auto weaponRef = Weapons[vars->impulse];
+        const auto& weaponRef = Weapons[vars->impulse];
         if (!weaponRef) {
             idle.Call(this);
             return;
         }
-        auto& weapon = weaponRef->get();
+        const auto& weapon = weaponRef->get();
         weapon.executeIdle(EdictIndex(), player->EdictIndex(), time_weapon_idle);
     }
 
@@ -386,7 +387,7 @@ namespace rz
                 (itemInfo.max_clip == WEAPON_NO_CLIP && !player->ammo[primary_ammo_type])) {
                 fire_on_empty = true;
             }
-            if (player->can_shoot && gameRules->isCanMove()) {
+            if (player->can_shoot && GameRules.isCanMove()) {
                 if (player->vars->water_level == 3 && (itemInfo.flags & ITEM_FLAG_NO_FIRE_UNDER_WATER)) {
                     PlayEmptySound();
                     next_primary_attack = 0.15f;
@@ -430,5 +431,27 @@ namespace rz
             return;
         }
         // HandleInfiniteAmmo();
+    }
+
+    VirtualHook WeaponVirtuals::create(
+        WEAPON_PLACEHOLDER,
+        HookIndex::OnCreate,
+        &WeaponVirtuals::HolderCreate
+    );
+
+    auto WeaponVirtuals::HolderCreate() -> void {
+        create.Call(this);
+        link = new Extras();
+    }
+
+    VirtualHook WeaponVirtuals::destroy(
+        WEAPON_PLACEHOLDER,
+        HookIndex::OnDestroy,
+        &WeaponVirtuals::HolderDestroy
+    );
+
+    auto WeaponVirtuals::HolderDestroy() -> void {
+        delete link;
+        destroy.Call(this);
     }
 }

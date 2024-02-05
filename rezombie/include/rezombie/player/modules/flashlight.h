@@ -7,7 +7,7 @@ namespace rz
 {
     class FlashlightModule : public Module<Flashlight> {
       public:
-        FlashlightModule() : Module<Flashlight>("flashlights") {}
+        FlashlightModule() : Module("flashlights") {}
 
         auto add(
             std::string color,

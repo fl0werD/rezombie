@@ -7,7 +7,7 @@ namespace rz
 {
     class PriceModule : public Module<Price> {
       public:
-        PriceModule() : Module<Price>("prices") {}
+        PriceModule() : Module("prices") {}
 
         auto add(int currency, int amount) -> int {
             return Module::add(new Price(currency, amount));

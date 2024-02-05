@@ -4,6 +4,7 @@
 #include "rezombie/currency/modules/currency.h"
 #include "rezombie/messages/user_message.h"
 #include "rezombie/core/api/amxx_helper.h"
+#include "rezombie/gamerules/game_rules.h"
 
 namespace rz
 {
@@ -21,14 +22,6 @@ namespace rz
         return executeForward(PlayerForward::GiveDefaultItems, player, classId);
     }
 
-    auto AmxxPlayer::LongJumpState(int player, int longJumpState) const -> void {
-        executeForward(PlayerForward::LongJumpState, player, longJumpState);
-    }
-
-    auto AmxxPlayer::LongJumpActivated(int player) const -> void {
-        executeForward(PlayerForward::LongJumpActivated, player);
-    }
-
     auto AmxxPlayer::registerForwards() -> void {
         using e = ForwardExecType;
         using p = ForwardParam;
@@ -40,14 +33,6 @@ namespace rz
         setForward(
             PlayerForward::GiveDefaultItems,
             RegisterForward("@player_give_default_items", e::Ignore, p::Cell, p::Cell, p::Done)
-        );
-        setForward(
-            PlayerForward::LongJumpState,
-            RegisterForward("@player_long_jump_state", e::Ignore, p::Cell, p::Cell, p::Done)
-        );
-        setForward(
-            PlayerForward::LongJumpActivated,
-            RegisterForward("@player_long_jump_activated", e::Ignore, p::Cell, p::Done)
         );
     }
 
@@ -61,23 +46,21 @@ namespace rz
         Currency,
         ActiveWeapon,
         Ammo,
-        //ExtraJumps,
         MapCamera,
         NextMapCameraTime,
     };
 
     const std::unordered_map<std::string, RzPlayerVars> PlayerVarsMap = {
-        {"health",               RzPlayerVars::Health},
-        {"team",                 RzPlayerVars::Team},
-        {"class",                RzPlayerVars::Class},
-        {"subclass",             RzPlayerVars::Subclass},
-        {"keep_subclass",        RzPlayerVars::KeepSubclass},
-        {"model",                RzPlayerVars::Model},
-        {"currency",             RzPlayerVars::Currency},
-        {"active_weapon",        RzPlayerVars::ActiveWeapon},
-        {"ammo",                 RzPlayerVars::Ammo},
-        //{"extra_jumps",          RzPlayerVars::ExtraJumps},
-        {"map_camera",           RzPlayerVars::MapCamera},
+        {"health", RzPlayerVars::Health},
+        {"team", RzPlayerVars::Team},
+        {"class", RzPlayerVars::Class},
+        {"subclass", RzPlayerVars::Subclass},
+        {"keep_subclass", RzPlayerVars::KeepSubclass},
+        {"model", RzPlayerVars::Model},
+        {"currency", RzPlayerVars::Currency},
+        {"active_weapon", RzPlayerVars::ActiveWeapon},
+        {"ammo", RzPlayerVars::Ammo},
+        {"map_camera", RzPlayerVars::MapCamera},
         {"next_map_camera_time", RzPlayerVars::NextMapCameraTime},
     };
 
@@ -92,14 +75,16 @@ namespace rz
 
         using vars = RzPlayerVars;
 
-        auto& player = Players[params[arg_player]];
+        const int playerId = params[arg_player];
+        CHECK_PLAYER(playerId)
+        auto& player = Players[playerId];
         const auto key = GetAmxString(amx, params[arg_var]);
         const auto& var = getMapValue(PlayerVarsMap, key);
         CHECK_VAR_EXISTS("Invalid player '%s' var", key)
         switch (*var) {
             case vars::Health: {
                 if (isGetter) {
-                    return player.getHealth();
+                    return std::max(0, player.getHealth());
                 } else {
                     // Invalid set var
                 }
@@ -182,14 +167,6 @@ namespace rz
                 }
                 break;
             }
-            /*case vars::ExtraJumps: {
-                if (isGetter) {
-                    return player.getMaxExtraJumps();
-                } else {
-                    player.setMaxExtraJumps(*Address(amx, params[arg_3]));
-                }
-                break;
-            }*/
             case vars::MapCamera: {
                 auto& camera = player.getMapCameraVars();
                 if (isGetter) {
@@ -218,6 +195,101 @@ namespace rz
 
     auto set_player_var(Amx* amx, cell* params) -> cell {
         return HandlePlayerVar(amx, params, false);
+    }
+
+    auto is_player_extra_exists(Amx* amx, cell* params) -> cell {
+        enum {
+            arg_count,
+            arg_player,
+            arg_type,
+            arg_key,
+        };
+
+        const int playerId = params[arg_player];
+        CHECK_PLAYER(playerId)
+        auto& player = Players[playerId];
+        const auto type = static_cast<ExtraType>(params[arg_type]);
+        const auto key = GetAmxString(amx, params[arg_key]);
+        return player.Extras().isKeyExists(type, key);
+    }
+
+    auto HandlePlayerExtra(Amx* amx, cell* params, bool isGetter) -> cell {
+        enum {
+            arg_count,
+            arg_player,
+            arg_type,
+            arg_key,
+            arg_4,
+            arg_5,
+        };
+
+        const int playerId = params[arg_player];
+        CHECK_PLAYER(playerId)
+        auto& player = Players[playerId];
+        const auto type = static_cast<ExtraType>(params[arg_type]);
+        const auto* key = GetAmxString(amx, params[arg_key], 0);
+        switch (type) {
+            case ExtraType::Int: {
+                auto& extra = player.Extras().getInts();
+                if (isGetter) {
+                    const auto& var = getMapValue(extra, key);
+                    CHECK_VAR_EXISTS("Invalid player extra '%s' var (int)", key)
+                    return extra[key];
+                } else {
+                    extra[key] = *Address(amx, params[arg_4]);
+                }
+                break;
+            }
+            case ExtraType::Float: {
+                auto& extra = player.Extras().getFloats();
+                if (isGetter) {
+                    const auto& var = getMapValue(extra, key);
+                    CHECK_VAR_EXISTS("Invalid player extra '%s' var (float)", key)
+                    return FloatToCell(extra[key]);
+                } else {
+                    extra[key] = CellToFloat(*Address(amx, params[arg_4]));
+                }
+                break;
+            }
+            case ExtraType::String: {
+                auto& extra = player.Extras().getStrings();
+                if (isGetter) {
+                    const auto& var = getMapValue(extra, key);
+                    CHECK_VAR_EXISTS("Invalid player extra '%s' var (string)", key)
+                    SetAmxString(amx, params[arg_4], extra[key].c_str(), *Address(amx, params[arg_5]));
+                } else {
+                    extra[key] = GetAmxString(amx, params[arg_4], 1);
+                }
+                break;
+            }
+        }
+        return true;
+    }
+
+    auto get_player_extra(Amx* amx, cell* params) -> cell {
+        return HandlePlayerExtra(amx, params, true);
+    }
+
+    auto set_player_extra(Amx* amx, cell* params) -> cell {
+        return HandlePlayerExtra(amx, params, false);
+    }
+
+    auto is_valid_attacker(Amx*, cell* params) -> cell {
+        enum {
+            arg_count,
+            arg_attacker,
+            arg_player,
+            arg_self,
+        };
+
+        const int attackerId = params[arg_attacker];
+        const int playerId = params[arg_player];
+        const bool self = params[arg_self];
+        const auto& attacker = Players[attackerId];
+        const auto& player = Players[playerId];
+        // connect attacker?
+        GameRules.PlayerCanTakeDamage(player, attacker);
+        return true;
     }
 
     auto change_player_class(Amx*, cell* params) -> cell {
@@ -262,7 +334,7 @@ namespace rz
         const int playerId = params[arg_player];
         const int flashlightId = params[arg_flashlight];
         auto& player = Players[playerId];
-        player.getFlashlight().setId(flashlightId);
+        player.Flashlight().setId(flashlightId);
         return true;
     }
 
@@ -277,29 +349,6 @@ namespace rz
         const int nightVisionId = params[arg_night_vision];
         auto& player = Players[playerId];
         return player.ChangeNightVision(nightVisionId);
-    }
-
-    auto add_player_currency(Amx* amx, cell* params) -> cell {
-        enum {
-            arg_count,
-            arg_player,
-            arg_currency,
-            arg_amount,
-            arg_reason,
-        };
-
-        // Check arg count
-        const int playerId = params[arg_player];
-        const auto& player = Players[playerId];
-        const auto currencyId = params[arg_currency];
-        const auto reason = GetAmxString(amx, params[arg_reason]);
-        const auto& currencyRef = Currency[currencyId];
-        if (!currencyRef) {
-            // throw
-            return false;
-        }
-        const auto currency = currencyRef->get();
-        return currency.executeSet(player, currency.executeGet(player) + params[arg_amount], reason);
     }
 
     auto player_joined(Amx*, cell* params) -> cell {
@@ -357,36 +406,6 @@ namespace rz
         return player.isFrozen();
     }
 
-    auto give_long_jump(Amx*, cell* params) -> cell {
-        enum {
-            arg_count,
-            arg_player,
-            arg_force,
-            arg_height,
-            arg_cooldown,
-        };
-
-        const int playerId = params[arg_player];
-        const int force = params[arg_force];
-        const int height = params[arg_height];
-        const float cooldown = CellToFloat(params[arg_cooldown]);
-        auto& player = Players[playerId];
-        player.GiveLongJump(force, height, cooldown);
-        return true;
-    }
-
-    auto remove_long_jump(Amx*, cell* params) -> cell {
-        enum {
-            arg_count,
-            arg_player,
-        };
-
-        const int playerId = params[arg_player];
-        auto& player = Players[playerId];
-        player.RemoveLongJump();
-        return true;
-    }
-
     auto send_hud(Amx* amx, cell* params) -> cell {
         enum {
             arg_count,
@@ -409,19 +428,19 @@ namespace rz
             cell fxTime;
         };
 
-        auto length = 0;
         const int playerId = params[arg_player];
         // check 0..3
         const int channel = params[arg_channel];
         const auto value = *reinterpret_cast<HudParams*>(Address(amx, params[arg_hud_params]));
-        auto color1 = Colors.parse(CellToString(value.color1, sizeof(value.color1)));
+        const auto color1 = Colors.parse(CellToString(value.color1, sizeof(value.color1)));
         if (!color1) {
             return false;
         }
-        auto color2 = Colors.parse(CellToString(value.color2, sizeof(value.color2)));
+        const auto color2 = Colors.parse(CellToString(value.color2, sizeof(value.color2)));
         if (!color2) {
             return false;
         }
+        auto length = 0;
         const auto text = FormatAmxString(amx, params, arg_text, &length);
         const auto& hudParams = HudMessageParams()
             .setX(CellToFloat(value.x))
@@ -435,7 +454,7 @@ namespace rz
             .setFxTime(CellToFloat(value.fxTime))
             .setChannel(channel);
         if (playerId) {
-            auto& player = Players[playerId];
+            const auto& player = Players[playerId];
             netHudMessage(player, hudParams, text);
         } else {
             netHudMessage(TO_ALL, hudParams, text);
@@ -466,7 +485,7 @@ namespace rz
         auto length = 0;
         const int playerId = params[arg_player];
         const auto value = *reinterpret_cast<LargeHudParams*>(Address(amx, params[arg_hud_params]));
-        auto color = Colors.parse(CellToString(value.color, sizeof(value.color)));
+        const auto color = Colors.parse(CellToString(value.color, sizeof(value.color)));
         if (!color) {
             return false;
         }
@@ -481,7 +500,7 @@ namespace rz
             .setFadeOutTime(CellToFloat(value.fadeOutTime))
             .setFxTime(CellToFloat(value.fxTime));
         if (playerId) {
-            auto& player = Players[playerId];
+            const auto& player = Players[playerId];
             netDHudMessage(player, hudParams, text);
         } else {
             netDHudMessage(TO_ALL, hudParams, text);
@@ -507,25 +526,26 @@ namespace rz
 
     auto AmxxPlayer::registerNatives() const -> void {
         static AmxNativeInfo natives[] = {
-            {"get_player_var",             get_player_var},
-            {"set_player_var",             set_player_var},
-            {"change_player_class",        change_player_class},
-            {"change_player_subclass",     change_player_subclass},
-            {"change_player_flashlight",   change_player_flashlight},
+            {"get_player_var", get_player_var},
+            {"set_player_var", set_player_var},
+            {"is_player_extra_exists", is_player_extra_exists},
+            {"get_player_extra", get_player_extra},
+            {"set_player_extra", set_player_extra},
+            {"is_valid_attacker", is_valid_attacker},
+            {"change_player_class", change_player_class},
+            {"change_player_subclass", change_player_subclass},
+            {"change_player_flashlight", change_player_flashlight},
             {"change_player_night_vision", change_player_night_vision},
-            {"player_joined",              player_joined},
-            {"respawn_player",             respawn_player},
-            {"add_player_currency",        add_player_currency},
-            {"freeze_player",              freeze_player},
-            {"is_player_freeze",           is_player_freeze},
-            {"give_long_jump",             give_long_jump},
-            {"remove_long_jump",           remove_long_jump},
+            {"player_joined", player_joined},
+            {"respawn_player", respawn_player},
+            {"freeze_player", freeze_player},
+            {"is_player_freeze", is_player_freeze},
 
-            {"send_hud",                   send_hud},
-            {"send_large_hud",             send_large_hud},
-            {"send_weapon_anim",           send_weapon_anim},
+            {"send_hud", send_hud},
+            {"send_large_hud", send_large_hud},
+            {"send_weapon_anim", send_weapon_anim},
 
-            {nullptr,                      nullptr},
+            {nullptr, nullptr},
         };
         AddNatives(natives);
     }

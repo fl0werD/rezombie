@@ -1,0 +1,4 @@
+[en]
+MODE_SVA_NAME = Snipers vs Assassins
+MODE_SVA_DESC = Snipers vs Assassins
+MODE_SVA_NOTICE = Snipers vs Assassins

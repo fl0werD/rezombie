@@ -1,15 +1,12 @@
 #pragma once
 
 #include "rezombie/core/object.h"
-#include "rezombie/gamerules/game_rules.h"
 #include "rezombie/models/modules/models.h"
 #include "rezombie/player/modules/nightvision.h"
-#include "rezombie/player/modules/player_props.h"
 #include "rezombie/player/modules/player_sounds.h"
 #include "rezombie/player/modules/player_class.h"
 #include "rezombie/weapons/modules/weapon.h"
 #include "player_class.h"
-#include "cssdk/dll/player.h"
 
 namespace rz
 {

@@ -1,6 +1,7 @@
 #include "rezombie/currency/api/currency.h"
 #include "rezombie/currency/modules/currency.h"
-#include "amxx/api.h"
+#include "rezombie/player/players.h"
+#include <amxx/api.h>
 
 namespace rz
 {
@@ -82,13 +83,39 @@ namespace rz
         return Currency[handle];
     }
 
+    auto add_player_currency(Amx* amx, cell* params) -> cell {
+        enum {
+            arg_count,
+            arg_player,
+            arg_currency,
+            arg_amount,
+            arg_reason,
+            arg_reason_arguments,
+        };
+
+        // Check arg count
+        const int playerId = params[arg_player];
+        const auto& player = Players[playerId];
+        const auto currencyId = params[arg_currency];
+        const auto& currencyRef = Currency[currencyId];
+        if (!currencyRef) {
+            // throw
+            return false;
+        }
+        const auto currency = currencyRef->get();
+        auto length = 0;
+        const auto reason = FormatAmxString(amx, params, arg_reason, &length);
+        return currency.executeSet(player, currency.executeGet(player) + params[arg_amount], reason);
+    }
+
     auto AmxxCurrency::registerNatives() const -> void {
         static AmxNativeInfo natives[] = {
-            {"create_currency", create_currency},
-            {"format_currency", format_currency},
-            {"find_currency",   find_currency},
+            {"create_currency",     create_currency},
+            {"format_currency",     format_currency},
+            {"find_currency",       find_currency},
+            {"add_player_currency", add_player_currency},
 
-            {nullptr,           nullptr},
+            {nullptr,               nullptr},
         };
         AddNatives(natives);
     }

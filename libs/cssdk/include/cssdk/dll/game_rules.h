@@ -684,13 +684,13 @@ namespace cssdk
         Neutral
     };
 
-    class GameRules // NOLINT(cppcoreguidelines-special-member-functions)
+    class GameRulesBase // NOLINT(cppcoreguidelines-special-member-functions)
     {
     public:
         /**
          * @brief N/D
         */
-        virtual ~GameRules() = default;
+        virtual ~GameRulesBase() = default;
 
         /**
          * @brief Fill skill data struct with proper values.
@@ -1118,7 +1118,7 @@ namespace cssdk
         bool is_game_over{};
     };
 
-    class HalfLifeRules : public GameRules // NOLINT(cppcoreguidelines-special-member-functions)
+    class HalfLifeRules : public GameRulesBase // NOLINT(cppcoreguidelines-special-member-functions)
     {
     public:
         /**
@@ -1402,7 +1402,7 @@ namespace cssdk
 #endif
 
     // ReSharper disable once CppImplicitDefaultConstructorNotAvailable
-    class HalfLifeMultiplay : public GameRules // NOLINT(cppcoreguidelines-special-member-functions)
+    class HalfLifeMultiplay : public GameRulesBase // NOLINT(cppcoreguidelines-special-member-functions)
     {
     public:
         /**
@@ -2285,13 +2285,13 @@ namespace cssdk
         bool team_balanced_;
     };
 
-    inline HalfLifeMultiplay* GameRules::CsGameRules()
+    inline HalfLifeMultiplay* GameRulesBase::CsGameRules()
     {
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
         return static_cast<HalfLifeMultiplay*>(this);
     }
 
-    inline const HalfLifeMultiplay* GameRules::CsGameRules() const
+    inline const HalfLifeMultiplay* GameRulesBase::CsGameRules() const
     {
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
         return static_cast<const HalfLifeMultiplay*>(this);

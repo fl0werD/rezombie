@@ -11,6 +11,7 @@ namespace rz
         Vector origin_{};
         Vector angles_{};
         int modelId_{};
+        int maxDistance_{};
 
       public:
         auto isEnabled() const -> bool { return isEnabled_; }
@@ -28,5 +29,9 @@ namespace rz
         auto getModel() const -> int { return modelId_; }
 
         auto setModel(int modelId) -> void { modelId_ = modelId; }
+
+        auto getMaxDistance() const -> int { return maxDistance_; }
+
+        auto setMaxDistance(int maxDistance) -> void { maxDistance_ = maxDistance; }
     };
 }

@@ -43,25 +43,25 @@ namespace rz
         switch (*value) {
             case var::ParentModel: {
                 if (isGetter) {
-                    return preview->getModel(PreviewType::ParentModel);
+                    return preview->getModel(JoinPreviewType::ParentModel);
                 } else {
-                    preview->setModel(PreviewType::ParentModel, *Address(amx, params[arg_3]));
+                    preview->setModel(JoinPreviewType::ParentModel, *Address(amx, params[arg_3]));
                 }
                 break;
             }
             case var::AttachModel: {
                 if (isGetter) {
-                    return preview->getModel(PreviewType::AttachModel);
+                    return preview->getModel(JoinPreviewType::AttachModel);
                 } else {
-                    preview->setModel(PreviewType::AttachModel, *Address(amx, params[arg_3]));
+                    preview->setModel(JoinPreviewType::AttachModel, *Address(amx, params[arg_3]));
                 }
                 break;
             }
             case var::ExtraAttachModel: {
                 if (isGetter) {
-                    return preview->getModel(PreviewType::ExtraAttachModel);
+                    return preview->getModel(JoinPreviewType::ExtraAttachModel);
                 } else {
-                    preview->setModel(PreviewType::ExtraAttachModel, *Address(amx, params[arg_3]));
+                    preview->setModel(JoinPreviewType::ExtraAttachModel, *Address(amx, params[arg_3]));
                 }
                 break;
             }

@@ -1,0 +1,4 @@
+[en]
+MODE_NEMESIS_NAME = Nemesis
+MODE_NEMESIS_DESC = Nemesis vs Humans
+MODE_NEMESIS_NOTICE = Nemesis (%n) vs humans

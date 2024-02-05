@@ -2,9 +2,7 @@
 
 #include "rezombie/core/module.h"
 #include "rezombie/entity/weapons/weapon.h"
-#include "rezombie/weapons/melee.h"
-#include "core/strings/format.h"
-#include "cssdk/dll/weapon_type.h"
+#include "rezombie/entity/weapons/melee.h"
 
 namespace rz
 {
@@ -13,7 +11,7 @@ namespace rz
 
     class WeaponModule : public Module<BaseWeapon> {
       public:
-        WeaponModule() : Module<BaseWeapon>("weapons") {}
+        WeaponModule() : Module("weapons") {}
 
         auto add(std::string handle, WeaponType weaponType) -> int {
             if (weaponType == WeaponType::Melee) {

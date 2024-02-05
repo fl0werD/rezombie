@@ -1,0 +1,4 @@
+[ru]
+MODE_SWARM_NAME = Куча на кучу
+MODE_SWARM_DESC = Люди vs. Зомби
+MODE_SWARM_NOTICE = Люди против зомби

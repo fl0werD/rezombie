@@ -1,0 +1,6 @@
+[ru]
+ITEMS_MENU_TITLE = Специальные вещи
+ITEMS_MENU_PLAYER_BOUGHT = %l ^3%n ^1купил ^4%l ^1за ^4%s
+ITEMS_MENU_PLAYER_TAKEN = %l ^3%n ^1взял ^4%l
+ITEMS_MENU_INSUFFICIENT_FUNDS = Недостаточно средств для покупки ^4%l^1! Не хватает: ^3%s
+ITEMS_MENU_SOMETHING_WENT_WRONG = ^3Что-то пошло не так при покупки...

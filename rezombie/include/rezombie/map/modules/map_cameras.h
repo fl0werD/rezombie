@@ -9,7 +9,7 @@ namespace rz
         Edict* camera_{};
 
       public:
-        MapCamerasModule() : Module<CameraData>("map_cameras") {}
+        MapCamerasModule() : Module("map_cameras") {}
 
         auto add(Vector origin, Vector angles) -> int {
             return Module::add(new CameraData(origin, angles));

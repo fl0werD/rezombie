@@ -10,7 +10,7 @@ namespace rz
     class FogModule : public Module<Fog> {
 
       public:
-        FogModule() : Module<Fog>("fogs") {}
+        FogModule() : Module("fogs") {}
 
         auto add(std::string color, int densityPercentage) -> int {
             return Module::add(new Fog(std::move(color), densityPercentage));

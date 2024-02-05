@@ -1,0 +1,4 @@
+[ru]
+MODE_SNIPER_NAME = Снайпер
+MODE_SNIPER_DESC = Снайпер vs. Зомби
+MODE_SNIPER_NOTICE = Снайпер (%n) против зомби

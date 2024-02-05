@@ -1,0 +1,4 @@
+[ru]
+MODE_SURVIVOR_NAME = Выживший
+MODE_SURVIVOR_DESC = Выживший vs. Зомби
+MODE_SURVIVOR_NOTICE = Выживший (%n) против зомби

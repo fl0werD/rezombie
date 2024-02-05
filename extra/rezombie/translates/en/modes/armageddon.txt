@@ -1,0 +1,4 @@
+[en]
+MODE_ARMAGEDDON_NAME = Armageddon
+MODE_ARMAGEDDON_DESC = Survivors & Snipers vs Nemesis & Assassins
+MODE_ARMAGEDDON_NOTICE = Survivors & Snipers vs Nemesis & Assassins

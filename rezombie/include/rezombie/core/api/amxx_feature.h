@@ -21,7 +21,7 @@ namespace rz
         Dummy,
     };
 
-    template<class E = size_t, E MAX_FORWARDS = DummyForward::Dummy>
+    template<class E = size_t, E MAX_FORWARDS = Dummy>
     class AmxxFeature : public AmxxBaseFeature {
         std::array<int, static_cast<size_t>(MAX_FORWARDS)> forwards_;
 

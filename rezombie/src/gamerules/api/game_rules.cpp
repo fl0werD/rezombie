@@ -1,7 +1,8 @@
 #include "rezombie/gamerules/api/game_rules.h"
 #include "rezombie/gamerules/game_rules.h"
-#include "rezombie/gamerules/modules/modes.h"
-#include "amxx/api.h"
+#include "rezombie/modes/modules/modes.h"
+#include "rezombie/core/api/amxx_helper.h"
+#include <amxx/api.h>
 
 namespace rz
 {
@@ -57,7 +58,7 @@ namespace rz
     enum class GameVars : int {
         GameState,
         RoundState,
-        RoundRemainingTime,
+        Timer,
         TeamWins,
         Mode,
         DefaultClass,
@@ -67,7 +68,7 @@ namespace rz
     const std::unordered_map<std::string, GameVars> GameVarsMap = {
         {"game_state",             GameVars::GameState},
         {"round_state",            GameVars::RoundState},
-        {"round_remaining_time",   GameVars::RoundRemainingTime},
+        {"timer",                  GameVars::Timer},
         {"team_wins",              GameVars::TeamWins},
         {"mode",                   GameVars::Mode},
         {"default_class",          GameVars::DefaultClass},
@@ -83,17 +84,13 @@ namespace rz
         };
 
         using vars = GameVars;
-
         const auto key = GetAmxString(amx, params[arg_var]);
         const auto& var = getMapValue(GameVarsMap, key);
-        if (!var) {
-            // Invalid index
-            return false;
-        }
+        CHECK_VAR_EXISTS("Invalid game '%s' var", key)
         switch (*var) {
             case vars::GameState: {
                 if (isGetter) {
-                    return toInt(gameRules->getGameState());
+                    return toInt(GameRules.getGameState());
                 } else {
                     // Invalid set vars
                 }
@@ -101,15 +98,15 @@ namespace rz
             }
             case vars::RoundState: {
                 if (isGetter) {
-                    return toInt(gameRules->getRoundState());
+                    return toInt(GameRules.getRoundState());
                 } else {
                     // Invalid set vars
                 }
                 break;
             }
-            case vars::RoundRemainingTime: {
+            case vars::Timer: {
                 if (isGetter) {
-                    return gameRules->getRoundRemainingTime();
+                    return GameRules.getTimer();
                 } else {
                     // Invalid set vars
                 }
@@ -118,15 +115,15 @@ namespace rz
             case vars::TeamWins: {
                 const auto team = static_cast<Team>(*Address(amx, params[arg_2]));
                 if (isGetter) {
-                    return gameRules->getTeamWins(team);
+                    return GameRules.getTeamWins(team);
                 } else {
-                    gameRules->setTeamWins(team, *Address(amx, params[arg_3]));
+                    GameRules.setTeamWins(team, *Address(amx, params[arg_3]));
                 }
                 break;
             }
             case vars::Mode: {
                 if (isGetter) {
-                    return gameRules->getMode();
+                    return GameRules.getMode();
                 } else {
                     // Invalid set vars
                 }
@@ -136,15 +133,15 @@ namespace rz
                 const auto team = static_cast<Team>(*Address(amx, params[arg_2]));
                 // CHECK_PLAYABLE_TEAM(team, false)
                 if (isGetter) {
-                    if (gameRules->getDefaultPlayerClassOverride(team)) {
-                        return gameRules->getDefaultPlayerClassOverride(team);
+                    if (GameRules.getDefaultPlayerClassOverride(team)) {
+                        return GameRules.getDefaultPlayerClassOverride(team);
                     }
-                    return gameRules->getDefaultPlayerClass(team);
+                    return GameRules.getDefaultPlayerClass(team);
                 } else {
                     const int classId = *Address(amx, params[arg_3]);
                     // new index = rz_module_get_valid_index(g_iModule, class);
                     // CHECK_MODULE_VALID_INDEX(index, false)
-                    gameRules->setDefaultPlayerClassOverride(team, classId);
+                    GameRules.setDefaultPlayerClassOverride(team, classId);
                 }
                 break;
             }
@@ -156,12 +153,12 @@ namespace rz
                     // CHECK_PLAYABLE_TEAM(team, false)
                     const int classId = *Address(amx, params[arg_3]);
                     if (!classId) {
-                        gameRules->setDefaultPlayerClassOverride(team, 0);
+                        GameRules.setDefaultPlayerClassOverride(team, 0);
                         return true;
                     }
                     // new index = rz_module_get_valid_index(g_iModule, class);
                     // CHECK_MODULE_VALID_INDEX(index, false)
-                    gameRules->setDefaultPlayerClassOverride(team, classId);
+                    GameRules.setDefaultPlayerClassOverride(team, classId);
                 }
                 break;
             }

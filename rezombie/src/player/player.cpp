@@ -9,12 +9,10 @@
 #include "rezombie/models/modules/models_pack.h"
 #include "rezombie/weapons/modules/weapon.h"
 #include "rezombie/player/players.h"
-#include "rezombie/entity/wrappers/player_base_wrapper.h"
 #include "rezombie/main/util.h"
-#include "rezombie/map/environment.h"
 #include "rezombie/messages/user_message.h"
-#include "rezombie/messages/temporary_entity.h"
 #include <metamod/engine.h>
+#include <metamod/utils.h>
 #include <mhooks/reapi.h>
 
 namespace rz
@@ -22,279 +20,279 @@ namespace rz
     using namespace core;
     using namespace metamod;
 
-/*
-    void EXT_FUNC CBasePlayer::__API_HOOK(Killed)(entvars_t *pevAttacker, int iGib)
-    {
-        m_canSwitchObserverModes = false;
-
-        if (m_LastHitGroup == HITGROUP_HEAD)
-            m_bHeadshotKilled = true;
-
-        CBaseEntity *pAttackerEntity = CBaseEntity::Instance(pevAttacker);
-
-        if (!m_bKilledByBomb)
+    /*
+        void EXT_FUNC CBasePlayer::__API_HOOK(Killed)(entvars_t *pevAttacker, int iGib)
         {
-            g_pGameRules->PlayerKilled(this, pevAttacker, g_pevLastInflictor);
-        }
+            m_canSwitchObserverModes = false;
 
-        MESSAGE_BEGIN(MSG_ONE, gmsgNVGToggle, nullptr, pev);
-        WRITE_BYTE(0);
-        MESSAGE_END();
+            if (m_LastHitGroup == HITGROUP_HEAD)
+                m_bHeadshotKilled = true;
 
-        m_bNightVisionOn = false;
+            CBaseEntity *pAttackerEntity = CBaseEntity::Instance(pevAttacker);
 
-        for (int i = 1; i <= gpGlobals->maxClients; i++)
-        {
-            CBasePlayer *pObserver = UTIL_PlayerByIndex(i);
-
-            if (!pObserver)
-                continue;
-
-            if (pObserver->IsObservingPlayer(this))
+            if (!m_bKilledByBomb)
             {
-                MESSAGE_BEGIN(MSG_ONE, gmsgNVGToggle, nullptr, pObserver->pev);
-                WRITE_BYTE(0);
-                MESSAGE_END();
-
-                pObserver->m_bNightVisionOn = false;
+                g_pGameRules->PlayerKilled(this, pevAttacker, g_pevLastInflictor);
             }
 
-            if (pObserver->m_hObserverTarget == this)
-                pObserver->m_flNextFollowTime = 0.0f;
-        }
+            MESSAGE_BEGIN(MSG_ONE, gmsgNVGToggle, nullptr, pev);
+            WRITE_BYTE(0);
+            MESSAGE_END();
 
-        if (m_pTank)
-        {
-            m_pTank->Use(this, this, USE_OFF, 0);
-            m_pTank = nullptr;
-        }
+            m_bNightVisionOn = false;
 
-        SetAnimation(PLAYER_DIE);
-
-        if (m_pActiveItem && m_pActiveItem->m_pPlayer)
-        {
-            switch (m_pActiveItem->m_iId)
+            for (int i = 1; i <= gpGlobals->maxClients; i++)
             {
-                case WEAPON_HEGRENADE:
+                CBasePlayer *pObserver = UTIL_PlayerByIndex(i);
+
+                if (!pObserver)
+                    continue;
+
+                if (pObserver->IsObservingPlayer(this))
                 {
-                    CHEGrenade *pHEGrenade = static_cast<CHEGrenade *>(m_pActiveItem);
-                    if ((pev->button & IN_ATTACK) && m_rgAmmo[pHEGrenade->m_iPrimaryAmmoType])
-                    {
-                        ThrowGrenade(pHEGrenade, (pev->origin + pev->view_ofs), pev->angles, 1.5, pHEGrenade->m_usCreateExplosion);
-                        m_rgAmmo[m_pActiveItem->PrimaryAmmoIndex()]--;
-                        pHEGrenade->m_flStartThrow = 0;
-                    }
-                    break;
+                    MESSAGE_BEGIN(MSG_ONE, gmsgNVGToggle, nullptr, pObserver->pev);
+                    WRITE_BYTE(0);
+                    MESSAGE_END();
+
+                    pObserver->m_bNightVisionOn = false;
                 }
-                case WEAPON_FLASHBANG:
+
+                if (pObserver->m_hObserverTarget == this)
+                    pObserver->m_flNextFollowTime = 0.0f;
+            }
+
+            if (m_pTank)
+            {
+                m_pTank->Use(this, this, USE_OFF, 0);
+                m_pTank = nullptr;
+            }
+
+            SetAnimation(PLAYER_DIE);
+
+            if (m_pActiveItem && m_pActiveItem->m_pPlayer)
+            {
+                switch (m_pActiveItem->m_iId)
                 {
-                    CFlashbang *pFlashbang = static_cast<CFlashbang *>(m_pActiveItem);
-                    if ((pev->button & IN_ATTACK) && m_rgAmmo[pFlashbang->m_iPrimaryAmmoType])
+                    case WEAPON_HEGRENADE:
                     {
-                        ThrowGrenade(pFlashbang, (pev->origin + pev->view_ofs), pev->angles, 1.5);
-                        m_rgAmmo[m_pActiveItem->PrimaryAmmoIndex()]--;
-                        pFlashbang->m_flStartThrow = 0;
+                        CHEGrenade *pHEGrenade = static_cast<CHEGrenade *>(m_pActiveItem);
+                        if ((pev->button & IN_ATTACK) && m_rgAmmo[pHEGrenade->m_iPrimaryAmmoType])
+                        {
+                            ThrowGrenade(pHEGrenade, (pev->origin + pev->view_ofs), pev->angles, 1.5, pHEGrenade->m_usCreateExplosion);
+                            m_rgAmmo[m_pActiveItem->PrimaryAmmoIndex()]--;
+                            pHEGrenade->m_flStartThrow = 0;
+                        }
+                        break;
                     }
-                    break;
-                }
-                case WEAPON_SMOKEGRENADE:
-                {
-                    CSmokeGrenade *pSmoke = static_cast<CSmokeGrenade *>(m_pActiveItem);
-                    if ((pev->button & IN_ATTACK) && m_rgAmmo[pSmoke->m_iPrimaryAmmoType])
+                    case WEAPON_FLASHBANG:
                     {
-                        ThrowGrenade(pSmoke, (pev->origin + pev->view_ofs), pev->angles, 1.5, pSmoke->m_usCreateSmoke);
-                        m_rgAmmo[m_pActiveItem->PrimaryAmmoIndex()]--;
-                        pSmoke->m_flStartThrow = 0;
+                        CFlashbang *pFlashbang = static_cast<CFlashbang *>(m_pActiveItem);
+                        if ((pev->button & IN_ATTACK) && m_rgAmmo[pFlashbang->m_iPrimaryAmmoType])
+                        {
+                            ThrowGrenade(pFlashbang, (pev->origin + pev->view_ofs), pev->angles, 1.5);
+                            m_rgAmmo[m_pActiveItem->PrimaryAmmoIndex()]--;
+                            pFlashbang->m_flStartThrow = 0;
+                        }
+                        break;
                     }
-                    break;
+                    case WEAPON_SMOKEGRENADE:
+                    {
+                        CSmokeGrenade *pSmoke = static_cast<CSmokeGrenade *>(m_pActiveItem);
+                        if ((pev->button & IN_ATTACK) && m_rgAmmo[pSmoke->m_iPrimaryAmmoType])
+                        {
+                            ThrowGrenade(pSmoke, (pev->origin + pev->view_ofs), pev->angles, 1.5, pSmoke->m_usCreateSmoke);
+                            m_rgAmmo[m_pActiveItem->PrimaryAmmoIndex()]--;
+                            pSmoke->m_flStartThrow = 0;
+                        }
+                        break;
+                    }
+                    default:
+                        break;
                 }
+            }
+
+            pev->modelindex = m_modelIndexPlayer;
+            pev->deadflag = DEAD_DYING;
+            pev->movetype = MOVETYPE_TOSS;
+            pev->takedamage = DAMAGE_NO;
+
+            pev->gamestate = HITGROUP_SHIELD_DISABLED;
+            m_bShieldDrawn = false;
+
+            pev->flags &= ~FL_ONGROUND;
+
+    #ifdef REGAMEDLL_FIXES
+            // FlashlightTurnOff()
+            pev->effects &= ~EF_DIMLIGHT;
+    #endif
+
+    #ifndef REGAMEDLL_ADD
+            if (fadetoblack.value == 0.0)
+        {
+            pev->iuser1 = OBS_CHASE_FREE;
+            pev->iuser2 = ENTINDEX(edict());
+            pev->iuser3 = ENTINDEX(ENT(pevAttacker));
+
+            m_hObserverTarget = UTIL_PlayerByIndexSafe(pev->iuser3);
+
+            MESSAGE_BEGIN(MSG_ONE, gmsgADStop, nullptr, pev);
+            MESSAGE_END();
+        }
+        else
+        {
+            UTIL_ScreenFade(this, Vector(0, 0, 0), 3, 3, 255, (FFADE_OUT | FFADE_STAYOUT));
+        }
+    #else
+
+            float flDyingDuration = GetSequenceDuration() + CGameRules::GetDyingTime();
+            switch ((int)fadetoblack.value)
+            {
                 default:
-                    break;
-            }
-        }
-
-        pev->modelindex = m_modelIndexPlayer;
-        pev->deadflag = DEAD_DYING;
-        pev->movetype = MOVETYPE_TOSS;
-        pev->takedamage = DAMAGE_NO;
-
-        pev->gamestate = HITGROUP_SHIELD_DISABLED;
-        m_bShieldDrawn = false;
-
-        pev->flags &= ~FL_ONGROUND;
-
-#ifdef REGAMEDLL_FIXES
-        // FlashlightTurnOff()
-        pev->effects &= ~EF_DIMLIGHT;
-#endif
-
-#ifndef REGAMEDLL_ADD
-        if (fadetoblack.value == 0.0)
-	{
-		pev->iuser1 = OBS_CHASE_FREE;
-		pev->iuser2 = ENTINDEX(edict());
-		pev->iuser3 = ENTINDEX(ENT(pevAttacker));
-
-		m_hObserverTarget = UTIL_PlayerByIndexSafe(pev->iuser3);
-
-		MESSAGE_BEGIN(MSG_ONE, gmsgADStop, nullptr, pev);
-		MESSAGE_END();
-	}
-	else
-	{
-		UTIL_ScreenFade(this, Vector(0, 0, 0), 3, 3, 255, (FFADE_OUT | FFADE_STAYOUT));
-	}
-#else
-
-        float flDyingDuration = GetSequenceDuration() + CGameRules::GetDyingTime();
-        switch ((int)fadetoblack.value)
-        {
-            default:
-            {
-                pev->iuser1 = OBS_CHASE_FREE;
-                pev->iuser2 = ENTINDEX(edict());
-                pev->iuser3 = ENTINDEX(ENT(pevAttacker));
-
-                m_hObserverTarget = UTIL_PlayerByIndexSafe(pev->iuser3);
-
-                MESSAGE_BEGIN(MSG_ONE, gmsgADStop, nullptr, pev);
-                MESSAGE_END();
-
-                break;
-            }
-            case FADETOBLACK_STAY:
-            {
-                UTIL_ScreenFade(this, Vector(0, 0, 0), 0.8f, flDyingDuration, 255, (FFADE_OUT | FFADE_STAYOUT));
-                break;
-            }
-            case FADETOBLACK_AT_DYING:
-            {
-                pev->iuser1 = OBS_CHASE_FREE;
-                pev->iuser2 = ENTINDEX(edict());
-                pev->iuser3 = ENTINDEX(ENT(pevAttacker));
-
-                m_hObserverTarget = UTIL_PlayerByIndexSafe(pev->iuser3);
-
-                MESSAGE_BEGIN(MSG_ONE, gmsgADStop, nullptr, pev);
-                MESSAGE_END();
-
-                UTIL_ScreenFade(this, Vector(0, 0, 0), 0.8f, flDyingDuration, 255, (FFADE_OUT));
-
-                break;
-            }
-        }
-#endif // REGAMEDLL_ADD
-
-        SetScoreboardAttributes();
-
-        if (m_iThrowDirection)
-        {
-            switch (m_iThrowDirection)
-            {
-                case THROW_FORWARD:
                 {
-                    UTIL_MakeVectors(pev->angles);
-                    pev->velocity = gpGlobals->v_forward * RANDOM_FLOAT(100, 200);
-                    pev->velocity.z = RANDOM_FLOAT(50, 100);
+                    pev->iuser1 = OBS_CHASE_FREE;
+                    pev->iuser2 = ENTINDEX(edict());
+                    pev->iuser3 = ENTINDEX(ENT(pevAttacker));
+
+                    m_hObserverTarget = UTIL_PlayerByIndexSafe(pev->iuser3);
+
+                    MESSAGE_BEGIN(MSG_ONE, gmsgADStop, nullptr, pev);
+                    MESSAGE_END();
+
                     break;
                 }
-                case THROW_BACKWARD:
+                case FADETOBLACK_STAY:
                 {
-                    UTIL_MakeVectors(pev->angles);
-                    pev->velocity = gpGlobals->v_forward * RANDOM_FLOAT(-100, -200);
-                    pev->velocity.z = RANDOM_FLOAT(50, 100);
+                    UTIL_ScreenFade(this, Vector(0, 0, 0), 0.8f, flDyingDuration, 255, (FFADE_OUT | FFADE_STAYOUT));
                     break;
                 }
-                case THROW_HITVEL:
+                case FADETOBLACK_AT_DYING:
                 {
-                    if (FClassnameIs(pevAttacker, "player"))
+                    pev->iuser1 = OBS_CHASE_FREE;
+                    pev->iuser2 = ENTINDEX(edict());
+                    pev->iuser3 = ENTINDEX(ENT(pevAttacker));
+
+                    m_hObserverTarget = UTIL_PlayerByIndexSafe(pev->iuser3);
+
+                    MESSAGE_BEGIN(MSG_ONE, gmsgADStop, nullptr, pev);
+                    MESSAGE_END();
+
+                    UTIL_ScreenFade(this, Vector(0, 0, 0), 0.8f, flDyingDuration, 255, (FFADE_OUT));
+
+                    break;
+                }
+            }
+    #endif // REGAMEDLL_ADD
+
+            SetScoreboardAttributes();
+
+            if (m_iThrowDirection)
+            {
+                switch (m_iThrowDirection)
+                {
+                    case THROW_FORWARD:
                     {
-                        UTIL_MakeVectors(pevAttacker->angles);
-
-                        pev->velocity = gpGlobals->v_forward * RANDOM_FLOAT(200, 300);
-                        pev->velocity.z = RANDOM_FLOAT(200, 300);
+                        UTIL_MakeVectors(pev->angles);
+                        pev->velocity = gpGlobals->v_forward * RANDOM_FLOAT(100, 200);
+                        pev->velocity.z = RANDOM_FLOAT(50, 100);
+                        break;
                     }
-                    break;
-                }
-                case THROW_BOMB:
-                {
-                    // TODO: fix test demo
-                    pev->velocity = m_vBlastVector * (1.0f / m_vBlastVector.Length()) * float(2300.0f - m_vBlastVector.Length()) * 0.25f;
-                    pev->velocity.z = (2300.0f - m_vBlastVector.Length()) / 2.75f;
-                    break;
-                }
-                case THROW_GRENADE:
-                {
-                    pev->velocity = m_vBlastVector * (1 / m_vBlastVector.Length()) * (500 - m_vBlastVector.Length());
-                    pev->velocity.z = (350 - m_vBlastVector.Length()) * 1.5;
-                    break;
-                }
-                case THROW_HITVEL_MINUS_AIRVEL:
-                {
-                    if (FClassnameIs(pevAttacker, "player"))
+                    case THROW_BACKWARD:
                     {
-                        UTIL_MakeVectors(pevAttacker->angles);
-                        pev->velocity = gpGlobals->v_forward * RANDOM_FLOAT(200, 300);
+                        UTIL_MakeVectors(pev->angles);
+                        pev->velocity = gpGlobals->v_forward * RANDOM_FLOAT(-100, -200);
+                        pev->velocity.z = RANDOM_FLOAT(50, 100);
+                        break;
                     }
-                    break;
+                    case THROW_HITVEL:
+                    {
+                        if (FClassnameIs(pevAttacker, "player"))
+                        {
+                            UTIL_MakeVectors(pevAttacker->angles);
+
+                            pev->velocity = gpGlobals->v_forward * RANDOM_FLOAT(200, 300);
+                            pev->velocity.z = RANDOM_FLOAT(200, 300);
+                        }
+                        break;
+                    }
+                    case THROW_BOMB:
+                    {
+                        // TODO: fix test demo
+                        pev->velocity = m_vBlastVector * (1.0f / m_vBlastVector.Length()) * float(2300.0f - m_vBlastVector.Length()) * 0.25f;
+                        pev->velocity.z = (2300.0f - m_vBlastVector.Length()) / 2.75f;
+                        break;
+                    }
+                    case THROW_GRENADE:
+                    {
+                        pev->velocity = m_vBlastVector * (1 / m_vBlastVector.Length()) * (500 - m_vBlastVector.Length());
+                        pev->velocity.z = (350 - m_vBlastVector.Length()) * 1.5;
+                        break;
+                    }
+                    case THROW_HITVEL_MINUS_AIRVEL:
+                    {
+                        if (FClassnameIs(pevAttacker, "player"))
+                        {
+                            UTIL_MakeVectors(pevAttacker->angles);
+                            pev->velocity = gpGlobals->v_forward * RANDOM_FLOAT(200, 300);
+                        }
+                        break;
+                    }
+                    default:
+                        break;
                 }
-                default:
-                    break;
+
+                pev->angles.y = UTIL_VecToAngles(-pev->velocity).y;
+                pev->v_angle.y = pev->angles.y;
+
+                m_iThrowDirection = THROW_NONE;
             }
 
-            pev->angles.y = UTIL_VecToAngles(-pev->velocity).y;
-            pev->v_angle.y = pev->angles.y;
+            m_iClientHealth = 0;
+            MESSAGE_BEGIN(MSG_ONE, gmsgHealth, nullptr, pev);
+            WRITE_BYTE(m_iClientHealth);
+            MESSAGE_END();
 
-            m_iThrowDirection = THROW_NONE;
-        }
+            MESSAGE_BEGIN(MSG_ONE, gmsgCurWeapon, nullptr, pev);
+            WRITE_BYTE(0);
+            WRITE_BYTE(0xFF);
+            WRITE_BYTE(0xFF);
+            MESSAGE_END();
 
-        m_iClientHealth = 0;
-        MESSAGE_BEGIN(MSG_ONE, gmsgHealth, nullptr, pev);
-        WRITE_BYTE(m_iClientHealth);
-        MESSAGE_END();
+            SendFOV(0);
 
-        MESSAGE_BEGIN(MSG_ONE, gmsgCurWeapon, nullptr, pev);
-        WRITE_BYTE(0);
-        WRITE_BYTE(0xFF);
-        WRITE_BYTE(0xFF);
-        MESSAGE_END();
-
-        SendFOV(0);
-
-        CSGameRules()->CheckWinConditions();
-        m_bNotKilled = false;
-
-        BuyZoneIcon_Clear(this);
-
-#ifdef REGAMEDLL_ADD
-        CSPlayer()->OnKilled();
-#endif
-
-        SetThink(&CBasePlayer::PlayerDeathThink);
-        pev->nextthink = gpGlobals->time + 0.1f;
-        pev->solid = SOLID_NOT;
-
-        if ((pev->health < -9000 && iGib != GIB_NEVER) || iGib == GIB_ALWAYS)
-        {
-
-#ifndef REGAMEDLL_FIXES
-            pev->solid = SOLID_NOT;
-#endif
-            GibMonster();
-            pev->effects |= EF_NODRAW;
-
-#ifndef REGAMEDLL_FIXES
             CSGameRules()->CheckWinConditions();
-#endif
-            return;
+            m_bNotKilled = false;
+
+            BuyZoneIcon_Clear(this);
+
+    #ifdef REGAMEDLL_ADD
+            CSPlayer()->OnKilled();
+    #endif
+
+            SetThink(&CBasePlayer::PlayerDeathThink);
+            pev->nextthink = gpGlobals->time + 0.1f;
+            pev->solid = SOLID_NOT;
+
+            if ((pev->health < -9000 && iGib != GIB_NEVER) || iGib == GIB_ALWAYS)
+            {
+
+    #ifndef REGAMEDLL_FIXES
+                pev->solid = SOLID_NOT;
+    #endif
+                GibMonster();
+                pev->effects |= EF_NODRAW;
+
+    #ifndef REGAMEDLL_FIXES
+                CSGameRules()->CheckWinConditions();
+    #endif
+                return;
+            }
+
+            DeathSound();
+
+            pev->angles.x = 0;
+            pev->angles.z = 0;
         }
-
-        DeathSound();
-
-        pev->angles.x = 0;
-        pev->angles.z = 0;
-    }
-*/
+    */
     auto Player::init(PlayerBase* base) -> void {
         edict_ = base->GetEdict();
         vars_ = &edict_->vars;
@@ -321,21 +319,60 @@ namespace rz
             chain->CallNext(base);
             return;
         }
-        if (gameRules->isCanMove()) {
+        if (GameRules.isCanMove()) {
             player.setIUser3(player.getIUser3() & ~NO_MOVE_PLAYER_FLAGS);
         }
-        auto newClass = gameRules->defaultPlayerClass(Team::Human);
-        if (gameRules->getGameState() == GameState::Playing && gameRules->getRoundState() == RoundState::Playing) {
-            newClass = gameRules->defaultPlayerClass(Team::Zombie);
-        }
+        const auto newClass = GameRules.defaultPlayerClass(GameRules.getRespawnTeam());
         if (player.getClass() != newClass) {
             player.setKilled(true);
             player.setClass(newClass);
         }
         player.ChangeClass(player.getClass(), &player, true);
+        // check body for alive
         const auto body = player.getBody();
         chain->CallNext(base);
         player.setBody(body);
+        //player.setThirdCamera(true);
+    }
+
+    auto Player_TakeDamage(
+        ReHookPlayerTakeDamage* chain,
+        PlayerBase* base,
+        EntityVars* inflictorVars,
+        EntityVars* attackerVars,
+        float& damage,
+        int damageType
+    ) -> qboolean {
+        const auto& weaponRef = Weapons[inflictorVars->impulse];
+        if (weaponRef) {
+            const auto& weapon = weaponRef->get();
+            if (weapon.getAlwaysDamage() != -1) {
+                damage = static_cast<float>(weapon.getAlwaysDamage());
+            }
+        }
+        return chain->CallNext(base, inflictorVars, attackerVars, damage, damageType);
+    }
+
+    auto Player_Killed(ReHookPlayerKilled* chain, PlayerBase* base, EntityVars* attackerVars, int gib) -> void {
+        if (attackerVars && attackerVars != base->vars) {
+            const auto& attackerBase = EntityPrivateData<PlayerBase>(attackerVars->containing_entity);
+            if (attackerBase != nullptr) {
+                const auto& attacker = Players[attackerBase];
+                const auto& activeItem = attacker.getActiveItem(); // to inflictor
+                if (activeItem != nullptr) {
+                    const auto& weaponRef = Weapons[activeItem->vars->impulse];
+                    if (weaponRef) {
+                        const auto& weapon = weaponRef->get();
+                        if (weapon.getGibs()) {
+                            gib = GIB_ALWAYS;
+                        }
+                    }
+                }
+            }
+        }
+        chain->CallNext(base, attackerVars, gib);
+        auto& player = Players[base];
+        player.setIUser1(ObserverMode::None);
         //player.setThirdCamera(true);
     }
 
@@ -347,6 +384,7 @@ namespace rz
         if (!player.isAlive()) {
             return;
         }
+        player.WorldPreviewUpdate();
         if (player.isFrozen() && player.getFreezeEndTime() <= g_global_vars->time) {
             player.RemoveFreeze();
         }
@@ -358,15 +396,16 @@ namespace rz
         auto& player = Players[base];
         if (player.isAlive()) {
             if (player.getImpulse() == 100) {
-                player.SwitchFlashlight(!player.getFlashlight().isEnabled());
+                player.SwitchFlashlight(!player.Flashlight().isEnabled());
                 player.setImpulse(0);
             }
         }
         chain->CallNext(base);
+        player.ThirdCameraUpdate();
         if (!player.isAlive()) {
             return;
         }
-        player.ThirdCameraUpdate();
+        player.JumpThink();
     }
 
     auto Player_AddPlayerItem(ReHookPlayerAddPlayerItem*, PlayerBase* base, PlayerItemBase* item) -> qboolean {
@@ -387,7 +426,7 @@ namespace rz
         }
         item->next = player.getPlayerItems(itemSlot);
         player.setPlayerItems(itemSlot, item);
-        if (gameRules->ShouldSwitchWeapon(player, item)) {
+        if (GameRules.ShouldSwitchWeapon(player, item)) {
             player.SwitchWeapon(item);
         }
         player.setHideHud(player.getHideHud() & ~HIDE_HUD_WEAPONS);
@@ -451,12 +490,12 @@ namespace rz
     }
 
     auto Player_Jump(ReHookPlayerJump* chain, PlayerBase* base) -> void {
-        chain->CallNext(base);
+        //chain->CallNext(base);
         auto& player = Players[base];
         if (player.getIUser3() & NO_MOVE_PLAYER_FLAGS) {
             return;
         }
-        player.ExtraJump();
+        player.Jump();
         player.LongJump();
     }
 
@@ -475,6 +514,17 @@ namespace rz
         // no op
     }
 
+    auto Player_Radio(
+        ReHookPlayerRadio* chain,
+        PlayerBase* base,
+        const char* message,
+        const char* messageVerbose,
+        short pitch,
+        bool showIcon
+    ) -> void {
+        // No op
+    }
+
     auto Player_ResetMaxSpeed(ReHookPlayerResetMaxSpeed*, PlayerBase* base) -> void {
         auto& player = Players[base];
         // if joining
@@ -482,7 +532,7 @@ namespace rz
             player.setMaxSpeed(900);
             return;
         }
-        if (!gameRules->isCanMove() || player.isFrozen()) {
+        if (!GameRules.isCanMove() || player.isFrozen()) {
             player.setMaxSpeed(1);
             return;
         }
@@ -494,15 +544,14 @@ namespace rz
         }
     }
 
-    auto Player_Pain(ReHookPlayerPain* chain, PlayerBase* base, HitBoxGroup lastHitGroup, bool hasArmour)
-    -> void {
+    auto Player_Pain(ReHookPlayerPain* chain, PlayerBase* base, HitBoxGroup lastHitGroup, bool hasArmour) -> void {
         const auto& player = Players[base];
         const auto soundsRef = PlayerSounds[player.getSounds()];
         if (!soundsRef) {
             chain->CallNext(base, lastHitGroup, hasArmour);
             return;
         }
-        const auto& sound = soundsRef->get();
+        auto& sound = soundsRef->get();
         if (lastHitGroup == HitBoxGroup::Head) {
             if (player.getHelmet()) {
                 UTIL_EmitSound(player, SoundChannel::Voice, sound.getRandom(PlayerSoundType::ArmoredHead));
@@ -527,7 +576,7 @@ namespace rz
             chain->CallNext(base);
             return;
         }
-        const auto& sound = soundsRef->get();
+        auto& sound = soundsRef->get();
         UTIL_EmitSound(player, SoundChannel::Voice, sound.getRandom(PlayerSoundType::Death));
     }
 
@@ -563,7 +612,75 @@ namespace rz
             chain.CallNext(base);
             return;
         }*/
+    }
 
+    auto Player_DeathThink(ReHookPlayerDeathThink* chain, PlayerBase* base) -> void {
+        auto& player = Players[base];
+        if (player.getJoiningState() != JoinState::Joined) {
+            return;
+        }
+        if (player.getFlags() & FL_ON_GROUND) {
+            const float forward = player.getVelocity().Length() - 20;
+            if (forward <= 0) {
+                player.setVelocity(VECTOR_ZERO);
+            } else {
+                player.setVelocity(forward * player.getVelocity().Normalize());
+            }
+        }
+
+        if (player.hasWeapons()) {
+            player.forEachItem([&player](PlayerItem* item) {
+                if (item->CanDrop()) {
+                    player.DropPlayerItem(item);
+                    item->vars->velocity.x = RandomFloat(24.0, 64.0) * (RandomLong(0, 1) ? 1.f : -1.f);
+                    item->vars->velocity.y = RandomFloat(24.0, 64.0) * (RandomLong(0, 1) ? 1.f : -1.f);
+                    item->vars->velocity.z = RandomFloat(64.0, 128.0);
+                }
+                return false;
+            });
+            player.RemoveAllItems(true);
+            player.setDeadTime(g_global_vars->time + 2);
+            sendBarTime(player, 2);
+        }
+
+        if (player.getMoveType() != MoveTypeEntity::None && (player.getFlags() & FL_ON_GROUND)) {
+            player.setMoveType(MoveTypeEntity::None);
+        }
+
+        auto angles = player.getAngles();
+        angles.x = 0;
+        player.setAngles(angles);
+
+        if (player.getDeadFlag() == DeathState::Dying) {
+            if (base->vars->model_index && !base->sequence_finished) {
+                auto interval = g_global_vars->time - base->vars->anim_time;
+                if (interval <= 0.001f) {
+                    base->vars->anim_time = g_global_vars->time;
+                } else {
+                    if (base->vars->anim_time == 0.f) {
+                        interval = 0.f;
+                    }
+                    base->vars->frame += interval * base->frame_rate;
+                    base->vars->anim_time = g_global_vars->time;
+                    if (base->vars->frame >= 255.f) {
+                        base->vars->frame = 255.f;
+                        base->sequence_finished = true;
+                    }
+                }
+            } else {
+                player.setDeadFlag(DeathState::Dead);
+                player.setEffects(player.getEffects() | EF_NO_INTERPOLATE);
+            }
+        }
+        if (player.getDeadTime() <= g_global_vars->time) {
+            if (GameRules.PlayerCanRespawn(player)) {
+                player.RoundRespawn();
+            } else {
+                //if ({// && !(physics_flags & PFLAG_OBSERVER)) {
+                base->GetCsPlayer()->StartDeathCam();
+                //}
+            }
+        }
     }
 
     auto InternalCommand(ReHookInternalCommand* chain, Edict* client, const char* command, const char* arg1) -> void {
@@ -573,37 +690,32 @@ namespace rz
                 chain->CallNext(client, command, arg1);
             }
             return;
-        } else if (str::Equals(command, "nightvision")) {
-            if (!player.isAlive() || !player.getNightVision().isEnabled()) {
+        }
+        if (str::Equals(command, "nightvision")) {
+            if (!player.isAlive() || !player.NightVision().getId()) {
                 return;
             }
-            if (g_global_vars->time >= player.getLastCommandTime(TrackCommands::NightVision)) {
-                player.setLastCommandTime(TrackCommands::NightVision, g_global_vars->time + 0.3f);
-                player.SwitchNightVision(!player.getNightVision().isEnabled());
+            if (g_global_vars->time < player.getLastCommandTime(TrackCommands::NightVision)) {
+                return;
             }
+            player.setLastCommandTime(TrackCommands::NightVision, g_global_vars->time + 0.3f);
+            player.SwitchNightVision(!player.NightVision().isEnabled());
             return;
-        } else {
-            if (player.SelectItem(command)) {
-                return;
-            }
+        }
+        if (player.SelectItem(command)) {
+            return;
         }
         chain->CallNext(client, command, arg1);
     }
 
-    auto Player_Killed(ReHookPlayerKilled* chain, PlayerBase* victim, EntityVars* attacker, int gib) -> void {
-        chain->CallNext(victim, attacker, gib);
-        //victim->SetThink(&PlayerBaseWrapper::PlayerDeathThink);
-        auto& player = Players[victim];
-        player.setIUser1(ObserverMode::None);
-        //player.setThirdCamera(true);
-    }
-
     auto RegisterPlayerHooks() -> void {
-        auto hooks = regamedll_api::HookChains();
+        auto* hooks = regamedll_api::HookChains();
 
         hooks->InternalCommand()->RegisterHook(&InternalCommand);
 
         hooks->PlayerSpawn()->RegisterHook(&Player_Spawn);
+        hooks->PlayerTakeDamage()->RegisterHook(&Player_TakeDamage);
+        hooks->PlayerKilled()->RegisterHook(&Player_Killed);
         hooks->PlayerPreThink()->RegisterHook(&Player_PreThink);
         hooks->PlayerPostThink()->RegisterHook(&Player_PostThink);
         hooks->PlayerAddPlayerItem()->RegisterHook(&Player_AddPlayerItem);
@@ -617,26 +729,13 @@ namespace rz
         hooks->PlayerUpdateClientData()->RegisterHook(&Player_UpdateClientData);
         hooks->PlayerImpulseCommands()->RegisterHook(&Player_ImpulseCommands);
         hooks->PlayerAddAccount()->RegisterHook(&Player_AddAccount);
+        hooks->PlayerRadio()->RegisterHook(&Player_Radio);
 
         hooks->PlayerPain()->RegisterHook(&Player_Pain);
         hooks->PlayerDeathSound()->RegisterHook(&Player_DeathSound);
         hooks->PlayerJoiningThink()->RegisterHook(&Player_JoiningThink);
-
-        hooks->PlayerKilled()->RegisterHook(&Player_Killed);
+        hooks->PlayerDeathThink()->RegisterHook(&Player_DeathThink);
     }
-
-    /*
-    auto Radio(
-        IReGameHook_CBasePlayer_Radio* chain,
-        CBasePlayer* basePlayer,
-        const char* message,
-        const char* messageVerbose,
-        short pitch,
-        bool showIcon
-    ) -> void {
-        // No op
-    }
-*/
 
     /*auto chooseAppearance(IReGameHook_HandleMenu_ChooseAppearance* chain, CBasePlayer* basePlayer, int slot) -> void
     {
@@ -714,7 +813,7 @@ namespace rz
         if (!classRef) {
             return result;
         }
-        auto& playerClass = classRef->get();
+        const auto& playerClass = classRef->get();
         setClass(classId);
         setTeam(playerClass.getTeam());
         setProps(playerClass.getProps());
@@ -773,14 +872,14 @@ namespace rz
         setProps(subclass.getProps());
         setSounds(subclass.getSounds());
         setMelee(subclass.getMelee());
-        getNightVision().setId(0);
+        //getNightVision().setId(0);
         //switchFlashlight
         ChangeModel(subclass.getModel());
         PlayerSubclassApi.ChangeSubclassPost(*this, subclassId);
         return result;
     }
 
-    auto Player::ChangeProps(int propsId, bool spawn) -> bool {
+    auto Player::ChangeProps(int propsId, bool isSpawn) -> bool {
         const auto propsRef = Props[propsId];
         if (!propsRef) {
             return false;
@@ -799,7 +898,7 @@ namespace rz
         setRenderColor(props.getRenderColor());
         setRenderFx(props.getRenderFx());
         SetFootSteps(props.getFootSteps());
-        if (spawn) {
+        if (isSpawn) {
             GiveArmor(std::max(props.getArmor(), getArmor()), std::max(props.getHelmet(), getHelmet()));
         } else {
             GiveArmor(props.getArmor(), props.getHelmet());

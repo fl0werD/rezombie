@@ -1,0 +1,4 @@
+[ru]
+MODE_NEMESIS_NAME = Немезида
+MODE_NEMESIS_DESC = Немезида vs. Люди
+MODE_NEMESIS_NOTICE = Немезида (%n) против людей

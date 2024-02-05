@@ -8,7 +8,7 @@ namespace rz
 {
     class PlayerClassModule : public Module<PlayerClass> {
       public:
-        PlayerClassModule() : Module<PlayerClass>("player_class") {}
+        PlayerClassModule() : Module("player_class") {}
 
         auto add(std::string handle, Team team) -> int {
             return Module::add(new PlayerClass(std::move(handle), team));
@@ -20,8 +20,8 @@ namespace rz
                     return item->getTeam() == team;
                 };
             };
-            gameRules->setDefaultPlayerClass(Team::Human, find(byTeam(Team::Human)));
-            gameRules->setDefaultPlayerClass(Team::Zombie, find(byTeam(Team::Zombie)));
+            GameRules.setDefaultPlayerClass(Team::Human, find(byTeam(Team::Human)));
+            GameRules.setDefaultPlayerClass(Team::Zombie, find(byTeam(Team::Zombie)));
         }
     };
 

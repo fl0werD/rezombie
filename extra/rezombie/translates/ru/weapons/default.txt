@@ -1,0 +1,16 @@
+[ru]
+DEFAULT_HE_GRENADE = Осколочная граната
+DEFAULT_HE_SHORT = Осколочная
+DEFAULT_FLASHBANG = Световая граната
+DEFAULT_FB_SHORT = Световая
+DEFAULT_SMOKE_GRENADE = Дымовая граната
+DEFAULT_SMOKE_SHORT = Дымовая
+
+DEFAULT_FIRE_GRENADE = Поджигающая граната
+DEFAULT_FIRE_SHORT = Поджигающая
+DEFAULT_FROST_GRENADE = Замораживющая граната
+DEFAULT_FROST_SHORT = Замораживющая
+DEFAULT_FLARE_GRENADE = Освещающая граната
+DEFAULT_FLARE_SHORT = Освещающая
+
+DEFAULT_KNIFE = Нож

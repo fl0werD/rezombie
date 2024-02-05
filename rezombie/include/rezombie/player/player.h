@@ -1,19 +1,21 @@
 #pragma once
 
 #include "rezombie/entity/models/models_pack.h"
-#include "rezombie/modelpreview/model_preview.h"
+#include "rezombie/preview/join_preview.h"
 #include "rezombie/map/modules/map_cameras.h"
 #include "rezombie/player/player_vars.h"
 #include "rezombie/player/flashlight_vars.h"
 #include "rezombie/player/nightvision_vars.h"
-#include "rezombie/player/extra_jump_vars.h"
+#include "rezombie/player/jumps_vars.h"
 #include "rezombie/player/long_jump_vars.h"
-#include "rezombie/player/preview_vars.h"
+#include "rezombie/player/join_preview_vars.h"
 #include "rezombie/player/world_preview_vars.h"
 #include "rezombie/player/third_camera_vars.h"
 #include "rezombie/player/map_camera_vars.h"
 #include "rezombie/weapons/weapons.h"
+#include "rezombie/weapons/melee.h"
 #include "rezombie/entity/weapons/base_weapon.h"
+#include "rezombie/entity/weapons/melee.h"
 #include "rezombie/entity/wrappers/player_item_wrapper.h"
 #include "rezombie/core/api/amxx_feature.h"
 #include "rezombie/messages/engine_message.h"
@@ -21,6 +23,10 @@
 #include <cssdk/public/regamedll/cs_player.h>
 #include <cssdk/public/utils.h>
 #include <optional>
+#include <core/rehlds_api.h>
+
+#include "cssdk/public/rehlds/rehlds_interfaces.h"
+#include "rezombie/entity/extras.h"
 
 namespace rz
 {
@@ -38,9 +44,9 @@ namespace rz
         PlayerVars playerVars_ = {};
         FlashlightVars flashlightVars_ = {};
         NightVisionVars nightVisionVars_ = {};
-        ExtraJumpVars extraJumpVars_ = {};
+        JumpsVars jumpsVars_ = {};
         LongJumpVars longJumpVars_ = {};
-        PreviewVars previewVars_ = {};
+        JoinPreviewVars joinPreviewVars_ = {};
         WorldPreviewVars worldPreviewVars_ = {};
         ThirdCameraVars thirdCameraVars_ = {};
         MapCameraVars mapCameraVars_ = {};
@@ -62,10 +68,9 @@ namespace rz
 
         auto id() const { return base_->EdictIndex(); }
 
-        // auto getEntVars() const
-        //{
-        //     return vars_;
-        // }
+        auto getEntVars() const {
+            return vars_;
+        }
 
         //auto getEdict() const {
         //    return edict_;
@@ -75,21 +80,25 @@ namespace rz
             return base_;
         }
 
+        auto Extras() -> Extras& {
+            return *(base_->link);
+        }
+
         // auto getCStrike() const
         //{
         //     return cstrike_;
         // }
 
-        auto getFlashlight() -> FlashlightVars& { return flashlightVars_; }
+        auto Flashlight() -> FlashlightVars& { return flashlightVars_; }
 
-        auto getNightVision() -> NightVisionVars& { return nightVisionVars_; }
+        auto NightVision() -> NightVisionVars& { return nightVisionVars_; }
 
-        auto getExtraJump() -> ExtraJumpVars& { return extraJumpVars_; }
+        auto Jumps() -> JumpsVars& { return jumpsVars_; }
 
-        auto getLongJump() -> LongJumpVars& { return longJumpVars_; }
+        auto LongJump() -> LongJumpVars& { return longJumpVars_; }
 
-        auto getPreviewVars() -> PreviewVars& {
-            return previewVars_;
+        auto getJoinPreviewVars() -> JoinPreviewVars& {
+            return joinPreviewVars_;
         }
 
         auto getWorldPreviewVars() -> WorldPreviewVars& {
@@ -111,7 +120,7 @@ namespace rz
 
         auto ChangeClass(int classId, Player* attackerUnsafe = nullptr, bool preSpawn = false) -> ForwardReturn;
         auto ChangeSubclass(int subclassId) -> ForwardReturn;
-        auto ChangeProps(int propsId, bool spawn = false) -> bool;
+        auto ChangeProps(int propsId, bool isSpawn = false) -> bool;
         auto ChangeModel(int modelId) -> bool;
         auto SwitchFlashlight(bool isEnabled) -> void;
         auto ChangeNightVision(int nightVisionId) -> bool;
@@ -131,11 +140,12 @@ namespace rz
         auto Freeze(float freezeTime) -> void;
         auto RemoveFreeze() -> void;
 
-        auto ExtraJump() -> void;
+        auto JumpThink() -> void;
+        auto Jump() -> void;
 
-        auto GiveLongJump(int force, int height, float cooldown) -> void;
+        auto GiveLongJump(int force, int height, int cooldown) -> void;
         auto RemoveLongJump() -> void;
-        auto LongJump() -> void;
+        auto ActivateLongJump() -> void;
         auto LongJumpCooldown() -> void;
 
         auto setPreview(bool isEnabled) -> void;
@@ -155,9 +165,23 @@ namespace rz
             return (getTeam() == Team::Human || getTeam() == Team::Zombie);
         }
 
+        template <typename T = PlayerItem, typename F>
+        T* forEachItem(const F& func) {
+            for (auto* item : base_->player_items) {
+                while (item) {
+                    auto* const next = item->next;
+                    if (func(static_cast<T*>(item))) {
+                        return static_cast<T*>(item);
+                    }
+                    item = next;
+                }
+            }
+            return nullptr;
+        }
+
         template<typename T = PlayerItem, typename F>
         T* forEachItem(InventorySlot slot, const F& func) {
-            auto item = base_->player_items[toInt(slot)];
+            auto item = base_->player_items[toInt(slot) - 1];
             while (item != nullptr) {
                 auto next = item->next;
                 if (func(static_cast<T*>(item))) {
@@ -168,9 +192,21 @@ namespace rz
             return nullptr;
         }
 
+        auto hasWeapons() -> bool {
+            return std::any_of(
+                std::cbegin(base_->player_items),
+                std::cend(base_->player_items),
+                [](const auto* item) {
+                    return item != nullptr;
+                }
+            );
+        }
+
         operator Edict*() const { return edict_; }
 
         operator PlayerBase*() const { return base_; }
+
+        operator IGameClient*() const { return rehlds_api::ServerStatic()->GetGameClient(id() - 1); }
 
         operator int() const { return base_->EdictIndex(); }
 
@@ -184,9 +220,10 @@ namespace rz
         auto setMaxSpeed(int maxSpeed) -> void;
         auto getGravity() const;
         auto setGravity(float gravity) -> void;
+        auto getGroundEntity() const -> Edict*;
         auto getFlags() const -> int;
         auto setFlags(int flags) -> void;
-        auto getDeadFlag() const;
+        auto getDeadFlag() const -> DeathState;
         auto setDeadFlag(DeathState deadFlag) -> void;
         auto setViewModel(unsigned int viewModel) -> void;
         auto setWeaponModel(unsigned int weaponModel) -> void;
@@ -194,6 +231,10 @@ namespace rz
         auto setRenderAmount(int amount) -> void;
         auto setRenderColor(const std::string& color) -> void;
         auto setRenderFx(RenderingFx fx) -> void;
+        auto getNextThink() const -> float;
+        auto setNextThink(float time) -> void;
+        auto getMoveType() const -> MoveTypeEntity;
+        auto setMoveType(MoveTypeEntity moveType) -> void;
         auto getSkin() const -> int;
         auto setSkin(int skin) -> void;
         auto getBody() const -> int;
@@ -269,6 +310,8 @@ namespace rz
         auto setDisconnected(bool isDisconnected) -> void;
         auto getCanShoot() const -> bool;
         auto setCanShoot(int canShoot) -> void;
+        auto getDeadTime() const -> float;
+        auto setDeadTime(float time) -> void;
         auto getHideHud() const -> int;
         auto setHideHud(int hideFlags) -> void;
         auto setNextAttack(float nextAttack) -> void;
@@ -281,6 +324,7 @@ namespace rz
         auto getAmmo(int ammoIndex) const -> int;
         auto setAmmo(int ammoIndex, int amount) -> void;
         auto getObserverTarget() const -> Edict*;
+        auto setWeaponVolume(int volume) -> void;
         auto getButtonLast() const -> int;
         auto setButtonLast(int button) -> void;
         auto getButtonPressed() const -> int;
@@ -304,6 +348,7 @@ namespace rz
         auto TeamChangeUpdate() -> void;
         auto Reset() -> void;
         auto SpawnEquip() -> void;
+        auto SetScoreboardAttributes(PlayerBase* destination = nullptr) -> void;
 
         auto getClass() const -> int;
         auto setClass(int index) -> void;
@@ -366,5 +411,13 @@ namespace rz
         const Vector& origin,
         const Vector& velocity,
         float actionTime
-    ) -> cssdk::Grenade*;
+    ) -> Grenade*;
+
+    auto MeleeDefaultAttack(
+        Player& player,
+        Knife* knife,
+        float damage,
+        float distance,
+        float backDamageMultiplier = 1.0f
+    ) -> MeleeAttackResult;
 }

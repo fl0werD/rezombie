@@ -1,0 +1,4 @@
+[ru]
+MODE_PLAGUE_NAME = Чума расползается
+MODE_PLAGUE_DESC = Люди & Выживший vs. Зомби & Немезида
+MODE_PLAGUE_NOTICE = Люди & Выживший vs. Зомби & Немезида

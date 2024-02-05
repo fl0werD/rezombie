@@ -1,0 +1,3 @@
+[ru]
+RZ_SUBZOMBIE_JUMPER_NAME = Попрыгунчик
+RZ_SUBZOMBIE_JUMPER_DESC = Гравитация+

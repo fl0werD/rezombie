@@ -233,8 +233,8 @@ namespace cssdk
     using ReHookRegistryRoundEnd = IHookChainRegistry<bool, int, ScenarioEventEndRound, float>;
 
     // InstallGameRules hook
-    using ReHookInstallGameRules = IHookChain<GameRules*>;
-    using ReHookRegistryInstallGameRules = IHookChainRegistry<GameRules*>;
+    using ReHookInstallGameRules = IHookChain<GameRulesBase*>;
+    using ReHookRegistryInstallGameRules = IHookChainRegistry<GameRulesBase*>;
 
     // PM_Init hook
     using ReHookPmInit = IHookChain<void, PlayerMove*>;
@@ -547,8 +547,8 @@ namespace cssdk
     using ReHookRegistryPlayerJoiningThink = IHookChainClassRegistry<void, PlayerBase>;
 
     // FreeGameRules hook
-    using ReHookFreeGameRules = IHookChain<void, GameRules**>;
-    using ReHookRegistryFreeGameRules = IHookChainRegistry<void, GameRules**>;
+    using ReHookFreeGameRules = IHookChain<void, GameRulesBase**>;
+    using ReHookRegistryFreeGameRules = IHookChainRegistry<void, GameRulesBase**>;
 
     // PM_LadderMove hook
     using ReHookPmLadderMove = IHookChain<void, PhysEntity*>;
@@ -862,7 +862,7 @@ namespace cssdk
         virtual int GetMinorVersion() = 0;
         virtual const RegamedllFuncs* GetFuncs() = 0;
         virtual IReGameDllHookChains* GetHookChains() = 0;
-        virtual GameRules* GetGameRules() = 0;
+        virtual GameRulesBase* GetGameRules() = 0;
         virtual WeaponInfoStruct* GetWeaponInfo(WeaponId weapon) = 0;
         virtual WeaponInfoStruct* GetWeaponInfo(const char* weapon) = 0;
         virtual PlayerMove* GetPlayerMove() = 0;

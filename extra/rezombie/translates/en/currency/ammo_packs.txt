@@ -1,0 +1,5 @@
+[en]
+AMMO_PACKS_SHORT = AP
+AMMO_PACKS_ONE = ammo pack
+AMMO_PACKS_FEW = ammo packs
+AMMO_PACKS_MANY = ammo packs

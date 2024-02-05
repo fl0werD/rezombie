@@ -1,0 +1,3 @@
+[en]
+RZ_SUBHUMAN_DEAD_NAME = Dead Inside
+RZ_SUBHUMAN_DEAD_DESC = Armor+

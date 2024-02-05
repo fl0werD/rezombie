@@ -1,0 +1,4 @@
+[ru]
+MODE_ARMAGEDDON_NAME = Армагеддон
+MODE_ARMAGEDDON_DESC = Выживщие & Снайперы vs. Немезиды & Ассасины
+MODE_ARMAGEDDON_NOTICE = Выживщие & Снайперы vs. Немезиды & Ассасины

@@ -9,6 +9,7 @@
 #include "rezombie/player/modules/player_props.h"
 #include <metamod/engine.h>
 #include <metamod/gamedll.h>
+#include <metamod/utils.h>
 
 namespace rz
 {
@@ -62,7 +63,7 @@ namespace rz
         if ((getWeapons() & ~(1 << WEAPON_SUIT)) == 0) {
             setHideHud(getHideHud() | HIDE_HUD_WEAPONS);
         }
-        gameRules->GetNextBestWeapon(*this, item);
+        GameRules.GetNextBestWeapon(*this, item);
 
         MakeVectors(getAngles());
         item->vars->origin = getOrigin() + g_global_vars->vec_forward * 10;
@@ -221,12 +222,12 @@ namespace rz
     }
 
     auto Player::GiveWeapon(int weaponIndex, GiveType giveType) -> EntityBase* {
-        auto weaponRef = Weapons[weaponIndex];
+        const auto& weaponRef = Weapons[weaponIndex];
         if (!weaponRef) {
             return nullptr;
         }
         auto& weapon = weaponRef->get();
-        DropOrReplace(weapon.getInventorySlot(), giveType);
+        DropOrReplace(weapon.getSlot(), giveType);
         return CreateBaseWeapon(weaponIndex, weapon);
     }
 
@@ -431,5 +432,79 @@ namespace rz
         grenade->team = static_cast<TeamName>(player.getTeam());
         SetOrigin(grenadeEntity, origin);
         return grenade;
+    }
+
+    auto MeleeDefaultAttack(
+        Player& player,
+        Knife* knife,
+        float damage,
+        float distance,
+        float backDamageMultiplier
+    ) -> MeleeAttackResult {
+        MakeVectors(player.getViewAngle());
+        const auto direction = g_global_vars->vec_forward;
+        const auto src = player.getGunPosition();
+        const auto end = src + direction * distance;
+        auto trace = TraceResult();
+        //gpGlobals->trace_flags = FTRACE_KNIFE;
+        TraceLine(src, end, TR_IGNORE_NONE, player, &trace);
+/*
+        if (trace.fraction >= 1.0f) {
+            //gpGlobals->trace_flags = FTRACE_KNIFE;
+            UTIL_TraceHull(vecSrc, vecEnd, TR_IGNORE_NONE, head_hull, m_pPlayer->edict(), &trace);
+            //gpGlobals->trace_flags = 0;
+
+            if (trace.fraction < 1.0f) {
+                // Calculate the point of intersection of the line (or hull) and the object we hit
+                // This is and approximation of the "best" intersection
+                CBaseEntity* pHit = CBaseEntity::Instance(trace.pHit);
+
+                if (!pHit || pHit->IsBSPModel()) {
+                    FindHullIntersection(vecSrc, tr, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX, m_pPlayer->edict());
+                }
+
+                // This is the point on the actual surface (the hull could have hit space)
+                vecEnd = trace.vecEndPos;
+            }
+        }
+*/
+        player.SetAnimation(PlayerAnim::Attack1);
+        if (trace.fraction >= 1.f) {
+            return MeleeAttackResult::Miss;
+        }
+        const auto entity = EntityPrivateData<EntityBase>(trace.entity_hit);
+        if (backDamageMultiplier > 0.f) {
+            if (entity && entity->IsPlayer()) {
+                const auto los = Vector2D(direction.x, direction.y);//.Normalize();
+                MakeVectors(entity->vars->angles);
+                const auto entityDirection = g_global_vars->vec_forward;
+                const auto entityLos = Vector2D(entityDirection.x, entityDirection.y);
+                const auto dot = los.DotProduct(entityLos);
+                if (dot > 0.8f) {
+                    damage *= backDamageMultiplier;
+                }
+                MakeVectors(player.getViewAngle());
+            }
+        }
+        regamedll_api::Funcs()->clear_multi_damage();
+        entity->TraceAttack(player.getEntVars(), damage, direction, &trace, (DMG_NEVER_GIB | DMG_BULLET));
+        regamedll_api::Funcs()->apply_multi_damage(player.getEntVars(), player.getEntVars());
+        const auto classify = entity->GetClassify();
+        if (classify != Classify::None && classify != Classify::Machine && classify != Classify::Vehicle) {
+            if (entity->IsAlive()) {
+                knife->trace_hit_ = trace;
+                player.setWeaponVolume(static_cast<int>(0.1f * KNIFE_WALL_HIT_VOLUME));
+            } else {
+                player.setWeaponVolume(static_cast<int>(KNIFE_BODY_HIT_VOLUME));
+            }
+            return MeleeAttackResult::Hit;
+        }
+        regamedll_api::Funcs()->texture_type_play_sound(
+            &trace,
+            src,
+            src + (end - src) * 2,
+            toInt(BulletType::PlayerCrowbar)
+        );
+        return MeleeAttackResult::HitWall;
     }
 }

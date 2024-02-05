@@ -7,6 +7,7 @@ add_library(${PROJECT_NAME} SHARED
         "include/rezombie/main/main.h"
         "include/rezombie/main/convars.h"
         "include/rezombie/main/util.h"
+        "include/rezombie/main/api/main.h"
 
         "include/rezombie/core/object.h"
         "include/rezombie/core/module.h"
@@ -37,6 +38,7 @@ add_library(${PROJECT_NAME} SHARED
         "include/rezombie/entity/items/item.h"
         "include/rezombie/entity/colors/color.h"
         "include/rezombie/entity/wrappers/player_item_wrapper.h"
+        "include/rezombie/entity/extras.h"
 
         "include/rezombie/messages/engine_message.h"
         "include/rezombie/messages/user_message.h"
@@ -50,11 +52,13 @@ add_library(${PROJECT_NAME} SHARED
 
         "include/rezombie/map/map_spawns.h"
         "include/rezombie/map/environment.h"
+        "include/rezombie/map/extras.h"
         "include/rezombie/map/modules/map_cameras.h"
         "include/rezombie/map/modules/fog.h"
         "include/rezombie/map/api/map_cameras.h"
         "include/rezombie/map/api/environment.h"
         "include/rezombie/map/api/fog.h"
+        "include/rezombie/map/api/extras.h"
 
         "include/rezombie/gamerules/game_rules.h"
         "include/rezombie/gamerules/consts.h"
@@ -103,6 +107,9 @@ add_library(${PROJECT_NAME} SHARED
         "include/rezombie/models/api/model.h"
         "include/rezombie/models/api/models_pack.h"
 
+        "include/rezombie/sounds/sounds.h"
+        "include/rezombie/sounds/api/sounds.h"
+
         "include/rezombie/items/modules/item.h"
         "include/rezombie/items/api/items.h"
 
@@ -122,6 +129,7 @@ add_library(${PROJECT_NAME} SHARED
         "src/main/message_hooks.cpp"
         "src/main/convars.cpp"
         "src/main/util.cpp"
+        "src/main/api/main.cpp"
 
         "src/messages/engine_message.cpp"
         "src/messages/user_message.cpp"
@@ -137,6 +145,7 @@ add_library(${PROJECT_NAME} SHARED
         "src/map/api/map_cameras.cpp"
         "src/map/api/environment.cpp"
         "src/map/api/fog.cpp"
+        "src/map/api/extras.cpp"
 
         "src/gamerules/game_rules.cpp"
         "src/gamerules/player.cpp"
@@ -178,6 +187,9 @@ add_library(${PROJECT_NAME} SHARED
         "src/models/models.cpp"
         "src/models/api/models.cpp"
         "src/models/api/models_pack.cpp"
+
+        "src/sounds/sounds.cpp"
+        "src/sounds/api/sounds.cpp"
 
         "src/items/api/items.cpp"
 
@@ -229,7 +241,7 @@ set(AMXX_USE_METAMOD ON)
 set(AMXX_182_COMPATIBILITY OFF)
 
 # Uncomment the functions you want to use in your code and specify the desired function names
-set(AMXX_QUERY "Main")                                 # void OnAmxxQuery()
+set(AMXX_QUERY "Main")                                     # void OnAmxxQuery()
 set(AMXX_ATTACH "__OnAmxxAttach")                          # AmxxStatus OnAmxxAttach()
 #set(AMXX_DETACH "__OnAmxxDetach")                         # void OnAmxxDetach()
 #set(AMXX_CHECK_GAME "__OnAmxxCheckGame")                  # AmxxGameStatus OnAmxxCheckGame(const char* game)

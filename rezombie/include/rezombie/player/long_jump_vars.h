@@ -1,5 +1,7 @@
 #pragma once
 
+#include "rezombie/player/api/long_jump.h"
+
 namespace rz
 {
     enum class LongJumpState : int {
@@ -8,15 +10,14 @@ namespace rz
         Ready,
     };
 
-    constexpr auto ITEM_LONG_JUMP = "item_longjump";
-
     class LongJumpVars {
         //int id_ = 0;
         LongJumpState state_ = LongJumpState::None;
         float nextStateTime_ = 0.f;
         int force_ = 0;
         int height_ = 0;
-        float cooldown_ = 0.f;
+        int cooldown_ = 0;
+        int cooldownTimer_ = 0;
 
       public:
         //auto getId() const -> int { return id_; }
@@ -25,7 +26,7 @@ namespace rz
 
         auto getState() const -> LongJumpState { return state_; }
 
-        auto setState(LongJumpState state) -> void { state_ = state; }
+        auto setState(int player, LongJumpState state) -> void;
 
         auto getNextStateTime() const -> float { return nextStateTime_; }
 
@@ -39,29 +40,20 @@ namespace rz
 
         auto setHeight(int height) -> void { height_ = height; }
 
-        auto getCooldown() const -> float { return nextStateTime_; }
+        auto getCooldown() const -> int { return cooldown_; }
 
-        auto setCooldown(float cooldown) -> void { nextStateTime_ = cooldown; }
+        auto setCooldown(int cooldown) -> void { cooldown_ = cooldown; }
 
-        auto reset() -> void {
-            setState(LongJumpState::None);
+        auto getCooldownTimer() const -> int { return cooldownTimer_; }
+
+        auto setCooldownTimer(int timer) -> void { cooldownTimer_ = timer; }
+
+        auto reset(int player) -> void {
+            setState(player, LongJumpState::None);
             setNextStateTime(0);
             setForce(0);
             setHeight(0);
             setCooldown(0);
         }
     };
-
-    /*
-
-    auto Player::setLongJumpState(LongJumpState state) -> void {
-        const auto oldState = getLongJumpState();
-        playerVars_.longJumpState = state;
-        if (oldState == state) {
-            return;
-        }
-        PlayerApi.LongJumpState(*this, toInt(getLongJumpState()));
-    }
-
-     */
 }

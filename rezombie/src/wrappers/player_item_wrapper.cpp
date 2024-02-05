@@ -35,7 +35,7 @@ namespace rz
         }
         AttachToPlayer(player);
         UTIL_EmitSound(player, SoundChannel::Item, "items/gunpickup2.wav");
-        if (player.getActiveItem() != this && gameRules->ShouldSwitchWeapon(player, this)) {
+        if (player.getActiveItem() != this && GameRules.ShouldSwitchWeapon(player, this)) {
             player.SwitchWeapon(this);
         }
         SetTouch(nullptr);

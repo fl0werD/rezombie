@@ -1,121 +1,63 @@
 #include "rezombie/weapons/api/melee.h"
 #include "rezombie/player/players.h"
-#include "amxx/api.h"
+#include "rezombie/weapons/modules/weapon.h"
+#include <amxx/api.h>
 
 namespace rz
 {
     using namespace amxx;
-/*
-    auto AMX_NATIVE_CALL rz_get_melee_var(Amx* amx, cell* params) -> cell
-    {
-        enum
-        {
+
+    auto AmxxMelee::AttackPre(int player, MeleeAttackType type) const -> ForwardReturn {
+        return executeForward(MeleeForward::AttackPre, player, toInt(type));
+    }
+
+    auto AmxxMelee::AttackPost(int player, MeleeAttackType type, MeleeAttackResult result) const -> void {
+        executeForward(MeleeForward::AttackPost, player, toInt(type), toInt(result));
+    }
+
+    auto AmxxMelee::registerForwards() -> void {
+        using e = ForwardExecType;
+        using p = ForwardParam;
+
+        setForward(
+            MeleeForward::AttackPre,
+            RegisterForward("@melee_attack_pre", e::Ignore, p::Cell, p::Cell, p::Done)
+        );
+        setForward(
+            MeleeForward::AttackPost,
+            RegisterForward("@melee_attack_post", e::Ignore, p::Cell, p::Cell, p::Cell, p::Done)
+        );
+    }
+
+    auto melee_add_sound(Amx* amx, cell* params) -> cell {
+        enum {
             arg_count,
             arg_melee,
-            arg_var,
-            arg_3,
-            arg_4,
+            arg_type,
+            arg_path,
         };
 
         const int meleeId = params[arg_melee];
-        const auto meleeRef = meleeModule[meleeId];
+        const auto meleeRef = Weapons[meleeId];
         if (!meleeRef) {
             // Invalid index
             return false;
         }
-        const auto& melee = meleeRef->get();
-        using var = MeleeVars;
-        switch (static_cast<var>(params[arg_var])) {
-            case var::Handle: {
-                SetAmxString(amx, params[arg_3], melee.getHandle().c_str(), params[arg_4]);
-                break;
-            }
-            case var::ViewModel: {
-                SetAmxString(amx, params[arg_3], melee.getViewModel().c_str(), params[arg_4]);
-                break;
-            }
-            case var::ModelsPack: {
-                SetAmxString(amx, params[arg_3], melee.getPlayerModel().c_str(), params[arg_4]);
-                break;
-            }
-            case var::WorldModel: {
-                SetAmxString(amx, params[arg_3], melee.getWorldModel().c_str(), params[arg_4]);
-                break;
-            }
-            case var::WeaponList: {
-                // TODO
-                break;
-            }
-            case var::Name: {
-                SetAmxString(amx, params[arg_3], melee.getName().c_str(), params[arg_4]);
-                break;
-            }
-            default: {
-                // Invalid WeaponVar
-                return false;
-            }
+        const auto& melee = dynamic_cast<Melee*>(&meleeRef->get());
+        if (melee == nullptr) {
+            return false;
         }
+        const auto type = static_cast<MeleeSound>(params[arg_type]);
+        const auto path = GetAmxString(amx, params[arg_path]);
+        melee->add(type, path);
         return true;
     }
 
-    auto AMX_NATIVE_CALL rz_set_melee_var(Amx* amx, cell* params) -> cell
-    {
-        enum
-        {
-            arg_count,
-            arg_melee,
-            arg_var,
-            arg_value,
-        };
-
-        const int meleeId = params[arg_melee];
-        const auto meleeRef = meleeModule[meleeId];
-        if (!meleeRef) {
-            // Invalid index
-            return false;
-        }
-        auto& melee = meleeRef->get();
-        using var = MeleeVars;
-        switch (static_cast<var>(params[arg_var])) {
-            case var::Handle: {
-                // Invalid set var
-                break;
-            }
-            case var::ViewModel: {
-                melee.setViewModel(GetAmxString(amx, params[arg_value]));
-                break;
-            }
-            case var::ModelsPack: {
-                melee.setPlayerModel(GetAmxString(amx, params[arg_value]));
-                break;
-            }
-            case var::WorldModel: {
-                melee.setWorldModel(GetAmxString(amx, params[arg_value]));
-                break;
-            }
-            case var::WeaponList: {
-                // TODO
-                break;
-            }
-            case var::Name: {
-                melee.setName(GetAmxString(amx, params[arg_value]));
-                break;
-            }
-            default: {
-                // Invalid WeaponVar
-                return false;
-            }
-        }
-        return true;
-    }*/
-
-    auto AmxxMelee::registerNatives() const -> void
-    {
+    auto AmxxMelee::registerNatives() const -> void {
         static AmxNativeInfo natives[] = {
-          //{"rz_get_melee_var", rz_get_melee_var},
-          //{"rz_set_melee_var", rz_set_melee_var},
+            {"melee_add_sound", melee_add_sound},
 
-          {nullptr,            nullptr         },
+            {nullptr, nullptr},
         };
         AddNatives(natives);
     }

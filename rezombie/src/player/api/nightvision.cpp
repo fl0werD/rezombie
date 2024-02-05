@@ -9,13 +9,11 @@ namespace rz
 
     enum class NightVisionVars : int {
         Color,
-        Alpha,
         Fog,
     };
 
     const std::unordered_map<std::string, NightVisionVars> NightVisionVarsMap = {
         {"color", NightVisionVars::Color},
-        {"alpha", NightVisionVars::Alpha},
         {"fog",   NightVisionVars::Fog},
     };
 
@@ -23,15 +21,13 @@ namespace rz
         enum {
             arg_count,
             arg_color,
-            arg_radius,
             arg_fog,
         };
 
         // Check arg count
         const auto color = GetAmxString(amx, params[arg_color]);
-        const int radius = params[arg_radius];
         const auto fogId = params[arg_fog];
-        const auto nightVisionId = NightVisions.add(color, radius, fogId);
+        const auto nightVisionId = NightVisions.add(color, fogId);
         return nightVisionId;
     }
 
@@ -63,15 +59,6 @@ namespace rz
                 } else {
                     // check valideate
                     nightVision.setColor(GetAmxString(amx, params[arg_3]));
-                }
-                break;
-            }
-            case vars::Alpha: {
-                if (isGetter) {
-                    return nightVision.getAlphaPercentage();
-                } else {
-                    // check 0..100
-                    nightVision.setAlphaPercentage(*Address(amx, params[arg_3]));
                 }
                 break;
             }

@@ -299,8 +299,7 @@ namespace rz
         short duration = 0,
         short holdTime = 0,
         short flags = 0,
-        const std::string& color = "",
-        byte alphaPercentage = 0
+        const std::string& color = ""
     ) -> void {
         SendUserMessage(receiver, UserMessage::ScreenFade, [&]() {
             WriteShort(duration);
@@ -312,7 +311,7 @@ namespace rz
                 WriteByte(realColor.getRed());
                 WriteByte(realColor.getGreen());
                 WriteByte(realColor.getBlue());
-                WriteByte(255 * alphaPercentage / 100);
+                WriteByte(realColor.getAlpha());
             } else {
                 WriteByte(0);
                 WriteByte(0);
@@ -355,6 +354,12 @@ namespace rz
                 WriteByte(spriteColor.getGreen());
                 WriteByte(spriteColor.getBlue());
             }
+        });
+    }
+
+    inline auto sendBarTime(Edict* receiver, short duration) -> void {
+        SendUserMessage(receiver, UserMessage::BarTime, [&]() {
+            WriteShort(duration);
         });
     }
 

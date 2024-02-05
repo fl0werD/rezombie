@@ -1,0 +1,4 @@
+[en]
+MODE_SURVIVOR_NAME = Survivor
+MODE_SURVIVOR_DESC = Survivor vs Zombies
+MODE_SURVIVOR_NOTICE = Survivor (%n) vs zombies

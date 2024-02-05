@@ -1,0 +1,4 @@
+[en]
+MODE_ASSASSIN_NAME = Assassin
+MODE_ASSASSIN_DESC = Assassin vs Humans
+MODE_ASSASSIN_NOTICE =  Assassin (%n) vs humans

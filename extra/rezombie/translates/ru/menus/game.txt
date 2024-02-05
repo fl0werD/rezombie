@@ -1,0 +1,8 @@
+[ru]
+GAME_MENU_TITLE = Игровое меню
+GAME_MENU_SELECT_WPNS = Выбрать оружие
+GAME_MENU_BUY_EXTRA = Купить Спец-вещи
+GAME_MENU_CHOOSE_SUBCLASS = Выбрать %l класс
+GAME_MENU_JOIN_GAME = Войти в игру
+GAME_MENU_JOIN_SPECS = В зрители
+GAME_MENU_ADMIN = Админ-меню

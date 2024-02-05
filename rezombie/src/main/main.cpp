@@ -1,10 +1,10 @@
 #include "rezombie/core/api/amxx_features_store.h"
 #include "rezombie/gamerules/game_rules.h"
-#include "rezombie/weapons/weapons.h"
 #include "rezombie/main/engine_hooks.h"
 #include "rezombie/main/gamedll_hooks.h"
 #include "rezombie/main/message_hooks.h"
 #include "rezombie/main/main.h"
+#include "rezombie/configs/main_config.h"
 #include <core/amxx_access.h>
 #include <mhooks/amxx.h>
 #include <mhooks/reapi.h>
@@ -18,9 +18,8 @@ namespace rz
     using namespace mhooks;
 
     auto OnAmxxAttach(const AmxxAttachMChain& chain) -> AmxxStatus {
-        auto rehldsEnabled = true;
         auto status = AmxxStatus::Failed;
-        if ((!rehldsEnabled || rehlds_api::Init()) && regamedll_api::Init()) {
+        if (rehlds_api::Init() && regamedll_api::Init()) {
             amxx_access::Init();
             type_conversion::Init();
             status = chain.CallNext();
@@ -29,14 +28,13 @@ namespace rz
             return status;
         }
         MHookAmxxPluginsLoaded(DELEGATE_ARG<OnAmxxPluginsLoaded>);
-        if (rehldsEnabled) {
-            RegisterEngineHooks();
-        }
+        RegisterEngineHooks();
         RegisterGameDllHooks();
         RegisterGameRulesHooks();
         RegisterMessageHooks();
         RegisterPlayerHooks();
         ApiStore.registerNatives();
+        MainConfig.load();
         return status;
     }
 

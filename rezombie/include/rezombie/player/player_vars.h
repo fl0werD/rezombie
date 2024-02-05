@@ -2,7 +2,7 @@
 
 #include "rezombie/player/long_jump_vars.h"
 #include "rezombie/entity/models/models_pack.h"
-#include "rezombie/modelpreview/model_preview.h"
+#include "rezombie/preview/join_preview.h"
 #include "rezombie/weapons/weapons.h"
 #include <cssdk/engine/eiface.h>
 #include <cssdk/public/regamedll/cs_player.h>

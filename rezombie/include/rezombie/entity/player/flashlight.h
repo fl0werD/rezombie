@@ -1,16 +1,14 @@
 #pragma once
 
-#include <utility>
-
 #include "rezombie/core/object.h"
-#include "rezombie/player/modules/nightvision.h"
+#include <utility>
 
 namespace rz
 {
     class Flashlight {
         std::string color_{};
         int size_{};
-        int distance_ = 2048.f; // to float
+        int distance_ = 2048;
         float drainTime_{};
         float chargeTime_{};
 

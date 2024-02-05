@@ -7,7 +7,7 @@ namespace rz
 {
     class CurrencyModule : public Module<Currency> {
       public:
-        CurrencyModule() : Module<Currency>("currency") {}
+        CurrencyModule() : Module("currency") {}
 
         auto add(
             std::string handle,

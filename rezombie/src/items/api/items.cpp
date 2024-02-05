@@ -2,7 +2,6 @@
 #include "rezombie/items/modules/item.h"
 #include "rezombie/player/players.h"
 #include "rezombie/core/api/amxx_helper.h"
-#include <filesystem>
 
 namespace rz
 {
@@ -127,11 +126,15 @@ namespace rz
         return HandleItemVar(amx, params, false);
     }
 
-    auto item_begin(Amx*, cell*) -> cell {
+    auto items_count(Amx*, cell*) -> cell {
+        return Items.count();
+    }
+
+    auto items_begin(Amx*, cell*) -> cell {
         return Items.begin();
     }
 
-    auto item_end(Amx*, cell*) -> cell {
+    auto items_end(Amx*, cell*) -> cell {
         return Items.end();
     }
 
@@ -182,34 +185,17 @@ namespace rz
         return item.executeGive(player, itemId);
     }
 
-    auto register_translate(Amx* amx, cell* params) -> cell {
-        enum {
-            arg_count,
-            arg_lang_file,
-        };
-
-        const auto langFile = GetAmxString(amx, params[arg_lang_file]);
-        const auto filePath = str::Format("rezombie/translates/%s.txt", langFile);
-        std::filesystem::path path{str::BuildPathName(filePath)};
-        if (!std::filesystem::exists(path)) {
-            return false;
-        }
-        MergeDefinitionFile(path.string().c_str());
-        return true;
-    }
-
     auto AmxxItem::registerNatives() const -> void {
         static AmxNativeInfo natives[] = {
             {"create_item",        create_item},
             {"get_item_var",       get_item_var},
             {"set_item_var",       set_item_var},
-            {"item_begin",         item_begin},
-            {"item_end",           item_end},
+            {"items_count",        items_count},
+            {"items_begin",        items_begin},
+            {"items_end",          items_end},
             {"find_item",          find_item},
             {"give_item",          give_item},
             {"give_item_by_id",    give_item_by_id},
-
-            {"register_translate", register_translate},
 
             {nullptr,              nullptr},
         };

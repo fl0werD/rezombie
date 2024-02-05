@@ -4,6 +4,7 @@
  * You have to call MessageBegin before call these functions
  */
 
+#include "rezombie/colors/colors.h"
 #include <cssdk/public/utils.h>
 #include <metamod/engine.h>
 
@@ -302,17 +303,23 @@ namespace rz
         WriteByte(scrollSpeed);    // scroll speed in 0.1's
     }
 
-    inline auto TE_BeamFollow(int entity, int spriteIndex, byte life, byte lineWidth, byte color[3], byte brightness)
-    -> void {
+    inline auto TE_BeamFollow(
+        int entity,
+        int spriteIndex,
+        byte life,
+        byte lineWidth,
+        const Color& color
+    ) -> void {
         WriteByte(TE_BEAM_FOLLOW);
         WriteShort(entity);      // entity:attachment to follow
         WriteShort(spriteIndex); // sprite index
         WriteByte(life);         // life in 0.1's
         WriteByte(lineWidth);    // line width in 0.1's
-        WriteByte(color[0]);     // red
-        WriteByte(color[1]);     // green
-        WriteByte(color[2]);     // blue
-        WriteByte(brightness);   // brightness
+        WriteByte(color.getRed());     // red
+        WriteByte(color.getGreen());     // green
+        WriteByte(color.getBlue());     // blue
+        WriteByte(color.getAlpha());   // brightness
+        MessageEnd();
     }
 
     inline auto TE_GlowSprite(Vector& position, int modelIndex, byte scale, byte size, byte brightness) -> void {

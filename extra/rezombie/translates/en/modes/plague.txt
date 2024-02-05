@@ -1,0 +1,4 @@
+[en]
+MODE_PLAGUE_NAME = Plague
+MODE_PLAGUE_DESC = Humans & Survivor vs Zombies & Nemesis
+MODE_PLAGUE_NOTICE = Humans & Survivor vs Zombies & Nemesis

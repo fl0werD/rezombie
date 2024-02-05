@@ -1,5 +1,6 @@
 #include "rezombie/player/player.h"
 #include "rezombie/thirdcamera/third_camera.h"
+#include <metamod/utils.h>
 
 namespace rz
 {
@@ -20,6 +21,8 @@ namespace rz
         }
         float maxDistance;
         float maxRightOffset;
+
+        //metamod::utils::LogConsole("%.0f %.0f %.0f", getViewAngle().x, getViewAngle().y, getViewAngle().z);
 
         bool isZooming;
         auto distance = 96.f;//gViewCamera[id][ViewCamera_Distance];

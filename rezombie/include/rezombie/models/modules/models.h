@@ -13,7 +13,7 @@ namespace rz
       public:
         int defaultPlayerModelId_ = 0;
 
-        ModelModule() : Module<Model>("models") {}
+        ModelModule() : Module("models") {}
 
         auto add(std::string handle, std::string path, int body = 0, int skin = 0) -> int {
             return Module::add(

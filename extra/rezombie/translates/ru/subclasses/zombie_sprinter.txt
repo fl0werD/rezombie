@@ -1,0 +1,3 @@
+[ru]
+RZ_SUBZOMBIE_SPRINTER_NAME = Спринтер
+RZ_SUBZOMBIE_SPRINTER_DESC = Скорость+

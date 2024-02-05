@@ -7,12 +7,14 @@
 #include <cssdk/public/regamedll/cs_player_item.h>
 #include <metamod/engine.h>
 
+#include "rezombie/modes/modules/modes.h"
+
 namespace rz
 {
     using namespace cssdk;
     using namespace metamod::engine;
 
-    auto TeamPlayGameRules::ClientConnected(
+    auto TeamGameRules::ClientConnected(
         Edict* entity,
         const char* name,
         const char* address,
@@ -21,15 +23,15 @@ namespace rz
         return OriginalGameRules->CsGameRules()->ClientConnected(entity, name, address, rejectReason);
     }
 
-    auto TeamPlayGameRules::ClientCommand(PlayerBase* player, const char* command) -> qboolean {
+    auto TeamGameRules::ClientCommand(PlayerBase* player, const char* command) -> qboolean {
         return OriginalGameRules->CsGameRules()->ClientCommand(player, command);
     }
 
-    auto TeamPlayGameRules::ClientCommandDeadOrAlive(PlayerBase* player, const char* command) -> qboolean {
+    auto TeamGameRules::ClientCommandDeadOrAlive(PlayerBase* player, const char* command) -> qboolean {
         return OriginalGameRules->CsGameRules()->ClientCommandDeadOrAlive(player, command);
     }
 
-    auto TeamPlayGameRules::ClientUserInfoChanged(PlayerBase* base, char* infoBuffer) -> void {
+    auto TeamGameRules::ClientUserInfoChanged(PlayerBase* base, char* infoBuffer) -> void {
         auto value = InfoKeyValue(infoBuffer, "_cl_autowepswitch");
         if (str::Equals(value, "")) {
             base->auto_wep_switch = 1;
@@ -44,7 +46,7 @@ namespace rz
         }
     }
 
-    auto TeamPlayGameRules::ClientDisconnected(Edict* client) -> void {
+    auto TeamGameRules::ClientDisconnected(Edict* client) -> void {
         OriginalGameRules->CsGameRules()->ClientDisconnected(client);
         /* if (client == nullptr) {
             CheckWinConditions();
@@ -98,7 +100,7 @@ namespace rz
         CheckWinConditions();/*/
     }
 
-    auto TeamPlayGameRules::InitHud(PlayerBase* base) -> void {
+    auto TeamGameRules::InitHud(PlayerBase* base) -> void {
         const auto& player = Players[base];
         netLightStyle(player, 0, Environment.getLight());
         sendFog(player, Environment.getFog());
@@ -121,9 +123,9 @@ namespace rz
             SendMotdToClient(player);
         }
         Players.forEachConnected(
-            [&player](const auto& target) {
+            [&player](auto& target) {
                 sendTeamInfo(player, target, target.getTeam());
-                // target->GetCsPlayer()->SetScoreAttribute(player); // SetScoreboardAttributeSSS(player);
+                target.SetScoreboardAttributes(player);
                 sendHealthInfo(player, target, target.getHealth());
                 sendAccount(player, target, target.getAccount());
                 if (player.id() != target.id() && target.isAlive()) {
@@ -133,12 +135,12 @@ namespace rz
         );
     }
 
-    auto TeamPlayGameRules::UpdateGameMode(PlayerBase* base) -> void {
+    auto TeamGameRules::UpdateGameMode(PlayerBase* base) -> void {
         const auto& player = Players[base];
         sendGameMode(player, 1);
     }
 
-    auto TeamPlayGameRules::PlayerFallDamage(PlayerBase* player) -> float {
+    auto TeamGameRules::PlayerFallDamage(PlayerBase* player) -> float {
         if (!mp_falldamage->value) {
             return 0;
         }
@@ -146,7 +148,7 @@ namespace rz
         return player->fall_velocity * DAMAGE_FOR_FALL_SPEED * 1.25f;
     }
 
-    auto TeamPlayGameRules::PlayerCanTakeDamage(PlayerBase* player, EntityBase* attacker) -> qboolean {
+    auto TeamGameRules::PlayerCanTakeDamage(PlayerBase* player, EntityBase* attacker) -> qboolean {
         if (getGameState() != GameState::Playing && getRoundState() != RoundState::Playing) {
             return false;
         }
@@ -159,9 +161,9 @@ namespace rz
         return false;
     }
 
-    auto TeamPlayGameRules::PlayerThink(PlayerBase* base) -> void {
+    auto TeamGameRules::PlayerThink(PlayerBase* base) -> void {
         auto& player = Players[base];
-        if (!gameRules->isCanMove()) {
+        if (!isCanMove()) {
             player.setCanShoot(false);
             player.setButton(0);
             player.setButtonPressed(0);
@@ -185,7 +187,7 @@ namespace rz
         }
     }
 
-    auto TeamPlayGameRules::PlayerSpawn(PlayerBase* base) -> void {
+    auto TeamGameRules::PlayerSpawn(PlayerBase* base) -> void {
         auto& player = Players[base];
         if (player.isJustConnected()) {
             return;
@@ -197,21 +199,39 @@ namespace rz
         base->auto_wep_switch = autoWeaponSwitch;
     }
 
-    auto TeamPlayGameRules::PlayerCanRespawn(PlayerBase* base) -> qboolean {
+    auto TeamGameRules::PlayerCanRespawn(PlayerBase* base) -> qboolean {
         if (getGameState() == GameState::Over) {
             return false;
         }
-        if (getRoundState() == RoundState::Terminate) {
+        switch (getRoundState()) {
+            case RoundState::Playing: {
+                const auto modeRef = Modes[getMode()];
+                if (modeRef) {
+                    const auto& mode = modeRef->get();
+                    if (mode.getRespawn() == RespawnType::Off) {
+                        return false;
+                    }
+                }
+                break;
+            }
+            case RoundState::Terminate: {
+                return false;
+            }
+            default: {
+                break;
+            }
+        }
+        const auto& player = Players[base];
+        if (!player.isPlayableTeam()) {
             return false;
         }
-        // auto& player = Players[base];
         // if (player.getMenu() == MenuName::ChooseAppearance) {
         //     return false;
         // }
         return true;
     }
 
-    auto TeamPlayGameRules::PlayerKilled(
+    auto TeamGameRules::PlayerKilled(
         PlayerBase* victimBase,
         EntityVars* killerVars,
         EntityVars* inflictor
@@ -247,12 +267,14 @@ namespace rz
         }
     }
 
-    auto TeamPlayGameRules::PointsForKill(PlayerBase*, PlayerBase*) -> int {
+    auto TeamGameRules::PointsForKill(PlayerBase*, PlayerBase*) -> int {
         return 1;
     }
 
-    auto TeamPlayGameRules::DeathNotice(PlayerBase* victimBase, EntityVars* killerVars, EntityVars* inflictorVars)
-    -> void {
+    auto TeamGameRules::DeathNotice(
+        PlayerBase* victimBase, EntityVars* killerVars, EntityVars* inflictorVars
+    )
+        -> void {
         const auto& victim = Players[victimBase];
         auto killerId = 0;
         std::string_view weaponName{"world"};
@@ -282,7 +304,7 @@ namespace rz
         sendDeathMsg(TO_ALL, killerId, victim.id(), weaponName, victim.isHeadshotKilled());
     }
 
-    auto TeamPlayGameRules::GetPlayerSpawnSpot(PlayerBase* base) -> Edict* {
+    auto TeamGameRules::GetPlayerSpawnSpot(PlayerBase* base) -> Edict* {
         auto& player = Players[base];
         auto spawn = base->GetCsPlayer()->EntSelectSpawnPoint(); // to be removed
         player.setOrigin(spawn->vars.origin + Vector(0, 0, 1));
@@ -378,7 +400,10 @@ namespace rz
     }
     */
 
-    auto TeamPlayGameRules::GetPlayerRelationship(PlayerBase* player, EntityBase* target) -> PlayerRelationship {
+    auto TeamGameRules::GetPlayerRelationship(PlayerBase* player, EntityBase* target) -> PlayerRelationship {
+        if (player == target) {
+            return PlayerRelationship::Teammate;
+        }
         if (!player || !target) {
             return PlayerRelationship::NotTeammate;
         }
@@ -391,7 +416,7 @@ namespace rz
         return PlayerRelationship::Teammate;
     }
 
-    auto TeamPlayGameRules::InitializePlayerCounts(int& aliveTr, int& aliveCt, int& deadTr, int& deadCt) -> void {
+    auto TeamGameRules::InitializePlayerCounts(int& aliveTr, int& aliveCt, int& deadTr, int& deadCt) -> void {
         enum {
             DEAD,
             ALIVE,
@@ -410,7 +435,7 @@ namespace rz
         deadCt = playersCount[TEAM_HUMAN][DEAD];
     }
 
-    auto TeamPlayGameRules::ShouldSwitchWeapon(PlayerBase* base, PlayerItemBase* weapon) -> qboolean {
+    auto TeamGameRules::ShouldSwitchWeapon(PlayerBase* base, PlayerItemBase* weapon) -> qboolean {
         if (!weapon->CanDeploy()) {
             return false;
         }
@@ -442,7 +467,7 @@ namespace rz
         return false;
     }
 
-    auto TeamPlayGameRules::GetNextBestWeapon(PlayerBase* base, PlayerItemBase* weapon) -> qboolean {
+    auto TeamGameRules::GetNextBestWeapon(PlayerBase* base, PlayerItemBase* weapon) -> qboolean {
         if (!weapon->CanHolster()) {
             return false;
         }
@@ -471,7 +496,7 @@ namespace rz
     }
 
     // TODO cache file string
-    auto TeamPlayGameRules::SendMotdToClient(const Player& player) -> void {
+    auto TeamGameRules::SendMotdToClient(const Player& player) -> void {
         sendServerName(player, CvarGetString("hostname"));
         auto length = 0;
         const auto motdFile = LoadFileForMe(CvarGetString("motdfile"), &length);

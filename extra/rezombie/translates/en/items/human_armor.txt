@@ -1,0 +1,2 @@
+[en]
+RZ_ITEM_ARMOR = Armor

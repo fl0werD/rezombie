@@ -19,8 +19,10 @@ namespace rz
         using e = ForwardExecType;
         using p = ForwardParam;
 
-        registerForward(PlayerClassForward::ChangeClassPre, "@change_class_pre", e::Continue, p::Cell, p::Cell, p::Cell);
-        registerForward(PlayerClassForward::ChangeClassPost, "@change_class_post", e::Ignore, p::Cell, p::Cell, p::Cell);
+        registerForward(PlayerClassForward::ChangeClassPre, "@change_class_pre", e::Continue, p::Cell, p::Cell,
+                        p::Cell);
+        registerForward(PlayerClassForward::ChangeClassPost, "@change_class_post", e::Ignore, p::Cell, p::Cell,
+                        p::Cell);
     }
 
     auto create_class(Amx* amx, cell* params) -> cell {
@@ -50,14 +52,14 @@ namespace rz
     };
 
     const std::unordered_map<std::string, PlayerClassVars> PlayerClassVarsMap = {
-        {"handle",                     PlayerClassVars::Handle},
-        {"name",                       PlayerClassVars::Name},
-        {"team",                       PlayerClassVars::Team},
-        {"hud_color",                  PlayerClassVars::HudColor},
-        {"props",                      PlayerClassVars::Props},
-        {"models",                     PlayerClassVars::Models},
-        {"sounds",                     PlayerClassVars::Sounds},
-        {"melee",                      PlayerClassVars::Melee},
+        {"handle", PlayerClassVars::Handle},
+        {"name", PlayerClassVars::Name},
+        {"team", PlayerClassVars::Team},
+        {"hud_color", PlayerClassVars::HudColor},
+        {"props", PlayerClassVars::Props},
+        {"models", PlayerClassVars::Models},
+        {"sounds", PlayerClassVars::Sounds},
+        {"melee", PlayerClassVars::Melee},
         {"forward_give_default_items", PlayerClassVars::ForwardGiveDefaultItems},
     };
 
@@ -73,15 +75,16 @@ namespace rz
         using vars = PlayerClassVars;
         using p = ForwardParam;
 
-        const auto playerClassRef = Classes[params[arg_class]];
-        if (!playerClassRef) {
+        const int classId = params[arg_class];
+        const auto classRef = Classes[classId];
+        if (!classRef) {
             // Invalid index
             return false;
         }
         const auto key = GetAmxString(amx, params[arg_var]);
         const auto& var = getMapValue(PlayerClassVarsMap, key);
         CHECK_VAR_EXISTS("Invalid class '%s' var", key)
-        auto& playerClass = playerClassRef->get();
+        auto& playerClass = classRef->get();
         switch (*var) {
             case vars::Handle: {
                 if (isGetter) {
@@ -173,11 +176,100 @@ namespace rz
         return HandleClassVar(amx, params, false);
     }
 
-    auto class_begin(Amx*, cell*) -> cell {
+    auto is_class_extra_exists(Amx* amx, cell* params) -> cell {
+        enum {
+            arg_count,
+            arg_class,
+            arg_type,
+            arg_key,
+        };
+
+        const int classId = params[arg_class];
+        const auto classRef = Classes[classId];
+        if (!classRef) {
+            // Invalid index
+            return false;
+        }
+        auto& playerClass = classRef->get();
+        const auto type = static_cast<ExtraType>(params[arg_type]);
+        const auto key = GetAmxString(amx, params[arg_key]);
+        return playerClass.getExtras().isKeyExists(type, key);
+    }
+
+    auto HandleClassExtra(Amx* amx, cell* params, bool isGetter) -> cell {
+        enum {
+            arg_count,
+            arg_class,
+            arg_type,
+            arg_key,
+            arg_4,
+            arg_5,
+        };
+
+        const int classId = params[arg_class];
+        const auto classRef = Classes[classId];
+        if (!classRef) {
+            // Invalid index
+            return false;
+        }
+        auto& playerClass = classRef->get();
+        const auto type = static_cast<ExtraType>(params[arg_type]);
+        const auto* key = GetAmxString(amx, params[arg_key], 0);
+        switch (type) {
+            case ExtraType::Int: {
+                auto& extra = playerClass.getExtras().getInts();
+                if (isGetter) {
+                    const auto& var = getMapValue(extra, key);
+                    CHECK_VAR_EXISTS("Invalid class extra '%s' var (int)", key)
+                    return extra[key];
+                } else {
+                    extra[key] = *Address(amx, params[arg_4]);
+                }
+                break;
+            }
+            case ExtraType::Float: {
+                auto& extra = playerClass.getExtras().getFloats();
+                if (isGetter) {
+                    const auto& var = getMapValue(extra, key);
+                    CHECK_VAR_EXISTS("Invalid class extra '%s' var (float)", key)
+                    return FloatToCell(extra[key]);
+                } else {
+                    extra[key] = CellToFloat(*Address(amx, params[arg_4]));
+                }
+                break;
+            }
+            case ExtraType::String: {
+                auto& extra = playerClass.getExtras().getStrings();
+                if (isGetter) {
+                    const auto& var = getMapValue(extra, key);
+                    CHECK_VAR_EXISTS("Invalid class extra '%s' var (string)", key)
+                    SetAmxString(amx, params[arg_4], extra[key].c_str(), *Address(amx, params[arg_5]));
+                } else {
+                    extra[key] = GetAmxString(amx, params[arg_4], 1);
+                }
+                break;
+            }
+        }
+        return true;
+    }
+
+    auto get_class_extra(Amx* amx, cell* params) -> cell {
+        return HandleClassExtra(amx, params, true);
+    }
+
+    auto set_class_extra(Amx* amx, cell* params) -> cell {
+        return HandleClassExtra(amx, params, false);
+    }
+
+    auto classes_count(Amx*, cell*) -> cell {
+        return Classes.count();
+    }
+
+    auto classes_begin(Amx*, cell*) -> cell {
         return Classes.begin();
     }
 
-    auto class_end(Amx*, cell*) -> cell {
+    auto classes_end(Amx*, cell*) -> cell {
         return Classes.end();
     }
 
@@ -193,14 +285,18 @@ namespace rz
 
     auto AmxxPlayerClass::registerNatives() const -> void {
         static AmxNativeInfo natives[] = {
-            {"create_class",  create_class},
+            {"create_class", create_class},
             {"get_class_var", get_class_var},
             {"set_class_var", set_class_var},
-            {"class_begin",   class_begin},
-            {"class_end",     class_end},
-            {"find_class",    find_class},
+            {"is_class_extra_exists", is_class_extra_exists},
+            {"get_class_extra", get_class_extra},
+            {"set_class_extra", set_class_extra},
+            {"classes_count", classes_count},
+            {"classes_begin", classes_begin},
+            {"classes_end", classes_end},
+            {"find_class", find_class},
 
-            {nullptr,         nullptr},
+            {nullptr, nullptr},
         };
         AddNatives(natives);
     }

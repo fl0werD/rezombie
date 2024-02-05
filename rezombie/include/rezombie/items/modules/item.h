@@ -7,7 +7,7 @@ namespace rz
 {
     class ItemModule : public Module<Item> {
       public:
-        ItemModule() : Module<Item>("item") {}
+        ItemModule() : Module("item") {}
 
         auto add(std::string handle, int giveForward) -> int {
             return Module::add(new Item(std::move(handle), giveForward));

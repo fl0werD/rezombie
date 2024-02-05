@@ -66,11 +66,15 @@ namespace rz
         return HandleMapCamerasVar(amx, params, false);
     }
 
-    auto map_camera_begin(Amx*, cell*) -> cell {
+    auto map_cameras_count(Amx*, cell*) -> cell {
+        return MapCameras.count();
+    }
+
+    auto map_cameras_begin(Amx*, cell*) -> cell {
         return MapCameras.begin();
     }
 
-    auto map_camera_end(Amx*, cell*) -> cell {
+    auto map_cameras_end(Amx*, cell*) -> cell {
         return MapCameras.end();
     }
 
@@ -78,8 +82,9 @@ namespace rz
         static AmxNativeInfo natives[] = {
             {"get_map_camera_var", get_map_camera_var},
             {"set_map_camera_var", set_map_camera_var},
-            {"map_camera_begin",   map_camera_begin},
-            {"map_camera_end",     map_camera_end},
+            {"map_cameras_count",  map_cameras_count},
+            {"map_cameras_begin",  map_cameras_begin},
+            {"map_cameras_end",    map_cameras_end},
 
             {nullptr,              nullptr},
         };

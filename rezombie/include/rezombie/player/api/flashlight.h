@@ -6,7 +6,7 @@ namespace rz
 {
     class AmxxFlashlight : public AmxxFeature<> {
       public:
-        AmxxFlashlight() : AmxxFeature("getFlashlight") {}
+        AmxxFlashlight() : AmxxFeature("flashlight") {}
 
         auto registerNatives() const -> void override;
     };

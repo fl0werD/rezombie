@@ -15,15 +15,13 @@ namespace rz
             arg_color,
         };
 
-        const auto name = GetAmxString(amx, params[arg_name]);
-        const auto colors = Address(amx, params[arg_color]);
-        const auto color = Color(
-            toUChar(colors[0]),
-            toUChar(colors[1]),
-            toUChar(colors[2]),
-            toUChar(colors[3])
-        );
-        Colors.add(name, color);
+        const auto name = GetAmxString(amx, params[arg_name], 0);
+        const auto color = GetAmxString(amx, params[arg_color], 1);
+        const auto colorRef = Colors.parse(color);
+        if (!colorRef) {
+            return false;
+        }
+        Colors.add(name, *colorRef);
         return true;
     }
 

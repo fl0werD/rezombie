@@ -1,6 +1,5 @@
 #include "rezombie/thirdcamera/third_camera.h"
 #include <metamod/engine.h>
-#include <metamod/gamedll.h>
 
 namespace rz
 {
@@ -15,5 +14,8 @@ namespace rz
         vars->class_name = AllocString("third_camera");
         vars->model_index = PrecacheModel(AllocString("models/w_hegrenade.mdl"));//-1;
         vars->move_type = MoveTypeEntity::NoClip;
+        vars->render_mode = Rendering::TransAlpha;
+        vars->render_fx = RenderingFx::None;
+        vars->render_amount = 0;
     }
 }

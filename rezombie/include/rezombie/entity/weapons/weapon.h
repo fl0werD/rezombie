@@ -6,6 +6,8 @@
 
 namespace rz
 {
+    constexpr auto WEAPON_PLACEHOLDER = "weapon_ak47";
+
     class Weapon : public BaseWeapon {
         float baseAccuracy_ = 0.f;
         CrosshairSize crosshairSize_ = CrosshairSize::None;

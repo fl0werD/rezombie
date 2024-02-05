@@ -1,0 +1,3 @@
+[ru]
+RZ_SUBHUMAN_DEAD_NAME = Мертвый внутри
+RZ_SUBHUMAN_DEAD_DESC = Броня+

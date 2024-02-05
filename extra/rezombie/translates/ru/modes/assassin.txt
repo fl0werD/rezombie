@@ -1,0 +1,4 @@
+[ru]
+MODE_ASSASSIN_NAME = Ассасин
+MODE_ASSASSIN_DESC = Ассасин vs. Люди
+MODE_ASSASSIN_NOTICE = Ассасин (%n) против людей

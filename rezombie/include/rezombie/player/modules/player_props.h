@@ -7,7 +7,7 @@ namespace rz
 {
     class Props : public Module<PlayerProps> {
       public:
-        Props() : Module<PlayerProps>("player_props") {}
+        Props() : Module("player_props") {}
 
         auto add(std::string handle) -> int {
             return Module::add(new PlayerProps(std::move(handle)));

@@ -1,0 +1,5 @@
+[ru]
+AMMO_PACKS_SHORT = кр.
+AMMO_PACKS_ONE = кредит
+AMMO_PACKS_FEW = кредита
+AMMO_PACKS_MANY = кредитов

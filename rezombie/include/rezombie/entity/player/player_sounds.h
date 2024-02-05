@@ -2,7 +2,6 @@
 
 #include "rezombie/core/object.h"
 #include <array>
-#include <utility>
 
 namespace rz
 {
@@ -21,7 +20,15 @@ namespace rz
         std::array<std::vector<std::string>, toInt(PlayerSoundType::MAX_SOUND_TYPES)> sounds_;
         std::array<bool, toInt(PlayerSoundType::MAX_SOUND_TYPES)> isDefault_{};
 
-        auto addDefault(PlayerSoundType soundType, const std::string& path) -> void {
+        auto sounds(const PlayerSoundType soundType) -> std::vector<std::string>& {
+            return sounds_[toInt(soundType)];
+        }
+
+        auto isDefault(const PlayerSoundType soundType) -> bool& {
+            return isDefault_[toInt(soundType)];
+        }
+
+        auto addDefault(const PlayerSoundType soundType, const std::string& path) -> void {
             sounds_[toInt(soundType)].emplace_back(path);
         }
 
@@ -42,20 +49,19 @@ namespace rz
             addDefault(PlayerSoundType::Death, "player/death6.wav");
         }
 
-        auto add(PlayerSoundType soundType, const std::string& path) -> void {
-            auto soundTypeInt = toInt(soundType);
-            if (isDefault_[soundTypeInt]) {
-                sounds_[soundTypeInt].clear();
-                isDefault_[soundTypeInt] = false;
+        auto add(const PlayerSoundType soundType, const std::string& path) -> void {
+            if (isDefault(soundType)) {
+                isDefault(soundType) = false;
+                sounds(soundType).clear();
             }
-            sounds_[soundTypeInt].emplace_back(path);
+            sounds(soundType).emplace_back(path);
         }
 
-        auto getRandom(PlayerSoundType soundType) const -> const std::string& {
+        auto getRandom(const PlayerSoundType soundType) -> const std::string& {
             // if (sounds_[toInt(soundType)].empty()) {
             //     return nullptr;
             // }
-            return sounds_[toInt(soundType)][RandomLong(0, sounds_[toInt(soundType)].size() - 1)];
+            return sounds(soundType)[RandomLong(0, sounds(soundType).size() - 1)];
         }
     };
 }

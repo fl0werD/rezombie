@@ -3,8 +3,6 @@
 #include "rezombie/core/object.h"
 #include "cssdk/public/regamedll/regamedll_consts.h"
 
-#include <utility>
-
 namespace rz
 {
     using namespace cssdk;

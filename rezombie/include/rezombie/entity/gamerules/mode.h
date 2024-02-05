@@ -5,47 +5,83 @@
 
 namespace rz
 {
+    enum class RespawnType {
+        Off,
+        ToHumansTeam,
+        ToZombiesTeam,
+        Balance,
+    };
+
     class Mode : public Object {
-        std::string hudColor_{"white"};
+        std::string description_;
+        std::string noticeMessage_;
+        std::string color_{"white"};
         int dropChance_ = 20;
         int minimumPlayers_ = 0;
         int roundTime_ = 0;
+        bool isSupportTarget_{};
+        RespawnType respawnType_ = RespawnType::Off;
+        std::vector<std::string> ambienceSounds_{};
         int launchForward_{};
 
       public:
         Mode(
             std::string handle,
-            int launchForward
+            int launchForward,
+            bool isSupportTarget
         ) : Object(std::move(handle)),
-            launchForward_(launchForward) {}
+            launchForward_(launchForward),
+            isSupportTarget_(isSupportTarget) {}
 
-        auto getHudColor() const -> const std::string& { return hudColor_; }
+        auto getDescription() const -> const std::string& { return description_; }
 
-        auto setHudColor(std::string hudColor) -> void { hudColor_ = std::move(hudColor); }
+        auto setDescription(std::string description) -> void { description_ = std::move(description); }
 
-        auto getDropChance() const { return dropChance_; }
+        auto getNoticeMessage() const -> const std::string& { return noticeMessage_; }
 
-        auto setDropChance(int dropChance) { dropChance_ = dropChance; }
+        auto setNoticeMessage(std::string noticeMessage) -> void { noticeMessage_ = std::move(noticeMessage); }
 
-        auto getMinPlayers() const { return minimumPlayers_; }
+        auto getColor() const -> const std::string& { return color_; }
 
-        auto setMinPlayers(int minimumPlayers) { minimumPlayers_ = minimumPlayers; }
+        auto setColor(std::string color) -> void { color_ = std::move(color); }
 
-        auto getRoundTime() const { return roundTime_; }
+        auto getDropChance() const -> int { return dropChance_; }
 
-        auto setRoundTime(int roundTime) { roundTime_ = roundTime; }
+        auto setDropChance(int dropChance) -> void { dropChance_ = dropChance; }
 
-        auto getLaunchForward() const { return launchForward_; }
+        auto getMinPlayers() const -> int { return minimumPlayers_; }
 
-        auto setLaunchForward(int launchForward) { launchForward_ = launchForward; }
+        auto setMinPlayers(int minimumPlayers) -> void { minimumPlayers_ = minimumPlayers; }
 
-        auto executeLaunch(int modeId) const -> bool {
-            // no need because consturctor
-            if (getLaunchForward() == FORWARD_INVALID) {
-                return false;
-            }
-            ExecuteForward(getLaunchForward(), modeId);
-            return true;
+        auto getRoundTime() const -> int { return roundTime_; }
+
+        auto setRoundTime(int roundTime) -> void { roundTime_ = roundTime; }
+
+        auto isSupportTarget() const -> bool { return isSupportTarget_; }
+
+        auto setSupportTarget(bool isSupportTarget) -> void { isSupportTarget_ = isSupportTarget; }
+
+        auto getRespawn() const -> RespawnType { return respawnType_; }
+
+        auto setRespawn(const RespawnType respawnType) -> void { respawnType_ = respawnType; }
+
+        auto addAmbienceSound(const std::string& path) -> void {
+            ambienceSounds_.emplace_back(path);
+        }
+
+        auto getRandomAmbienceSound() const -> const std::string& {
+            // if (sounds_[toInt(soundType)].empty()) {
+            //     return nullptr;
+            // }
+            return ambienceSounds_[RandomLong(0, ambienceSounds_.size() - 1)];
+        }
+
+        auto getLaunchForward() const -> int { return launchForward_; }
+
+        auto setLaunchForward(int launchForward) -> void { launchForward_ = launchForward; }
+
+        auto executeLaunch(int target = 0) const -> int {
+            return ExecuteForward(getLaunchForward(), target);
         }
     };
 }
